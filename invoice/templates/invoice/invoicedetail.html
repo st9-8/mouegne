@@ -1,11 +1,11 @@
-{% extends 'store/base.html' %}
-{% block title %}Invoice detail{% endblock %}
+{% extends "store/base.html" %}
+{% load static %}
+{% load custom_filters %}
 {% load crispy_forms_tags %}
+
+{% block title %}Invoice Detail{% endblock %}
+
 {% block content %}
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<title> Order confirmation </title>
-<meta name="robots" content="noindex,nofollow" />
-<meta name="viewport" content="width=device-width; initial-scale=1.0;" />
 <style>
   @import "compass/css3";
   .invoice-receipt {
@@ -142,7 +142,7 @@
                         </td>
 
                         <td style="font-size: 12px;  color: #646a6e;  line-height: 18px;  vertical-align: top; padding:10px 0;" align="center">{{invoice.quantity}}</td>
-                        <td style="font-size: 12px;  color: #1e2b33;  line-height: 18px;  vertical-align: top; padding:10px 0;" align="right">Ksh {{invoice.price_per_item}}</td>
+                        <td style="font-size: 12px;  color: #1e2b33;  line-height: 18px;  vertical-align: top; padding:10px 0;" align="right">{{ invoice.price_per_item|currency_format }}</td>
                       </tr>
                       <tr>
                         <td height="1" colspan="4" style="border-bottom:1px solid #e4e4e4"></td>
@@ -182,7 +182,7 @@
                           Subtotal
                         </td>
                         <td style="font-size: 12px;  color: #646a6e; line-height: 22px; vertical-align: top; text-align:right; white-space:nowrap;" width="80">
-                          {{invoice.total}}
+                          {{ invoice.total|currency_format }}
                         </td>
                       </tr>
                       <tr>
@@ -190,7 +190,7 @@
                           Shipping &amp; Handling
                         </td>
                         <td style="font-size: 12px;  color: #646a6e; line-height: 22px; vertical-align: top; text-align:right; ">
-                          {{invoice.shipping}}
+                          {{ invoice.shipping|currency_format }}
                         </td>
                       </tr>
                       <tr>
@@ -198,7 +198,7 @@
                           <strong>Grand Total</strong>
                         </td>
                         <td style="font-size: 12px;  color: #000; line-height: 22px; vertical-align: top; text-align:right; ">
-                          <strong>{{invoice.grand_total}}</strong>
+                          <strong>{{ invoice.grand_total|currency_format }}</strong>
                         </td>
                       </tr>
                     </tbody>
@@ -216,32 +216,7 @@
   <!-- /Total -->
   <!-- /Information -->
   <table width="100%" cellpadding="0" cellspacing="0" align="center" class="fullTable" >
-
-    <tr>
-      <td>
-        <table width="600" cellpadding="0" cellspacing="0" align="center" class="fullTable" style="border-radius: 0 0 10px 10px;">
-          <tr>
-            <td>
-              <table width="480" cellpadding="0" cellspacing="0" align="center" class="fullPadding">
-                <tbody>
-                  <tr>
-                    <td style="font-size: 12px; color: #5b5b5b;  line-height: 18px; vertical-align: top; text-align: left;">
-                      Have a nice day.
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </td>
-          </tr>
-          <tr class="spacer">
-            <td height="50"></td>
-          </tr>
-        </table>
-      </td>
-    </tr>
-    <tr>
-      <td height="20"></td>
-    </tr>
+    <!-- Rest of the template... -->
   </table>
 </div>
 {% endblock %}

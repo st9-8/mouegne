@@ -1,16 +1,18 @@
 from django import forms
+from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import UserCreationForm
-from django.contrib.auth.models import User
 
-from .models import Profile, Customer, Vendor
+from accounts.models import Vendor
+from accounts.models import Setting
+from accounts.models import Customer
+
+User = get_user_model()
 
 
 class CreateUserForm(UserCreationForm):
-    """Form for creating a new user with an email field."""
     email = forms.EmailField()
 
     class Meta:
-        """Meta options for the CreateUserForm."""
         model = User
         fields = [
             'username',
@@ -21,9 +23,7 @@ class CreateUserForm(UserCreationForm):
 
 
 class UserUpdateForm(forms.ModelForm):
-    """Form for updating existing user information."""
     class Meta:
-        """Meta options for the UserUpdateForm."""
         model = User
         fields = [
             'username',
@@ -31,22 +31,9 @@ class UserUpdateForm(forms.ModelForm):
         ]
 
 
-class ProfileUpdateForm(forms.ModelForm):
-    """Form for updating user profile information."""
-    class Meta:
-        """Meta options for the ProfileUpdateForm."""
-        model = Profile
-        fields = [
-            'telephone',
-            'email',
-            'first_name',
-            'last_name',
-            'profile_picture'
-        ]
-
-
 class CustomerForm(forms.ModelForm):
     """Form for creating/updating customer information."""
+
     class Meta:
         model = Customer
         fields = [
@@ -88,6 +75,7 @@ class CustomerForm(forms.ModelForm):
 
 class VendorForm(forms.ModelForm):
     """Form for creating/updating vendor information."""
+
     class Meta:
         model = Vendor
         fields = ['name', 'phone_number', 'address']
@@ -101,4 +89,17 @@ class VendorForm(forms.ModelForm):
             'address': forms.TextInput(
                 attrs={'class': 'form-control', 'placeholder': 'Address'}
             ),
+        }
+
+
+class SettingForm(forms.ModelForm):
+    class Meta:
+        model = Setting
+        fields = ['name', 'email', 'phone_number', 'address', 'tax_number', 'logo']
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control'}),
+            'email': forms.EmailInput(attrs={'class': 'form-control'}),
+            'phone_number': forms.TextInput(attrs={'class': 'form-control'}),
+            'address': forms.TextInput(attrs={'class': 'form-control'}),
+            'tax_number': forms.TextInput(attrs={'class': 'form-control'}),
         }

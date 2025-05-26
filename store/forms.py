@@ -14,6 +14,7 @@ class ItemForm(forms.ModelForm):
             'category',
             'quantity',
             'price',
+            'purchase_price',
             'expiring_date',
             'vendor'
         ]
@@ -28,6 +29,12 @@ class ItemForm(forms.ModelForm):
             'category': forms.Select(attrs={'class': 'form-control'}),
             'quantity': forms.NumberInput(attrs={'class': 'form-control'}),
             'price': forms.NumberInput(
+                attrs={
+                    'class': 'form-control',
+                    'step': '0.01'
+                }
+            ),
+            'purchase_price': forms.NumberInput(
                 attrs={
                     'class': 'form-control',
                     'step': '0.01'

@@ -1,38 +1,18 @@
 from django.db import models
-from django.contrib.auth.models import User
+from django.core.cache import cache
+from django.db.utils import OperationalError
+from django.db.utils import ProgrammingError
+from django.core.exceptions import ValidationError
 
-from django_extensions.db.fields import AutoSlugField
-from imagekit.models import ProcessedImageField
 from imagekit.processors import ResizeToFill
+from imagekit.models import ProcessedImageField
+from django_extensions.db.fields import AutoSlugField
 from phonenumber_field.modelfields import PhoneNumberField
 
-
-# Define choices for profile status and roles
-STATUS_CHOICES = [
-    ('INA', 'Inactive'),
-    ('A', 'Active'),
-    ('OL', 'On leave')
-]
-
-ROLE_CHOICES = [
-    ('OP', 'Operative'),
-    ('EX', 'Executive'),
-    ('AD', 'Admin')
-]
+from django.contrib.auth.models import AbstractUser
 
 
-class Profile(models.Model):
-    """
-    Represents a user profile containing personal and account-related details.
-    """
-    user = models.OneToOneField(
-        User, on_delete=models.CASCADE, verbose_name='User'
-    )
-    slug = AutoSlugField(
-        unique=True,
-        verbose_name='Account ID',
-        populate_from='email'
-    )
+class User(AbstractUser):
     profile_picture = ProcessedImageField(
         default='profile_pics/default.jpg',
         upload_to='profile_pics',
@@ -43,51 +23,17 @@ class Profile(models.Model):
     telephone = PhoneNumberField(
         null=True, blank=True, verbose_name='Telephone'
     )
-    email = models.EmailField(
-        max_length=150, blank=True, null=True, verbose_name='Email'
-    )
-    first_name = models.CharField(
-        max_length=30, blank=True, verbose_name='First Name'
-    )
-    last_name = models.CharField(
-        max_length=30, blank=True, verbose_name='Last Name'
-    )
-    status = models.CharField(
-        choices=STATUS_CHOICES,
-        max_length=12,
-        default='INA',
-        verbose_name='Status'
-    )
-    role = models.CharField(
-        choices=ROLE_CHOICES,
-        max_length=12,
-        blank=True,
-        null=True,
-        verbose_name='Role'
-    )
 
     @property
     def image_url(self):
         """
-        Returns the URL of the profile picture.
-        Returns an empty string if the image is not available.
+            Returns the URL of the profile picture.
+            Returns an empty string if the image is not available.
         """
         try:
             return self.profile_picture.url
         except AttributeError:
             return ''
-
-    def __str__(self):
-        """
-        Returns a string representation of the profile.
-        """
-        return f"{self.user.username} Profile"
-
-    class Meta:
-        """Meta options for the Profile model."""
-        ordering = ['slug']
-        verbose_name = 'Profile'
-        verbose_name_plural = 'Profiles'
 
 
 class Vendor(models.Model):
@@ -142,3 +88,47 @@ class Customer(models.Model):
             "value": self.id
         }
         return item
+
+
+class Singleton(models.Model):
+    class Meta:
+        abstract = True
+
+    def save(self, *args, **kwargs):
+        self.pk = 1
+        super(Singleton, self).save(*args, **kwargs)
+        self.set_cache()
+
+    def delete(self, using=None, keep_parents=False):
+        raise ValidationError(_('Unable to delete this model'))
+
+    def set_cache(self):
+        cache.set(self.__class__.__name__, self)
+
+    @classmethod
+    def load(cls):
+        from django.db import connection
+        if 'accounts_setting' not in connection.introspection.table_names():
+            return
+
+        try:
+            if cache.get(cls.__name__) is None:
+                unique_instance, created = cls.objects.get_or_create(pk=1)
+                if not created:
+                    unique_instance.set_cache()
+        except (ProgrammingError, OperationalError):
+            pass
+
+        return cache.get(cls.__name__)
+
+
+class Setting(Singleton):
+    name = models.CharField(max_length=255)
+    email = models.EmailField()
+    phone_number = models.CharField(max_length=13)
+    address = models.CharField(max_length=255)
+    tax_number = models.CharField(max_length=255)
+    logo = models.ImageField(upload_to='logos/')
+
+    def __str__(self):
+        return self.name

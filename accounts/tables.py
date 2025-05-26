@@ -1,15 +1,12 @@
 import django_tables2 as tables
-from django.shortcuts import render
+from django.contrib.auth import get_user_model
 
-from .models import Profile
+User = get_user_model()
 
 
-class ProfileTable(tables.Table):
-    """Table representation for Profile model."""
-
+class UserTable(tables.Table):
     class Meta:
-        """Meta options for the ProfileTable."""
-        model = Profile
+        model = User
         template_name = "django_tables2/semantic.html"
         fields = (
             'date',
@@ -20,4 +17,3 @@ class ProfileTable(tables.Table):
             'quantity',
             'total'
         )
-        order_by_field = 'sort'

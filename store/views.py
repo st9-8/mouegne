@@ -15,9 +15,11 @@ import operator
 from functools import reduce
 
 # Django core imports
+from django.db.models import F
 from django.shortcuts import render
-from django.urls import reverse, reverse_lazy
 from django.http import JsonResponse
+from django.contrib.auth import get_user_model
+from django.urls import reverse, reverse_lazy
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
 from django.db.models import Q, Count, Sum
@@ -33,48 +35,92 @@ from django.views.generic import (
 from django.views.generic.edit import FormMixin
 
 # Third-party packages
-from django_tables2 import SingleTableView
 import django_tables2 as tables
+from django_tables2 import SingleTableView
 from django_tables2.export.views import ExportMixin
 
 # Local app imports
-from accounts.models import Profile, Vendor
+from accounts.models import Vendor
 from transactions.models import Sale
 from .models import Category, Item, Delivery
 from .forms import ItemForm, CategoryForm, DeliveryForm
 from .tables import ItemTable
 
+User = get_user_model()
+
+from datetime import datetime, timedelta
+from django.utils import timezone
+from django.db.models import Q
+
 
 @login_required
 def dashboard(request):
-    profiles = Profile.objects.all()
-    Category.objects.annotate(nitem=Count("item"))
-    items = Item.objects.all()
-    total_items = (
-        Item.objects.all()
-        .aggregate(Sum("quantity"))
-        .get("quantity__sum", 0.00)
-    )
+    # Get filter dates from request
+    date_after = request.GET.get('date_after')
+    date_before = request.GET.get('date_before')
+
+    # Base queryset for sales with date filtering
+    sales_query = Sale.objects.all()
+
+    # Apply date filters if provided
+    if date_after:
+        try:
+            date_after = datetime.strptime(date_after, '%Y-%m-%d').date()
+            sales_query = sales_query.filter(date_added__date__gte=date_after)
+        except ValueError:
+            pass
+
+    if date_before:
+        try:
+            date_before = datetime.strptime(date_before, '%Y-%m-%d').date()
+            sales_query = sales_query.filter(date_added__date__lte=date_before)
+        except ValueError:
+            pass
+
+    # Calculate today's sales
+    today = timezone.now().date()
+    today_sales = Sale.objects.filter(date_added__date=today).aggregate(
+        total=Sum('grand_total')
+    ).get('total', 0.00) or 0
+
+    # Calculate total purchases (sum of purchase_price * quantity for all items)
+    total_purchases = Item.objects.annotate(
+        item_value=F('purchase_price') * F('quantity')
+    ).aggregate(total=Sum('item_value')).get('total', 0.00) or 0
+
+    # Optimize queries with select_related and annotate
+    profiles = User.objects.all()
+    items = Item.objects.select_related('category', 'vendor')
+
+    # Calculate totals efficiently
+    total_items = Item.objects.aggregate(Sum("quantity")).get("quantity__sum", 0.00) or 0
     items_count = items.count()
     profiles_count = profiles.count()
 
-    # Prepare data for charts
+    # Calculate turnover (total of all sales) with date filtering
+    turnover = sales_query.aggregate(total=Sum('grand_total')).get('total', 0.00) or 0
+
+    # Prepare data for charts - optimize with values and annotate
     category_counts = Category.objects.annotate(
         item_count=Count("item")
     ).values("name", "item_count")
+
     categories = [cat["name"] for cat in category_counts]
     category_counts = [cat["item_count"] for cat in category_counts]
 
+    # Optimize sales data query with date filtering
     sale_dates = (
-        Sale.objects.values("date_added__date")
+        sales_query.values("date_added__date")
         .annotate(total_sales=Sum("grand_total"))
         .order_by("date_added__date")
     )
+
     sale_dates_labels = [
         date["date_added__date"].strftime("%Y-%m-%d") for date in sale_dates
     ]
     sale_dates_values = [float(date["total_sales"]) for date in sale_dates]
 
+    # Maintain the same context keys
     context = {
         "items": items,
         "profiles": profiles,
@@ -83,12 +129,18 @@ def dashboard(request):
         "total_items": total_items,
         "vendors": Vendor.objects.all(),
         "delivery": Delivery.objects.all(),
-        "sales": Sale.objects.all(),
+        "sales": sales_query,  # Filtered sales
         "categories": categories,
         "category_counts": category_counts,
         "sale_dates_labels": sale_dates_labels,
         "sale_dates_values": sale_dates_values,
+        "turnover": turnover,
+        "today_sales": today_sales,
+        "total_purchases": total_purchases,
+        "date_after": date_after,
+        "date_before": date_before,
     }
+
     return render(request, "store/dashboard.html", context)
 
 

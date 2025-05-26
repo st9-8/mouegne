@@ -1,5 +1,6 @@
 {% extends "store/base.html" %}
 {% load static %}
+{% load custom_filters %}
 {% block title %}Dashboard{% endblock title %}
 
 {% block content %}
@@ -12,6 +13,27 @@
         <!-- Main -->
         <main class="py-6 bg-surface-secondary">
             <div class="container-fluid">
+                <!-- Date filter form -->
+                <div class="card shadow border-0 mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title mb-3">Filter Dashboard</h5>
+                        <form method="get" class="row g-3 align-items-end">
+                            <div class="col-md-4">
+                                <label for="date_after" class="form-label">From Date</label>
+                                <input type="date" class="form-control" id="date_after" name="date_after"
+                                       value="{{ date_after|date:'Y-m-d' }}" placeholder="From Date">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="date_before" class="form-label">To Date</label>
+                                <input type="date" class="form-control" id="date_before" name="date_before"
+                                       value="{{ date_before|date:'Y-m-d' }}" placeholder="To Date">
+                            </div>
+                            <div class="col-md-4">
+                                <button type="submit" class="btn btn-success w-100">Apply Filter</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
                 <!-- Card stats -->
                 <div class="row g-6 mb-6">
                     <style>
@@ -120,9 +142,122 @@
                         </a>
                     </div>
                 </div>
+                <div class="row g-6 mb-6">
+                    <style>
+                        a {
+                            text-decoration: none;
+                        }
+                    </style>
+                    <div class="col-xl-3 col-sm-6 col-12" id="turnover">
+                        <a href="{% url 'saleslist' %}">
+                            <div class="card shadow border-0">
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col">
+                                            <span class="h6 font-semibold text-muted text-sm d-block mb-2">Turnover</span>
+                                            <span class="h3 font-bold mb-0">{{turnover|currency_format}}</span>
+                                        </div>
+                                        <div class="col-auto">
+                                            <div class="icon icon-shape bg-success text-white text-lg rounded-circle">
+                                                <i class="fa fa-money-bill-wave"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="mt-2 mb-0 text-sm">
+                                        <span class="badge badge-pill bg-soft-success text-success me-2">
+                                            <i class="fa fa-arrow-up me-1"></i>15%
+                                        </span>
+                                        <span class="text-nowrap text-xs text-muted">Since last month</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-xl-3 col-sm-6 col-12" id="today-sales">
+                        <a href="{% url 'saleslist' %}">
+                            <div class="card shadow border-0">
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col">
+                                            <span class="h6 font-semibold text-muted text-sm d-block mb-2">Today's Sales</span>
+                                            <span class="h3 font-bold mb-0">{{today_sales|currency_format}}</span>
+                                        </div>
+                                        <div class="col-auto">
+                                            <div class="icon icon-shape bg-info text-white text-lg rounded-circle">
+                                                <i class="fa fa-calendar-day"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="mt-2 mb-0 text-sm">
+                            <span class="badge badge-pill bg-soft-success text-success me-2">
+                                <i class="fa fa-arrow-up me-1"></i>Today
+                            </span>
+                                        <span class="text-nowrap text-xs text-muted">{{ today|date:"Y-m-d" }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-xl-3 col-sm-6 col-12" id="purchases">
+                        <a href="{% url 'productslist' %}">
+                            <div class="card shadow border-0">
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col">
+                                            <span class="h6 font-semibold text-muted text-sm d-block mb-2">Purchases</span>
+                                            <span class="h3 font-bold mb-0">{{ total_purchases|currency_format }}</span>
+                                        </div>
+                                        <div class="col-auto">
+                                            <div class="icon icon-shape bg-tertiary text-white text-lg rounded-circle">
+                                                <i class="fa fa-clipboard-list"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="mt-2 mb-0 text-sm">
+                                        <span class="badge badge-pill bg-soft-success text-success me-2">
+                                            <i class="fa fa-arrow-up me-1"></i>13%
+                                        </span>
+                                        <span class="text-nowrap text-xs text-muted">Since last month</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
                 {% include 'store/charts.html' %}
             </div>
         </main>
     </div>
 </div>
 {% endblock content %}
+
+{% block javascripts %}
+<script>
+    // Set max date for date inputs to today
+    document.addEventListener('DOMContentLoaded', function() {
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('date_after').max = today;
+        document.getElementById('date_before').max = today;
+
+        // Ensure "from date" is not after "to date"
+        document.getElementById('date_after').addEventListener('change', function() {
+            const fromDate = this.value;
+            const toDateInput = document.getElementById('date_before');
+
+            if (fromDate && toDateInput.value && fromDate > toDateInput.value) {
+                toDateInput.value = fromDate;
+            }
+        });
+
+        // Ensure "to date" is not before "from date"
+        document.getElementById('date_before').addEventListener('change', function() {
+            const toDate = this.value;
+            const fromDateInput = document.getElementById('date_after');
+
+            if (toDate && fromDateInput.value && toDate < fromDateInput.value) {
+                fromDateInput.value = toDate;
+            }
+        });
+    });
+</script>
+{% endblock javascripts %}

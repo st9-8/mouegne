@@ -16,7 +16,10 @@ from .views import (
     SaleDeleteView,
 
     export_sales_to_excel,
-    export_purchases_to_excel
+    export_purchases_to_excel,
+    print_sale_receipt,
+    download_sale_receipt,
+    get_printers
 )
 
 # URL patterns
@@ -24,35 +27,38 @@ urlpatterns = [
     # Purchase URLs
     path('purchases/', PurchaseListView.as_view(), name='purchaseslist'),
     path(
-         'purchase/<slug:slug>/', PurchaseDetailView.as_view(),
-         name='purchase-detail'
-     ),
+        'purchase/<slug:slug>/', PurchaseDetailView.as_view(),
+        name='purchase-detail'
+    ),
     path(
-         'new-purchase/', PurchaseCreateView.as_view(),
-         name='purchase-create'
-     ),
+        'new-purchase/', PurchaseCreateView.as_view(),
+        name='purchase-create'
+    ),
     path(
-         'purchase/<int:pk>/update/', PurchaseUpdateView.as_view(),
-         name='purchase-update'
-     ),
+        'purchase/<int:pk>/update/', PurchaseUpdateView.as_view(),
+        name='purchase-update'
+    ),
     path(
-         'purchase/<int:pk>/delete/', PurchaseDeleteView.as_view(),
-         name='purchase-delete'
-     ),
+        'purchase/<int:pk>/delete/', PurchaseDeleteView.as_view(),
+        name='purchase-delete'
+    ),
 
     # Sale URLs
     path('sales/', SaleListView.as_view(), name='saleslist'),
     path('sale/<int:pk>/', SaleDetailView.as_view(), name='sale-detail'),
     path('new-sale/', SaleCreateView, name='sale-create'),
     path(
-         'sale/<slug:slug>/delete/', SaleDeleteView.as_view(),
-         name='sale-delete'
-     ),
+        'sale/<slug:slug>/delete/', SaleDeleteView.as_view(),
+        name='sale-delete'
+    ),
 
     # Sales and purchases export
     path('sales/export/', export_sales_to_excel, name='sales-export'),
     path('purchases/export/', export_purchases_to_excel,
          name='purchases-export'),
+    path('sales/<int:pk>/print/', print_sale_receipt, name='sale-print'),
+    path('sales/<int:pk>/download-pdf/', download_sale_receipt, name='sale-download-pdf'),
+    path('sales/printers/', get_printers, name='get-printers')
 ]
 
 # Static media files configuration for development

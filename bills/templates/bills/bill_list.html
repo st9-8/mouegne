@@ -2,40 +2,20 @@
 {% load render_table from django_tables2 %}
 {% load querystring from django_tables2 %}
 {% load static %}
+{% load custom_filters %}
 
 {% block title %}Bills{% endblock title %}
 
 {% block content %}
 <div class="container p-5">
-    <style>
-        input[type="text"], select {
-            box-sizing: border-box;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            display: inline-block;
-            padding: 6px 20px;
-            margin: 8px 0;
-        }
-        button[type="submit"] {
-            padding: 6px 20px;
-            margin: 8px 0;
-        }
-        .table th, .table td {
-            text-align: center;
-        }
-    </style>
-
-    <!-- Search Form (Commented Out) -->
-    {% comment %}
-    <form method="GET" class="container mb-3">
-        {{ filter.form }}
-        <button type="submit" class="btn btn-sm btn-success fa fa-search"> Search</button>
-    </form>
-    {% endcomment %}
-
+  <style>
+    .table th, .table td {
+        text-align: center;
+    }
+  </style>
     <div class="mb-3">
         <a class="btn btn-success btn-sm" href="{% url 'bill_create' %}">
-            <i class="fa-solid fa-plus me-2"></i> Add a Bill Record
+            <i class="fa-solid fa-plus me-2"></i> Create Bill
         </a>
         <a class="float-end btn btn-success btn-sm" href="{% querystring '_export'='xlsx' %}">
             <i class="fa-solid fa-download me-2"></i> Export to Excel
@@ -66,7 +46,7 @@
                     <td>{{ bill.phone_number }}</td>
                     <td>{{ bill.email }}</td>
                     <td>{{ bill.payment_details }}</td>
-                    <td>{{ bill.amount }}</td>
+                    <td>{{ bill.amount|currency_format }}</td>
                     <td>
                         {% if bill.status %}
                             <span class="badge badge-pill bg-soft-success text-success me-2">
@@ -91,52 +71,5 @@
             </tbody>
         </table>
     </div>
-
-    <!-- Pagination -->
-    <div class="mt-4">
-        {% if is_paginated %}
-        <nav aria-label="Page navigation">
-            <ul class="pagination justify-content-center">
-                {% if page_obj.has_previous %}
-                <li class="page-item">
-                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}" aria-label="Previous">
-                        <span aria-hidden="true">&laquo;</span>
-                    </a>
-                </li>
-                {% else %}
-                <li class="page-item disabled">
-                    <span class="page-link" aria-label="Previous">
-                        <span aria-hidden="true">&laquo;</span>
-                    </span>
-                </li>
-                {% endif %}
-                {% for i in paginator.page_range %}
-                {% if page_obj.number == i %}
-                <li class="page-item active" aria-current="page">
-                    <span class="page-link">{{ i }} <span class="visually-hidden">(current)</span></span>
-                </li>
-                {% else %}
-                <li class="page-item">
-                    <a class="page-link" href="?page={{ i }}">{{ i }}</a>
-                </li>
-                {% endif %}
-                {% endfor %}
-                {% if page_obj.has_next %}
-                <li class="page-item">
-                    <a class="page-link" href="?page={{ page_obj.next_page_number }}" aria-label="Next">
-                        <span aria-hidden="true">&raquo;</span>
-                    </a>
-                </li>
-                {% else %}
-                <li class="page-item disabled">
-                    <span class="page-link" aria-label="Next">
-                        <span aria-hidden="true">&raquo;</span>
-                    </span>
-                </li>
-                {% endif %}
-            </ul>
-        </nav>
-        {% endif %}
-    </div>
 </div>
-{% endblock content %}
+{% endblock %}

@@ -18,7 +18,6 @@ from django_tables2.export.views import ExportMixin
 # Local app imports
 from .models import Bill
 from .tables import BillTable
-from accounts.models import Profile
 
 
 class BillListView(LoginRequiredMixin, ExportMixin, SingleTableView):
@@ -66,9 +65,6 @@ class BillUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
         'status'
     ]
 
-    def test_func(self):
-        """Check if the user has the required permissions."""
-        return self.request.user.profile in Profile.objects.all()
 
     def get_success_url(self):
         """Redirect to the list of bills after a successful update."""

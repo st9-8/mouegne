@@ -13,17 +13,22 @@ from django.views.generic import DetailView, ListView
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
 
 # Authentication and permissions
+from django.conf import settings
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 
 # Third-party packages
 from openpyxl import Workbook
+from traceback_with_variables import format_exc
 
 # Local app imports
 from store.models import Item
 from accounts.models import Customer
-from .models import Sale, Purchase, SaleDetail
-from .forms import PurchaseForm
-
+from transactions.models import Sale, Purchase, SaleDetail
+from transactions.forms import PurchaseForm
+from transactions.utils import generate_pdf, print_document
 
 logger = logging.getLogger(__name__)
 
@@ -133,6 +138,80 @@ def export_purchases_to_excel(request):
     return response
 
 
+@login_required
+@require_POST
+def print_sale_receipt(request, pk):
+    """
+    View to print a sale receipt
+    """
+    try:
+        # Get the sale object
+        sale = Sale.objects.get(pk=pk)
+        printer_name = request.POST.get('printer_name')
+
+        # Generate PDF using the receipt template
+        context = {
+            'sale': sale,
+            'settings': settings,
+        }
+
+        pdf_data = generate_pdf('transactions/receipt.html', context)
+
+        # Send it to printer
+        success = print_document(pdf_data, printer_name)
+
+        if success:
+            return JsonResponse({'status': 'success', 'message': 'Receipt sent to printer'})
+        else:
+            return JsonResponse({'status': 'error', 'message': 'Failed to print receipt'}, status=500)
+
+    except Sale.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': 'Sale not found'}, status=404)
+    except Exception as e:
+        print(format_exc(e))
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+
+# Add a view to download the PDF without printing
+@login_required
+def download_sale_receipt(request, pk):
+    """
+    View to download a sale receipt as PDF
+    """
+    try:
+        # Get the sale object
+        sale = Sale.objects.get(pk=pk)
+
+        # Generate PDF using the receipt template
+        context = {
+            'sale': sale,
+            'settings': settings,
+        }
+
+        pdf_data = generate_pdf('transactions/receipt.html', context)
+
+        # Create a response with PDF
+        response = HttpResponse(pdf_data, content_type='application/pdf')
+        response['Content-Disposition'] = f'attachment; filename="receipt-{sale.id}.pdf"'
+        return response
+
+    except Sale.DoesNotExist:
+        return HttpResponse('Sale not found', status=404)
+
+
+@login_required
+def get_printers(request):
+    """
+    API endpoint to get available printers
+    """
+    try:
+        from transactions.utils import get_available_printers
+        printers = get_available_printers()
+        return JsonResponse({'status': 'success', 'printers': printers})
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+
 class SaleListView(LoginRequiredMixin, ListView):
     """
     View to list all sales with pagination.
@@ -154,6 +233,7 @@ class SaleDetailView(LoginRequiredMixin, DetailView):
     template_name = "transactions/saledetail.html"
 
 
+@login_required
 def SaleCreateView(request):
     context = {
         "active_icon": "sales",
@@ -200,9 +280,9 @@ def SaleCreateView(request):
 
                     for item in items:
                         if not all(
-                            k in item for k in [
-                                "id", "price", "quantity", "total_item"
-                            ]
+                                k in item for k in [
+                                    "id", "price", "quantity", "total_item"
+                                ]
                         ):
                             raise ValueError("Item is missing required fields")
 
@@ -242,22 +322,22 @@ def SaleCreateView(request):
                 return JsonResponse({
                     'status': 'error',
                     'message': 'Customer does not exist!'
-                    }, status=400)
+                }, status=400)
             except Item.DoesNotExist:
                 return JsonResponse({
                     'status': 'error',
                     'message': 'Item does not exist!'
-                    }, status=400)
+                }, status=400)
             except ValueError as ve:
                 return JsonResponse({
                     'status': 'error',
                     'message': f'Value error: {str(ve)}'
-                    }, status=400)
+                }, status=400)
             except TypeError as te:
                 return JsonResponse({
                     'status': 'error',
                     'message': f'Type error: {str(te)}'
-                    }, status=400)
+                }, status=400)
             except Exception as e:
                 logger.error(f"Exception during sale creation: {e}")
                 return JsonResponse(
