@@ -3,6 +3,7 @@ from django.core.cache import cache
 from django.db.utils import OperationalError
 from django.db.utils import ProgrammingError
 from django.core.exceptions import ValidationError
+from django.utils.translation import gettext_lazy as _
 
 from imagekit.processors import ResizeToFill
 from imagekit.models import ProcessedImageField
@@ -108,7 +109,7 @@ class Singleton(models.Model):
     @classmethod
     def load(cls):
         from django.db import connection
-        if 'accounts_setting' not in connection.introspection.table_names():
+        if 'accounts_settings' not in connection.introspection.table_names():
             return
 
         try:
@@ -122,7 +123,7 @@ class Singleton(models.Model):
         return cache.get(cls.__name__)
 
 
-class Setting(Singleton):
+class Settings(Singleton):
     name = models.CharField(max_length=255)
     email = models.EmailField()
     phone_number = models.CharField(max_length=13)

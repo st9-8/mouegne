@@ -25,7 +25,7 @@ from django_tables2.export.views import ExportMixin
 
 # Local app imports
 from accounts.models import Vendor
-from accounts.models import Setting
+from accounts.models import Settings
 from accounts.models import Customer
 
 from accounts.forms import VendorForm
@@ -181,18 +181,18 @@ from django.contrib import messages
 
 
 class SettingsUpdateView(UpdateView):
-    model = Setting
+    model = Settings
     form_class = SettingForm
     template_name = 'accounts/settings.html'
     success_url = reverse_lazy('settings')
 
     def get_object(self, queryset=None):
-        return Setting.load()
+        return Settings.load()
 
     def get_form(self, form_class=None):
         """Initialize form with current settings values"""
         form = super().get_form(form_class)
-        settings = Setting.load()
+        settings = Settings.load()
         if settings:
             for field_name, field in form.fields.items():
                 form.initial[field_name] = getattr(settings, field_name, None)
@@ -204,5 +204,5 @@ class SettingsUpdateView(UpdateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['settings'] = Setting.load()
+        context['settings'] = Settings.load()
         return context

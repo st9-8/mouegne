@@ -29,7 +29,7 @@
     <div class="mb-4">
         <a href="{% url 'saleslist' %}" class="btn btn-outline-success">
             <i class="fas fa-arrow-left me-2"></i>
-            Go back
+            Retour
         </a>
     </div>
 
@@ -40,19 +40,19 @@
             <div class="col-lg-8 mb-4">
                 <div class="card border-light shadow-sm">
                     <div class="card-header bg-success text-white">
-                        <h5 class="mb-0">Sale Items</h5>
+                        <h5 class="mb-0">Articles</h5>
                     </div>
                     <div class="card-body">
                         <!-- Search item -->
                         <div class="mb-4">
-                            <label for="searchbox_items" class="form-label">Search Item:</label>
+                            <label for="searchbox_items" class="form-label">Rechercher un article:</label>
                             <select class="form-select select2" name="searchbox_items" id="searchbox_items"
                                     aria-label="Search items"></select>
                         </div>
 
                         <!-- Delete all items from sale -->
                         <button type="button" class="btn btn-danger btn-sm mb-4 deleteAll">
-                            <i class="fas fa-trash-alt me-2"></i> Delete All Items
+                            <i class="fas fa-trash-alt me-2"></i> Tout supprimer
                         </button>
 
                         <!-- Items Table -->
@@ -61,9 +61,9 @@
                                 <thead>
                                 <tr>
                                     <th>#</th>
-                                    <th>Name</th>
-                                    <th>Price</th>
-                                    <th>Quantity</th>
+                                    <th>Nom</th>
+                                    <th>Prix</th>
+                                    <th>Quantité</th>
                                     <th>Total</th>
                                     <th class="text-center">Actions</th>
                                 </tr>
@@ -81,45 +81,45 @@
             <div class="col-lg-4 mb-4">
                 <div class="card border-light shadow-sm">
                     <div class="card-header bg-success text-white">
-                        <h5 class="mb-0">Sale Details</h5>
+                        <h5 class="mb-0">Détails</h5>
                     </div>
                     <div class="card-body">
                         {% csrf_token %}
                         <div class="mb-3">
-                            <label for="customer" class="form-label">Customer</label>
+                            <label for="customer" class="form-label">Client</label>
                             <select name="customer" class="form-select" id="customer" aria-label="Customer" required>
-                                <option value="" selected disabled hidden>Select the customer</option>
+                                <option value="" selected disabled hidden>Choisir un client</option>
                                 {% for customer in customers %}
                                 <option value="{{ customer.value }}">{{ customer.label }}</option>
                                 {% endfor %}
                             </select>
                         </div>
                         <div class="mb-3">
-                            <label for="sub_total" class="form-label">Subtotal</label>
+                            <label for="sub_total" class="form-label">Sous total</label>
                             <input name="sub_total" type="number" class="form-control" id="sub_total"
                                    aria-label="Subtotal" required>
                         </div>
                         <div class="mb-3">
-                            <label for="tax_percentage" class="form-label">Tax Inclusive (%)</label>
+                            <label for="tax_percentage" class="form-label">TVA (%)</label>
                             <input name="tax_percentage" type="number" class="form-control" id="tax_percentage"
                                    aria-label="Tax Inclusive" value="0" required>
                         </div>
                         <div class="mb-3">
-                            <label for="tax_amount" class="form-label">Tax Amount</label>
+                            <label for="tax_amount" class="form-label">Taxes</label>
                             <input name="tax_amount" type="number" class="form-control" id="tax_amount"
                                    aria-label="Tax Amount" required>
                         </div>
                         <div class="mb-3">
-                            <label for="grand_total" class="form-label">Grand Total</label>
+                            <label for="grand_total" class="form-label">Total</label>
                             <input name="grand_total" type="number" class="form-control" id="grand_total"
                                    aria-label="Grand Total" required>
                         </div>
                         <div class="mb-3">
-                            <label for="amount_paid" class="form-label">Amount Payed</label>
+                            <label for="amount_paid" class="form-label">Montant payé</label>
                             <input name="amount_paid" type="number" class="form-control" id="amount_paid"
                                    aria-label="Amount Paid" required>
                         </div>
-                        <button type="submit" class="btn btn-success w-100">Create Sale</button>
+                        <button type="submit" class="btn btn-success w-100">Valider</button>
                     </div>
                 </div>
             </div>
@@ -326,7 +326,7 @@
         // Select2 items searchbox
         $('#searchbox_items').select2({
             delay: 250,
-            placeholder: 'Search an item',
+            placeholder: 'Rechercher un article',
             minimumInputLength: 1,
             allowClear: true,
             templateResult: template_item_searchbox,

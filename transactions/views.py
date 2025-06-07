@@ -3,17 +3,18 @@ import json
 import logging
 
 # Django core imports
+from django.db.models import Sum
 from django.http import JsonResponse, HttpResponse
 from django.urls import reverse
 from django.shortcuts import render
 from django.db import transaction
+from django.utils import timezone
 
 # Class-based views
 from django.views.generic import DetailView, ListView
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
 
 # Authentication and permissions
-from django.conf import settings
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required
@@ -26,11 +27,13 @@ from traceback_with_variables import format_exc
 # Local app imports
 from store.models import Item
 from accounts.models import Customer
+from accounts.models import Settings
 from transactions.models import Sale, Purchase, SaleDetail
 from transactions.forms import PurchaseForm
 from transactions.utils import generate_pdf, print_document
 
 logger = logging.getLogger(__name__)
+settings = Settings.load()
 
 
 def is_ajax(request):
@@ -152,10 +155,14 @@ def print_sale_receipt(request, pk):
         # Generate PDF using the receipt template
         context = {
             'sale': sale,
-            'settings': settings,
+            'settings': settings
         }
+        print(settings.tax_number)
+        print(settings.logo)
+        print(settings.address)
+        print(settings.phone_number)
 
-        pdf_data = generate_pdf('transactions/receipt.html', context)
+        pdf_data = generate_pdf(request, 'transactions/receipt.html', context)
 
         # Send it to printer
         success = print_document(pdf_data, printer_name)
@@ -188,7 +195,7 @@ def download_sale_receipt(request, pk):
             'settings': settings,
         }
 
-        pdf_data = generate_pdf('transactions/receipt.html', context)
+        pdf_data = generate_pdf(request, 'transactions/receipt.html', context)
 
         # Create a response with PDF
         response = HttpResponse(pdf_data, content_type='application/pdf')
@@ -222,6 +229,18 @@ class SaleListView(LoginRequiredMixin, ListView):
     context_object_name = "sales"
     paginate_by = 10
     ordering = ['date_added']
+
+    def get_queryset(self):
+        today = timezone.now().date()
+        return Sale.objects.filter(date_added__date=today).order_by('date_added')
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        # aggregate the grand_total of the same queryset
+        totals = self.get_queryset().aggregate(total=Sum('grand_total'))
+        # if there are no sales, Sum will be None
+        ctx['total_sales'] = totals['total'] or 0
+        return ctx
 
 
 class SaleDetailView(LoginRequiredMixin, DetailView):
@@ -303,6 +322,17 @@ def SaleCreateView(request):
                         # Reduce item quantity
                         item_instance.quantity -= int(item["quantity"])
                         item_instance.save()
+
+                context = {
+                    'sale': new_sale,
+                    'settings': settings,
+                }
+
+                pdf_data = generate_pdf(request, 'transactions/receipt.html', context)
+
+                # Send it to printer
+                print_document(pdf_data)
+                print_document(pdf_data)
 
                 return JsonResponse(
                     {

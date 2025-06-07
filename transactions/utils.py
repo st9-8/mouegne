@@ -1,19 +1,22 @@
 import os
 import tempfile
 import subprocess
+from traceback_with_variables import format_exc
 from django.template.loader import render_to_string
 from weasyprint import HTML
 
 
-def generate_pdf(template_src, context_dict):
+def generate_pdf(request, template_src, context_dict):
     """
     Generate a PDF file from a template and context for 80mm receipt centered on a standard page
     """
+    context = {**context_dict, 'request': request}
+
     # Render the HTML template with context
-    html_string = render_to_string(template_src, context_dict)
+    html_string = render_to_string(template_src, context)
 
     # Create a PDF from the HTML with standard page size but preserving the receipt width
-    pdf_file = HTML(string=html_string).write_pdf(
+    pdf_file = HTML(string=html_string, base_url=request.build_absolute_uri('/')).write_pdf(
         stylesheets=[],
         presentational_hints=True
     )
@@ -55,7 +58,7 @@ def print_document(pdf_data, printer_name=None):
     except Exception as e:
         # Log the error
         import logging
-        logging.error(f"Printing error: {str(e)}")
+        logging.error(f"Printing error: {format_exc(e)}")
         return False
 
 

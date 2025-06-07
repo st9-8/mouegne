@@ -5,11 +5,11 @@
         {% csrf_token %}
         <fieldset class="form-group">
             <legend class="border-bottom mb-4">Delete Item</legend>
-            <h5>Are you sure you want to delete the item "{{ object.name }}"</h5>
+            <h5>Êtes-vous sûr de vouloir supprimez ce produit "{{ object.name }}"</h5>
         </fieldset>
         <div class="form-group">
-            <button class="btn btn-outline-danger btn-sm" type="submit">Yes, Delete</button>
-            <a class="btn btn-outline-success btn-sm" href="{% url 'productslist' %}">Cancel</a>
+            <button class="btn btn-outline-danger btn-sm" type="submit">Oui, Supprimer</button>
+            <a class="btn btn-outline-success btn-sm" href="{% url 'productslist' %}">Annuler</a>
         </div>
     </form>
 </div>

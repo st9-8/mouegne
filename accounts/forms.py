@@ -3,7 +3,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import UserCreationForm
 
 from accounts.models import Vendor
-from accounts.models import Setting
+from accounts.models import Settings
 from accounts.models import Customer
 
 User = get_user_model()
@@ -94,7 +94,7 @@ class VendorForm(forms.ModelForm):
 
 class SettingForm(forms.ModelForm):
     class Meta:
-        model = Setting
+        model = Settings
         fields = ['name', 'email', 'phone_number', 'address', 'tax_number', 'logo']
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control'}),

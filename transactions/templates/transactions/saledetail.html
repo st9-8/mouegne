@@ -1,4 +1,4 @@
-{% extends "store/base.html" %} {% load static %}{% block title %}Transaction detail{% endblock %}
+{% extends "store/base.html" %} {% load static %}{% block title %}Détail de la transaction{% endblock %}
 {% load custom_filters %}
 
 {% block content %}
@@ -343,20 +343,20 @@
         <div class="text-center py-3">
             <div class="btn-group">
                 <button id="print-receipt" class="btn btn-outline-success btn-sm">
-                    <i class="fa fa-print"></i> Print Receipt
+                    <i class="fa fa-print"></i> Imprimer le reçu
                 </button>
                 <button type="button" class="btn btn-outline-success btn-sm dropdown-toggle dropdown-toggle-split"
                         data-bs-toggle="dropdown" aria-expanded="false">
                     <span class="visually-hidden">Toggle Dropdown</span>
                 </button>
                 <ul class="dropdown-menu" id="printer-list">
-                    <li><a class="dropdown-item" href="#" data-printer="">Default Printer</a></li>
+                    <li><a class="dropdown-item" href="#" data-printer="">Imprimante par défaut</a></li>
                     <!-- Printers will be populated here if available -->
                 </ul>
             </div>
             <div class="btn-group ms-2">
                 <a href="{% url 'sale-download-pdf' sale.id %}" class="btn btn-outline-primary btn-sm">
-                    <i class="fa fa-download"></i> Download Receipt
+                    <i class="fa fa-download"></i> Télécharger le reçu
                 </a>
             </div>
         </div>
@@ -376,7 +376,7 @@
                     <p class="bold">NIU: {{ settings.tax_number|default:"" }}</p>
                     <br>
                     <p>Date: {{ sale.date_added|date:"Y/m/d H:i:s" }}</p>
-                    <p>Receipt code: {{ sale.id }}</p>
+                    <p>Code du reçu: {{ sale.id }}</p>
                 </div>
                 <div class="body-ticket">
                     <div class="produits">
@@ -385,9 +385,9 @@
                             <table class="table table-sm">
                                 <thead>
                                 <tr>
-                                    <th>Item</th>
+                                    <th>Produit</th>
                                     <th class="text-center">Qty</th>
-                                    <th class="text-right">Price</th>
+                                    <th class="text-right">Prix</th>
                                     <th class="text-right">Total</th>
                                 </tr>
                                 </thead>
@@ -405,37 +405,36 @@
 
                             <div class="hr-sm"></div>
                             <div class="col2">
-                                <p>Sub Total</p>
+                                <p>Sous Total</p>
                                 <p class="prix"><b>{{ sale.sub_total|currency_format }}</b></p>
                             </div>
                             <br>
                             <div class="col2">
-                                <p>Tax Amount</p>
+                                <p>Taxes</p>
                                 <p class="prix"><b>{{ sale.tax_amount|currency_format }}</b></p>
                             </div>
                             <div class="col2">
-                                <p>Grand Total</p>
+                                <p>Total</p>
                                 <p class="prix"><b>{{ sale.grand_total|currency_format }}</b></p>
                             </div>
                             <div class="col2">
-                                <p>Amount Paid</p>
+                                <p>Montant payé</p>
                                 <p class="prix"><b>{{ sale.amount_paid|currency_format }}</b></p>
                             </div>
                             <div class="col2">
-                                <p>Balance</p>
+                                <p>À rembourser</p>
                                 <p class="prix"><b>{{ sale.amount_change|currency_format }}</b></p>
                             </div>
                         </div>
                         <div class="hr-lg"></div>
                         <div class="carte">
-                            <p class="title-carte">Customer: {{sale.customer.first_name}} {{ sale.customer.last_name
+                            <p class="title-carte">Client: {{sale.customer.first_name}} {{ sale.customer.last_name
                                 }}</p>
                         </div>
                         <div class="hr-lg"></div>
                     </div>
                     <div class="footer-ticket">
-                        <p class="message-footer">Une marchandise vendue et livrée n'est ni échangée, ni remboursée</p>
-                        <p class="title-footer">THANK YOU</p>
+                        <p class="title-footer">Merci</p>
                     </div>
                 </div>
             </div>
@@ -531,6 +530,6 @@
             });
         })
         .catch(error => console.error('Error fetching printers:', error));
-
     </script>
-    {% endblock %}
+</div>
+{% endblock %}

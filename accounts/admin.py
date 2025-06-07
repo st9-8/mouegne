@@ -4,7 +4,7 @@ from django.contrib.auth.admin import UserAdmin
 
 from accounts.models import User
 from accounts.models import Vendor
-from accounts.models import Setting
+from accounts.models import Settings
 
 
 @admin.register(User)
@@ -30,7 +30,7 @@ class VendorAdmin(admin.ModelAdmin):
     search_fields = ('name', 'phone_number', 'address')
 
 
-@admin.register(Setting)
+@admin.register(Settings)
 class SettingAdmin(admin.ModelAdmin):
     pass
 

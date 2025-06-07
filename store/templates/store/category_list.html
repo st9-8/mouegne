@@ -6,11 +6,11 @@
     <div class="card shadow-sm rounded p-3">
         <div class="row align-items-center">
             <div class="col-md-6">
-                <h4 class="display-6 mb-0 text-success">Categories</h4>
+                <h4 class="display-6 mb-0 text-success">Catégories</h4>
             </div>
             <div class="col-md-6 d-flex justify-content-end gap-2">
                 <a class="btn btn-success btn-sm rounded-pill shadow-sm" href="{% url 'category-create' %}">
-                    <i class="fa-solid fa-plus"></i> Add Category
+                    <i class="fa-solid fa-plus"></i> Ajouter une catégorie
                 </a>
             </div>
         </div>
@@ -26,7 +26,7 @@
         <thead class="thead-light">
             <tr>
                 <th>ID</th>
-                <th>Name</th>
+                <th>Nom</th>
                 <th>Action</th>
             </tr>
         </thead>
@@ -37,7 +37,7 @@
                 <td>{{ category.name }}</td>
                 <td>
                     <a href="{% url 'category-detail' category.pk %}" class="btn btn-outline-primary btn-sm">
-                        <i class="fa-solid fa-info-circle me-2"></i> View Details
+                        <i class="fa-solid fa-info-circle me-2"></i> Voir les détails
                     </a>
                 </td>
             </tr>

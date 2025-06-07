@@ -9,7 +9,8 @@
     {% if messages %}
     <div class="messages">
         {% for message in messages %}
-        <div class="alert alert-{% if message.tags == 'success' %}success{% elif message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
+        <div class="alert alert-{% if message.tags == 'success' %}success{% elif message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show"
+             role="alert">
             <i class="fas fa-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' %}exclamation-circle{% else %}info-circle{% endif %} me-2"></i>
             {{ message }}
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
@@ -21,7 +22,7 @@
     <div class="card shadow-sm rounded p-3">
         <div class="row align-items-center">
             <div class="col-md-6">
-                <h4 class="display-6 mb-0 text-success">Company Settings</h4>
+                <h4 class="display-6 mb-0 text-success">Paramètres de l'entreprise</h4>
             </div>
             {% if settings.logo %}
             <div class="col-md-6 text-end">
@@ -42,7 +43,8 @@
                         <div class="row mb-4">
                             <div class="col-md-6">
                                 <div class="form-group mb-3">
-                                    <label for="{{ form.name.id_for_label }}" class="form-label">Company Name</label>
+                                    <label for="{{ form.name.id_for_label }}" class="form-label">Nom de
+                                        l'entreprise</label>
                                     <input type="text" name="{{ form.name.name }}" id="{{ form.name.id_for_label }}"
                                            class="form-control" value="{{ settings.name|default:'' }}">
                                     {% if form.name.errors %}
@@ -51,7 +53,7 @@
                                 </div>
 
                                 <div class="form-group mb-3">
-                                    <label for="{{ form.email.id_for_label }}" class="form-label">Email Address</label>
+                                    <label for="{{ form.email.id_for_label }}" class="form-label">Adresse email</label>
                                     <input type="email" name="{{ form.email.name }}" id="{{ form.email.id_for_label }}"
                                            class="form-control" value="{{ settings.email|default:'' }}">
                                     {% if form.email.errors %}
@@ -60,8 +62,10 @@
                                 </div>
 
                                 <div class="form-group mb-3">
-                                    <label for="{{ form.phone_number.id_for_label }}" class="form-label">Phone Number</label>
-                                    <input type="text" name="{{ form.phone_number.name }}" id="{{ form.phone_number.id_for_label }}"
+                                    <label for="{{ form.phone_number.id_for_label }}"
+                                           class="form-label">Téléphone</label>
+                                    <input type="text" name="{{ form.phone_number.name }}"
+                                           id="{{ form.phone_number.id_for_label }}"
                                            class="form-control" value="{{ settings.phone_number|default:'' }}">
                                     {% if form.phone_number.errors %}
                                     <div class="text-danger">{{ form.phone_number.errors }}</div>
@@ -71,8 +75,9 @@
 
                             <div class="col-md-6">
                                 <div class="form-group mb-3">
-                                    <label for="{{ form.address.id_for_label }}" class="form-label">Address</label>
-                                    <input type="text" name="{{ form.address.name }}" id="{{ form.address.id_for_label }}"
+                                    <label for="{{ form.address.id_for_label }}" class="form-label">Adresse</label>
+                                    <input type="text" name="{{ form.address.name }}"
+                                           id="{{ form.address.id_for_label }}"
                                            class="form-control" value="{{ settings.address|default:'' }}">
                                     {% if form.address.errors %}
                                     <div class="text-danger">{{ form.address.errors }}</div>
@@ -80,8 +85,9 @@
                                 </div>
 
                                 <div class="form-group mb-3">
-                                    <label for="{{ form.tax_number.id_for_label }}" class="form-label">Tax Number</label>
-                                    <input type="text" name="{{ form.tax_number.name }}" id="{{ form.tax_number.id_for_label }}"
+                                    <label for="{{ form.tax_number.id_for_label }}" class="form-label">NIU</label>
+                                    <input type="text" name="{{ form.tax_number.name }}"
+                                           id="{{ form.tax_number.id_for_label }}"
                                            class="form-control" value="{{ settings.tax_number|default:'' }}">
                                     {% if form.tax_number.errors %}
                                     <div class="text-danger">{{ form.tax_number.errors }}</div>
@@ -89,7 +95,8 @@
                                 </div>
 
                                 <div class="form-group mb-3">
-                                    <label for="{{ form.logo.id_for_label }}" class="form-label">Company Logo</label>
+                                    <label for="{{ form.logo.id_for_label }}" class="form-label">Logo de
+                                        l'entreprise</label>
                                     <div class="custom-file">
                                         <input type="file" name="{{ form.logo.name }}" id="{{ form.logo.id_for_label }}"
                                                class="form-control" accept="image/*">
@@ -103,17 +110,18 @@
 
                         {% if settings.logo %}
                         <div class="mb-4">
-                            <label class="form-label">Current Logo</label>
+                            <label class="form-label">Logo actuel</label>
                             <div class="border p-3 text-center bg-light rounded">
-                                <img src="{{ settings.logo.url }}" alt="Company Logo" class="img-fluid" style="max-height: 150px;">
-                                <p class="text-muted mt-2 mb-0 small">Upload a new logo to replace this one</p>
+                                <img src="{{ settings.logo.url }}" alt="Company Logo" class="img-fluid"
+                                     style="max-height: 150px;">
+                                <p class="text-muted mt-2 mb-0 small">Téléverser un nouveau logo</p>
                             </div>
                         </div>
                         {% endif %}
 
                         <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
                             <button type="submit" class="btn btn-success">
-                                <i class="fas fa-save"></i> Save Settings
+                                <i class="fas fa-save"></i> Enregistrer les paramètres
                             </button>
                         </div>
                     </div>

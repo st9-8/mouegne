@@ -12,21 +12,21 @@ Add Product
             <div class="card shadow-sm border-light">
                 <div class="card-body">
                     <h1 class="text-center mb-4">
-                        Add Product
+                        Ajouter un produit
                     </h1>
                     <form method="POST" enctype="multipart/form-data">
                         {% csrf_token %}
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="{{ form.name.id_for_label }}" class="form-label">
-                                    Product Name
+                                    Nom du produit
                                 </label>
                                 {{ form.name }}
                                 <div class="text-danger">{{ form.name.errors }}</div>
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label for="{{ form.category.id_for_label }}" class="form-label">
-                                    Category
+                                    Categorie
                                 </label>
                                 {{ form.category }}
                                 <div class="text-danger">{{ form.category.errors }}</div>
@@ -44,21 +44,21 @@ Add Product
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="{{ form.quantity.id_for_label }}" class="form-label">
-                                    Quantity
+                                    Quantité
                                 </label>
                                 {{ form.quantity }}
                                 <div class="text-danger">{{ form.quantity.errors }}</div>
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label for="{{ form.price.id_for_label }}" class="form-label">
-                                    Selling Price
+                                    Prix de vente
                                 </label>
                                 {{ form.price }}
                                 <div class="text-danger">{{ form.price.errors }}</div>
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label for="{{ form.purchase_price.id_for_label }}" class="form-label">
-                                    Purchase Price
+                                    Prix d'achat
                                 </label>
                                 {{ form.purchase_price }}
                                 <div class="text-danger">{{ form.purchase_price.errors }}</div>
@@ -67,14 +67,14 @@ Add Product
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="{{ form.expiring_date.id_for_label }}" class="form-label">
-                                    Expiring Date
+                                    Date d'expiration
                                 </label>
                                 {{ form.expiring_date }}
                                 <div class="text-danger">{{ form.expiring_date.errors }}</div>
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label for="{{ form.vendor.id_for_label }}" class="form-label">
-                                    Vendor
+                                    Vendeur
                                 </label>
                                 {{ form.vendor }}
                                 <div class="text-danger">{{ form.vendor.errors }}</div>
@@ -82,7 +82,7 @@ Add Product
                         </div>
                         <div class="form-group text-center">
                             <button class="btn btn-success btn-lg" type="submit">
-                                <i class="fas fa-check"></i> Submit
+                                <i class="fas fa-check"></i> Enregistrer
                             </button>
                         </div>
                     </form>

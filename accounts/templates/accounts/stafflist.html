@@ -3,7 +3,7 @@
 {% load render_table from django_tables2 %}
 {% load querystring from django_tables2 %}
 
-{% block title %}Staff{% endblock title %}
+{% block title %}Utilisateurs{% endblock title %}
 
 {% block content %}
 <div class="container p-5">
@@ -14,21 +14,21 @@
     </style>
     <div class="d-flex justify-content-between mb-3">
         <a class="btn btn-success btn-sm" href="">
-            <i class="fa-solid fa-user-plus me-2"></i>Add Staff
+            <i class="fa-solid fa-user-plus me-2"></i>Ajouter un utilisateur
         </a>
         <a class="btn btn-success btn-sm" href="{% querystring '_export'='xlsx' %}">
-            <i class="fa-solid fa-download me-2"></i>Export to Excel
+            <i class="fa-solid fa-download me-2"></i>Export en Excel
         </a>
     </div>
     <table class="table table-sm table-bordered table-striped">
         <thead class="thead-light">
         <tr>
             <th scope="col">Id <i class="fa-solid fa-sort"></i></th>
-            <th scope="col">Profile Image</th>
-            <th scope="col">Username <i class="fa-solid fa-sort"></i></th>
-            <th scope="col">Phone Number</th>
-            <th scope="col">Status <i class="fa-solid fa-sort"></i></th>
-            <th scope="col">Role <i class="fa-solid fa-sort"></i></th>
+            <th scope="col">Photo de profil</th>
+            <th scope="col">Nom d'utilisateur <i class="fa-solid fa-sort"></i></th>
+            <th scope="col">Téléphone</th>
+            <th scope="col">Statut <i class="fa-solid fa-sort"></i></th>
+            <th scope="col">Rôle <i class="fa-solid fa-sort"></i></th>
             {% if user.is_staff %}
             <th scope="col">Action</th>
             {% endif %}
@@ -44,17 +44,17 @@
             <td>{{ user.username }}</td>
             <td>{{ telephone }}</td>
             <td>
-                {% if user.is_active == 'A' %}
-                <span class="badge bg-success text-light">Active</span>
+                {% if user.is_active %}
+                <span class="badge bg-success text-light">Actif</span>
                 {% else %}
-                <span class="badge bg-danger text-light">Inactive</span>
+                <span class="badge bg-danger text-light">Inactif</span>
                 {% endif %}
             </td>
             <td>
                 {% if user.is_staff %}
-                Admin
+                Administrateur
                 {% else %}
-                Operative
+                Vendeur
                 {% endif %}
             </td>
             <td>

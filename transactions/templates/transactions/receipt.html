@@ -146,7 +146,8 @@
         <div class="head-ticket">
             {% if settings.logo %}
             <div class="logo">
-                <img src="{{ settings.logo.url }}" alt="Company Logo">
+                <img src="{{ settings.logo.url }}" alt="Company Logo"
+                     style="max-height: 80px; max-width: 100%;">
             </div>
             {% endif %}
             <p class="x-bold">{{ settings.name|default:"Mouegne" }}</p>
@@ -156,7 +157,7 @@
             <p class="bold">NIU: {{ settings.tax_number }}</p>
             {% endif %}
             <p>Date: {{ sale.date_added|date:"Y/m/d H:i:s" }}</p>
-            <p>Receipt code: {{ sale.id }}</p>
+            <p>Code du reçu: {{ sale.id }}</p>
         </div>
 
         <div class="body-ticket">
@@ -165,7 +166,7 @@
                 <tr>
                     <th>Item</th>
                     <th class="text-center">Qty</th>
-                    <th class="text-right">Price</th>
+                    <th class="text-right">Prix</th>
                     <th class="text-right">Total</th>
                 </tr>
                 </thead>
@@ -184,33 +185,32 @@
             <div class="hr"></div>
 
             <div class="col2">
-                <span>Sub Total</span>
+                <span>Sous Total</span>
                 <span class="bold text-right">{{ sale.sub_total|currency_format }}</span>
             </div>
             <div class="col2">
-                <span>Tax Amount</span>
+                <span>Taxes</span>
                 <span class="bold text-right">{{ sale.tax_amount|currency_format }}</span>
             </div>
             <div class="col2">
-                <span>Grand Total</span>
+                <span>Total</span>
                 <span class="bold text-right">{{ sale.grand_total|currency_format }}</span>
             </div>
             <div class="col2">
-                <span>Amount Paid</span>
+                <span>Montant payé</span>
                 <span class="bold text-right">{{ sale.amount_paid|currency_format }}</span>
             </div>
             <div class="col2">
-                <span>Balance</span>
+                <span>À rembourser</span>
                 <span class="bold text-right">{{ sale.amount_change|currency_format }}</span>
             </div>
 
             <div class="hr"></div>
-            <p class="text-center bold">Customer: {{ sale.customer.first_name }} {{ sale.customer.last_name }}</p>
+            <p class="text-center bold">Client: {{ sale.customer.first_name }} {{ sale.customer.last_name }}</p>
         </div>
 
         <div class="footer-ticket">
-            <p class="message-footer">Une marchandise vendue et livrée n'est ni échangée, ni remboursée</p>
-            <p class="title-footer">THANK YOU</p>
+            <p class="title-footer">Merci</p>
         </div>
     </section>
 </div>

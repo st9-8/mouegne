@@ -16,20 +16,20 @@
                 <!-- Date filter form -->
                 <div class="card shadow border-0 mb-4">
                     <div class="card-body">
-                        <h5 class="card-title mb-3">Filter Dashboard</h5>
+                        <h5 class="card-title mb-3">Filtrer Dashboard</h5>
                         <form method="get" class="row g-3 align-items-end">
                             <div class="col-md-4">
-                                <label for="date_after" class="form-label">From Date</label>
+                                <label for="date_after" class="form-label">Date de début</label>
                                 <input type="date" class="form-control" id="date_after" name="date_after"
                                        value="{{ date_after|date:'Y-m-d' }}" placeholder="From Date">
                             </div>
                             <div class="col-md-4">
-                                <label for="date_before" class="form-label">To Date</label>
+                                <label for="date_before" class="form-label">Date de fin</label>
                                 <input type="date" class="form-control" id="date_before" name="date_before"
                                        value="{{ date_before|date:'Y-m-d' }}" placeholder="To Date">
                             </div>
                             <div class="col-md-4">
-                                <button type="submit" class="btn btn-success w-100">Apply Filter</button>
+                                <button type="submit" class="btn btn-success w-100">Filtrer</button>
                             </div>
                         </form>
                     </div>
@@ -47,7 +47,7 @@
                                 <div class="card-body">
                                     <div class="row">
                                         <div class="col">
-                                            <span class="h6 font-semibold text-muted text-sm d-block mb-2">Products</span>
+                                            <span class="h6 font-semibold text-muted text-sm d-block mb-2">Produits</span>
                                             <span class="h3 font-bold mb-0">{{total_items}}</span>
                                         </div>
                                         <div class="col-auto">
@@ -60,7 +60,7 @@
                                         <span class="badge badge-pill bg-soft-success text-success me-2">
                                             <i class="fa fa-arrow-up me-1"></i>13%
                                         </span>
-                                        <span class="text-nowrap text-xs text-muted">Since last month</span>
+                                        <span class="text-nowrap text-xs text-muted">Depuis le mois dernier</span>
                                     </div>
                                 </div>
                             </div>
@@ -85,7 +85,7 @@
                                         <span class="badge badge-pill bg-soft-success text-success me-2">
                                             <i class="fa fa-arrow-up me-1"></i>30%
                                         </span>
-                                        <span class="text-nowrap text-xs text-muted">Since last month</span>
+                                        <span class="text-nowrap text-xs text-muted">Depuis le mois dernier</span>
                                     </div>
                                 </div>
                             </div>
@@ -97,7 +97,7 @@
                                 <div class="card-body">
                                     <div class="row">
                                         <div class="col">
-                                            <span class="h6 font-semibold text-muted text-sm d-block mb-2">Pending deliveries</span>
+                                            <span class="h6 font-semibold text-muted text-sm d-block mb-2">Livraisons en attente</span>
                                             <span class="h3 font-bold mb-0">{{delivery.count}}</span>
                                         </div>
                                         <div class="col-auto">
@@ -110,7 +110,7 @@
                                         <span class="badge badge-pill bg-soft-danger text-danger me-2">
                                             <i class="fa fa-arrow-down me-1"></i>-5%
                                         </span>
-                                        <span class="text-nowrap text-xs text-muted">Since last month</span>
+                                        <span class="text-nowrap text-xs text-muted">Depuis le mois dernier</span>
                                     </div>
                                 </div>
                             </div>
@@ -122,7 +122,7 @@
                                 <div class="card-body">
                                     <div class="row">
                                         <div class="col">
-                                            <span class="h6 font-semibold text-muted text-sm d-block mb-2">Sales</span>
+                                            <span class="h6 font-semibold text-muted text-sm d-block mb-2">Ventes</span>
                                             <span class="h3 font-bold mb-0">{{sales.count}}</span>
                                         </div>
                                         <div class="col-auto">
@@ -135,7 +135,7 @@
                                         <span class="badge badge-pill bg-soft-success text-success me-2">
                                             <i class="fa fa-arrow-up me-1"></i>10%
                                         </span>
-                                        <span class="text-nowrap text-xs text-muted">Since last month</span>
+                                        <span class="text-nowrap text-xs text-muted">Depuis le mois dernier</span>
                                     </div>
                                 </div>
                             </div>
@@ -154,7 +154,7 @@
                                 <div class="card-body">
                                     <div class="row">
                                         <div class="col">
-                                            <span class="h6 font-semibold text-muted text-sm d-block mb-2">Turnover</span>
+                                            <span class="h6 font-semibold text-muted text-sm d-block mb-2">Chiffre d'affaires</span>
                                             <span class="h3 font-bold mb-0">{{turnover|currency_format}}</span>
                                         </div>
                                         <div class="col-auto">
@@ -167,7 +167,7 @@
                                         <span class="badge badge-pill bg-soft-success text-success me-2">
                                             <i class="fa fa-arrow-up me-1"></i>15%
                                         </span>
-                                        <span class="text-nowrap text-xs text-muted">Since last month</span>
+                                        <span class="text-nowrap text-xs text-muted">Depuis le mois dernier</span>
                                     </div>
                                 </div>
                             </div>
@@ -179,7 +179,7 @@
                                 <div class="card-body">
                                     <div class="row">
                                         <div class="col">
-                                            <span class="h6 font-semibold text-muted text-sm d-block mb-2">Today's Sales</span>
+                                            <span class="h6 font-semibold text-muted text-sm d-block mb-2">Ventes journalières</span>
                                             <span class="h3 font-bold mb-0">{{today_sales|currency_format}}</span>
                                         </div>
                                         <div class="col-auto">
@@ -190,7 +190,7 @@
                                     </div>
                                     <div class="mt-2 mb-0 text-sm">
                             <span class="badge badge-pill bg-soft-success text-success me-2">
-                                <i class="fa fa-arrow-up me-1"></i>Today
+                                <i class="fa fa-arrow-up me-1"></i>Aujourd'hui
                             </span>
                                         <span class="text-nowrap text-xs text-muted">{{ today|date:"Y-m-d" }}</span>
                                     </div>
@@ -204,7 +204,7 @@
                                 <div class="card-body">
                                     <div class="row">
                                         <div class="col">
-                                            <span class="h6 font-semibold text-muted text-sm d-block mb-2">Purchases</span>
+                                            <span class="h6 font-semibold text-muted text-sm d-block mb-2">Achats</span>
                                             <span class="h3 font-bold mb-0">{{ total_purchases|currency_format }}</span>
                                         </div>
                                         <div class="col-auto">
@@ -217,7 +217,7 @@
                                         <span class="badge badge-pill bg-soft-success text-success me-2">
                                             <i class="fa fa-arrow-up me-1"></i>13%
                                         </span>
-                                        <span class="text-nowrap text-xs text-muted">Since last month</span>
+                                        <span class="text-nowrap text-xs text-muted">Depuis le mois dernier</span>
                                     </div>
                                 </div>
                             </div>
