@@ -1,7 +1,7 @@
 import os
 import tempfile
-# import win32api
-# import win32print
+import win32api
+import win32print
 import subprocess
 from traceback_with_variables import format_exc
 from django.template.loader import render_to_string
@@ -68,7 +68,7 @@ def print_document(pdf_data, printer_name=None):
                 subprocess.call(['lp', '-o', 'media=X80mmY297mm', temp_filename])
 
         # Clean up the temporary file
-        os.unlink(temp_filename)
+        # os.unlink(temp_filename)
         return True
     except Exception as e:
         # Log the error
