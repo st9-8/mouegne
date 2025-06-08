@@ -4,7 +4,7 @@ from django_extensions.db.fields import AutoSlugField
 from store.models import Item
 from accounts.models import Vendor, Customer
 
-DELIVERY_CHOICES = [("P", "Pending"), ("S", "Successful")]
+DELIVERY_CHOICES = [("P", "En attente"), ("S", "Livré")]
 
 
 class Sale(models.Model):
@@ -116,39 +116,36 @@ class Purchase(models.Model):
     """
 
     slug = AutoSlugField(unique=True, populate_from="vendor")
-    item = models.ForeignKey(Item, on_delete=models.CASCADE)
+    item = models.ForeignKey(Item, on_delete=models.CASCADE, verbose_name='Produit')
     description = models.TextField(max_length=300, blank=True, null=True)
     vendor = models.ForeignKey(
-        Vendor, related_name="purchases", on_delete=models.CASCADE
+        Vendor, related_name="purchases", on_delete=models.CASCADE, verbose_name='Fournisseur'
     )
     order_date = models.DateTimeField(auto_now_add=True)
     delivery_date = models.DateTimeField(
-        blank=True, null=True, verbose_name="Delivery Date"
+        blank=True, null=True, verbose_name="Date de livraison"
     )
-    quantity = models.PositiveIntegerField(default=0)
+    quantity = models.PositiveIntegerField(default=0, verbose_name='Quantité')
     delivery_status = models.CharField(
         choices=DELIVERY_CHOICES,
         max_length=1,
         default="P",
-        verbose_name="Delivery Status",
+        verbose_name="Statut",
     )
     price = models.DecimalField(
         max_digits=10,
         decimal_places=2,
         default=0.0,
-        verbose_name="Price per item (Ksh)",
+        verbose_name="Prix d'achat (FCFA)",
     )
     total_value = models.DecimalField(max_digits=10, decimal_places=2)
 
     def save(self, *args, **kwargs):
         """
-        Calculates the total value before saving the Purchase instance.
+            Calculates the total value before saving the Purchase instance.
         """
         self.total_value = self.price * self.quantity
         super().save(*args, **kwargs)
-        # Update the item quantity
-        self.item.quantity += self.quantity
-        self.item.save()
 
     def __str__(self):
         """
