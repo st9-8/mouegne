@@ -58,6 +58,18 @@
                         <!-- Items Table -->
                         <div class="table-responsive my-3">
                             <table class="table table-bordered table-striped" id="table_items">
+                                <colgroup>
+                                    <!-- ID column: ~10% -->
+                                    <col>
+                                    <col>
+                                    <!-- Prix column: ~20% -->
+                                    <col class="w-30">
+                                    <!-- other columns will auto-size -->
+                                    <col>
+                                    <col class="w-20">
+                                    <col class="w-10">
+                                    <!-- …etc -->
+                                </colgroup>
                                 <thead>
                                 <tr>
                                     <th>#</th>
@@ -88,7 +100,9 @@
                         <div class="mb-3">
                             <label for="customer" class="form-label">Client</label>
                             <select name="customer" class="form-select" id="customer" aria-label="Customer" required>
-                                <option value="" selected disabled hidden>Choisir un client</option>
+                                <option value="" disabled hidden {% if not default_client %}selected{% endif %}>
+                                    Choisir un client
+                                </option>
                                 {% for customer in customers %}
                                 <option value="{{ customer.value }}">{{ customer.label }}</option>
                                 {% endfor %}
@@ -384,7 +398,7 @@
                         sale.products.items.splice(tr.row, 1);
                         // List the table again
                         sale.list_item();
-                        Swal.fire('The item was eliminated!', '', 'success');
+                        Swal.fire("L'article a été retiré !", '', 'success');
                     }
                 });
             })
@@ -422,7 +436,7 @@
                     cancelButton: 'btn btn-success'
                 },
                 buttonsStyling: false,
-                title: "Are you sure you want to delete all items from the sale?",
+                title: "Êtes-vous sûr de vouloir supprimer tous les articles de cette commande ?",
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonText: 'Delete all',
@@ -435,7 +449,7 @@
                     sale.products.items = [];
                     // Recalculate the sale
                     sale.list_item();
-                    Swal.fire('All items were eliminated!', '', 'success');
+                    Swal.fire('Tous les articles ont été éliminés !', '', 'success');
                 }
             });
         });
@@ -497,12 +511,22 @@
                 items: sale.products.items
             };
 
+            // ensure amountPaid covers the grand total **
+            if (amountPaid < grandTotal) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Erreur',
+                    text: 'Le montant payé doit être supérieur ou égal au total.'
+                });
+                return;  // stop submission
+            }
+
             // Check if amount_change is present
             if (isNaN(amountChange)) {
                 Swal.fire({
                     icon: 'error',
                     title: 'Error',
-                    text: 'Amount change is required!'
+                    text: 'Un changement de montant est nécessaire !'
                 });
                 return;
             }
@@ -523,18 +547,20 @@
                     // Handle success response
                     sale.products.items = [];
                     sale.list_item();
-                    $('form#form_sale').trigger('reset');
+                    $('form#form_sale')[0].reset();
+                    $('#searchbox_items').val(null).trigger('change');
+                    number = 1;
                     Swal.fire({
                         icon: 'success',
                         title: 'Success',
-                        text: 'Sale has been completed successfully!'
+                        text: 'La vente a été réalisée avec succès !'
                     });
                 },
                 error: function (xhr) {
                     Swal.fire({
                         icon: 'error',
                         title: 'Error',
-                        text: xhr.responseJSON.message || 'An error occurred while processing the sale!'
+                        text: xhr.responseJSON.message || "Une erreur s'est produite lors du traitement de la vente !"
                     });
                 }
             });

@@ -450,13 +450,13 @@
             if (e.target.tagName === 'A') {
                 selectedPrinter = e.target.getAttribute('data-printer');
                 document.getElementById('print-receipt').innerHTML =
-                    `<i class="fa fa-print"></i> Print${selectedPrinter ? ` (${selectedPrinter})` : ''}`;
+                    `<i class="fa fa-print"></i> Imprimer le reçu${selectedPrinter ? ` (${selectedPrinter})` : ''}`;
             }
         });
 
         document.getElementById('print-receipt').addEventListener('click', function() {
             // Show loading indicator
-            this.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Printing...';
+            this.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Impression...';
             this.disabled = true;
 
             // Create form data with printer name if selected
@@ -476,7 +476,7 @@
             .then(response => response.json())
             .then(data => {
                 // Reset button
-                this.innerHTML = `<i class="fa fa-print"></i> Print${selectedPrinter ? ` (${selectedPrinter})` : ''}`;
+                this.innerHTML = `<i class="fa fa-print"></i> Imprimer le reçu${selectedPrinter ? ` (${selectedPrinter})` : ''}`;
                 this.disabled = false;
 
                 // Show result message
@@ -498,7 +498,7 @@
             })
             .catch(error => {
                 // Reset button
-                this.innerHTML = `<i class="fa fa-print"></i> Print${selectedPrinter ? ` (${selectedPrinter})` : ''}`;
+                this.innerHTML = `<i class="fa fa-print"></i> Imprimer le reçu${selectedPrinter ? ` (${selectedPrinter})` : ''}`;
                 this.disabled = false;
 
                 // Show error message

@@ -18,6 +18,7 @@ from functools import reduce
 from django.db.models import F
 from django.shortcuts import render
 from django.http import JsonResponse
+from django.shortcuts import redirect
 from django.contrib.auth import get_user_model
 from django.urls import reverse, reverse_lazy
 from django.views.decorators.http import require_POST
@@ -55,6 +56,9 @@ from django.db.models import Q
 
 @login_required
 def dashboard(request):
+    if not request.user.is_staff:
+        return redirect('sale-create')
+
     # Get filter dates from request
     date_after = request.GET.get('date_after')
     date_before = request.GET.get('date_before')

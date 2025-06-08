@@ -157,10 +157,6 @@ def print_sale_receipt(request, pk):
             'sale': sale,
             'settings': settings
         }
-        print(settings.tax_number)
-        print(settings.logo)
-        print(settings.address)
-        print(settings.phone_number)
 
         pdf_data = generate_pdf(request, 'transactions/receipt.html', context)
 
@@ -232,7 +228,7 @@ class SaleListView(LoginRequiredMixin, ListView):
 
     def get_queryset(self):
         today = timezone.now().date()
-        return Sale.objects.filter(date_added__date=today).order_by('date_added')
+        return Sale.objects.filter(date_added__date=today).order_by('-date_added')
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
@@ -256,6 +252,7 @@ class SaleDetailView(LoginRequiredMixin, DetailView):
 def SaleCreateView(request):
     context = {
         "active_icon": "sales",
+        "default_client": Customer.objects.first(),
         "customers": [c.to_select2() for c in Customer.objects.all()]
     }
 

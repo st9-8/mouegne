@@ -156,16 +156,18 @@
             {% if settings.tax_number %}
             <p class="bold">NIU: {{ settings.tax_number }}</p>
             {% endif %}
-            <p>Date: {{ sale.date_added|date:"Y/m/d H:i:s" }}</p>
-            <p>Code du reçu: {{ sale.id }}</p>
+            <br/>
+            <p style="text-align: left;">Date: {{ sale.date_added|date:"Y/m/d H:i:s" }}</p>
+            <p style="text-align: left;">Code: {{ sale.id }}</p>
+            <br/>
         </div>
 
         <div class="body-ticket">
             <table>
                 <thead>
                 <tr>
-                    <th>Item</th>
-                    <th class="text-center">Qty</th>
+                    <th>Article</th>
+                    <th class="text-center">Qté</th>
                     <th class="text-right">Prix</th>
                     <th class="text-right">Total</th>
                 </tr>
