@@ -63,7 +63,7 @@
     <div class="sidebar-header d-flex align-items-center px-3 py-4 border-bottom border-secondary">
         <a href="{% url 'user-profile' %}" class="d-flex align-items-center text-decoration-none text-light">
             <img class="rounded-circle img-fluid" id="sidebar-img" width="45"
-                 src="{{ request.user.profile.profile_picture.url }}" alt="Profile Picture"/>
+                 src="{{ request.user.profile_picture.url }}" alt="Profile Picture"/>
             <div class="ms-3">
                 <h5 class="fs-6 mb-0">
                     {{ request.user.username }}{% if request.user.profile.role == 'AD' %} <i
