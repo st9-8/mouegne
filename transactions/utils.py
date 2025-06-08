@@ -1,5 +1,7 @@
 import os
 import tempfile
+import win32api
+import win32print
 import subprocess
 from traceback_with_variables import format_exc
 from django.template.loader import render_to_string
@@ -23,6 +25,22 @@ def generate_pdf(request, template_src, context_dict):
     return pdf_file
 
 
+def print_pdf_windows(path, printer_name=None):
+    # 1) Optionally switch the default printer for this session
+    if printer_name:
+        win32print.SetDefaultPrinter(printer_name)
+
+    # 2) Tell Windows to “print” via the file association
+    #    (this will launch the registered PDF handler in invisible mode)
+    win32api.ShellExecute(
+        0,
+        "print",         # verb
+        path,            # file to print
+        None,            # no extra args
+        ".",             # working directory
+        0                # SW_HIDE
+    )
+
 def print_document(pdf_data, printer_name=None):
     """
     Send PDF data directly to a printer
@@ -42,10 +60,7 @@ def print_document(pdf_data, printer_name=None):
 
         # Print the PDF using system's printer
         if os.name == 'nt':  # Windows
-            if printer_name:
-                subprocess.call(['print', '/D:"{}"'.format(printer_name), temp_filename])
-            else:
-                subprocess.call(['print', temp_filename])
+            print_pdf_windows(temp_filename, printer_name)
         else:  # Unix/Linux/Mac
             if printer_name:
                 subprocess.call(['lp', '-o', 'media=X80mmY297mm', '-d', printer_name, temp_filename])

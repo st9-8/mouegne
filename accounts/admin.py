@@ -5,6 +5,7 @@ from django.contrib.auth.admin import UserAdmin
 from accounts.models import User
 from accounts.models import Vendor
 from accounts.models import Settings
+from accounts.models import Customer
 
 
 @admin.register(User)
@@ -32,6 +33,11 @@ class VendorAdmin(admin.ModelAdmin):
 
 @admin.register(Settings)
 class SettingAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(Customer)
+class CustomerAdmin(admin.ModelAdmin):
     pass
 
 
