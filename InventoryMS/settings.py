@@ -1,17 +1,20 @@
 import os
 from pathlib import Path
 
+from dotenv import dotenv_values
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
+config = dotenv_values()
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-g_n2+2bznu6e@1wel!i(&-4tp86_7lop5395ww+i4x%9*7^old'
+SECRET_KEY = config.get('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = config.get('DEBUG')
 
 ALLOWED_HOSTS = []
 
@@ -76,9 +79,17 @@ WSGI_APPLICATION = 'InventoryMS.wsgi.application'
 
 
 DATABASES = {
+    'postgres': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': config.get('POSTGRES_DB'),
+        'USER': config.get('POSTGRES_USER'),
+        'PASSWORD': config.get('POSTGRES_PASSWORD'),
+        'HOST': config.get('DB_HOST'),
+        'PORT': int(config.get('DB_PORT'))
+    },
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
 

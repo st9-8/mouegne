@@ -19,3 +19,4 @@ tablib==3.6.1
 weasyprint
 traceback_with_variables
 beautifulsoup4
+python-dotenv
