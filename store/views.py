@@ -166,6 +166,7 @@ class ProductListView(LoginRequiredMixin, ExportMixin, tables.SingleTableView):
     context_object_name = "items"
     paginate_by = 10
     SingleTableView.table_pagination = False
+    exclude_columns = ('category', 'quantity', 'expiring_date', 'vendor')
 
 
 class ItemSearchListView(ProductListView):
