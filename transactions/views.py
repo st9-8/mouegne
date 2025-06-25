@@ -261,6 +261,7 @@ def SaleCreateView(request):
             try:
                 # Load the JSON data from the request body
                 data = json.loads(request.body)
+                print(data)
                 logger.info(f"Received data: {data}")
 
                 # Validate required fields
@@ -281,7 +282,10 @@ def SaleCreateView(request):
                     "tax_percentage": float(data.get("tax_percentage", 0.0)),
                     "amount_paid": float(data["amount_paid"]),
                     "amount_change": float(data["amount_change"]),
+                    "has_sav": data['has_sav']
                 }
+
+                print(sale_attributes)
 
                 # Use a transaction to ensure atomicity
                 with transaction.atomic():
@@ -328,7 +332,6 @@ def SaleCreateView(request):
                 pdf_data = generate_pdf(request, 'transactions/receipt.html', context)
 
                 # Send it to printer
-                print_document(pdf_data)
                 print_document(pdf_data)
 
                 return JsonResponse(

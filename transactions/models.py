@@ -47,6 +47,7 @@ class Sale(models.Model):
         decimal_places=2,
         default=0.0
     )
+    has_sav = models.BooleanField(default=False)
 
     class Meta:
         db_table = "sales"

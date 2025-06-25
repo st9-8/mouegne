@@ -133,6 +133,11 @@
                             <input name="amount_paid" type="number" class="form-control" id="amount_paid"
                                    aria-label="Amount Paid" required>
                         </div>
+                        <div class="form-check">
+                            <label for="has_sav" class="form-label">Service après vente</label>
+                            <input name="has_sav" type="checkbox" class="form-check-input" id="has_sav"
+                                   aria-label="SAV" required>
+                        </div>
                         <button type="submit" class="btn btn-success w-100">Valider</button>
                     </div>
                 </div>
@@ -508,7 +513,8 @@
                 grand_total: grandTotal,
                 amount_paid: amountPaid,
                 amount_change: amountChange,
-                items: sale.products.items
+                items: sale.products.items,
+                has_sav: $('input[name="has_sav"]').is(':checked')
             };
 
             // ensure amountPaid covers the grand total **

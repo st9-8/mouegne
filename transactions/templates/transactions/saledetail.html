@@ -308,6 +308,12 @@
         text-align: center;
         letter-spacing: 2px;
    }
+   .container-ticket .ticket .footer-sav {
+    font-size: 10px;
+    text-align: justify,
+    margin-top: 8px
+    margin-bottom: 5px
+   }
     .table {
         width: 100%;
         margin-bottom: 1rem;
@@ -433,8 +439,20 @@
                         </div>
                         <div class="hr-lg"></div>
                     </div>
+
+                    {% if sale.has_sav %}
+                    <div class="footer-sav">
+                        <p class="title-footer"><strong>NB:</strong> La garantie ne couvre pas les désagrément causés par le courant
+                            électrique ou le client lui même après livraison. Ne peut être retourné sous 7 jours, les produits
+                            ayant: défaut de fabrication, pièce manquante, non conformité avec le produit sur site.</p>
+                        <p class="title-footer"><strong>Service client</strong>: 620 84 10 10</p>
+                        <p class="title-footer"><strong>Service après vente</strong>: 691 38 16 67</p>
+                    </div>
+                    <div class="hr-lg"></div>
+                    {% endif %}
+
                     <div class="footer-ticket">
-                        <p class="title-footer">Merci</p>
+                        <p class="title-footer">Votre satisfaction, notre priorité</p>
                     </div>
                 </div>
             </div>
