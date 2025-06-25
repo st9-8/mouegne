@@ -22,7 +22,8 @@ from .views import (
     CategoryDetailView,
     CategoryCreateView,
     CategoryUpdateView,
-    CategoryDeleteView
+    CategoryDeleteView,
+    ProductListAlertView
 )
 
 # URL patterns
@@ -35,6 +36,11 @@ urlpatterns = [
         'products/',
         ProductListView.as_view(),
         name='productslist'
+    ),
+    path(
+        'products_alert/',
+        ProductListAlertView.as_view(),
+        name='products_alert'
     ),
     path(
         'product/<slug:slug>/',

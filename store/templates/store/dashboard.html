@@ -127,7 +127,7 @@
                                         </div>
                                         <div class="col-auto">
                                             <div class="icon icon-shape bg-warning text-white text-lg rounded-circle">
-                                                <i class="fa fa-shopping-cart"></i>
+                                                <i class="fa-solid fa-newspaper"></i>
                                             </div>
                                         </div>
                                     </div>
@@ -223,6 +223,32 @@
                             </div>
                         </a>
                     </div>
+                    <div class="col-xl-3 col-sm-6 col-12" id="stock_alerts">
+                        <a href="{% url 'products_alert' %}">
+                            <div class="card shadow border-0">
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col">
+                                            <span class="h6 font-semibold text-muted text-sm d-block mb-2">Stock d'alerte</span>
+                                            <span class="h3 font-bold mb-0">{{ stock_alert_count }}</span>
+                                        </div>
+                                        <div class="col-auto">
+                                            <div class="icon icon-shape bg-danger text-white text-lg rounded-circle">
+                                                <i class="fa-solid fa-triangle-exclamation"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="mt-2 mb-0 text-sm">
+                                        <span class="badge badge-pill bg-soft-success text-success me-2">
+                                            <i class="fa fa-arrow-up me-1"></i>16%
+                                        </span>
+                                        <span class="text-nowrap text-xs text-muted">Depuis le mois dernier</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
                 </div>
                 {% include 'store/charts.html' %}
             </div>

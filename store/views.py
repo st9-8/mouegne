@@ -101,6 +101,8 @@ def dashboard(request):
     items_count = items.count()
     profiles_count = profiles.count()
 
+    stock_alert_count = items.filter(quantity__lte=5).count()
+
     # Calculate turnover (total of all sales) with date filtering
     turnover = sales_query.aggregate(total=Sum('grand_total')).get('total', 0.00) or 0
 
@@ -143,6 +145,7 @@ def dashboard(request):
         "total_purchases": total_purchases,
         "date_after": date_after,
         "date_before": date_before,
+        "stock_alert_count": stock_alert_count
     }
 
     return render(request, "store/dashboard.html", context)
@@ -167,6 +170,30 @@ class ProductListView(LoginRequiredMixin, ExportMixin, tables.SingleTableView):
     paginate_by = 10
     SingleTableView.table_pagination = False
     exclude_columns = ('category', 'quantity', 'expiring_date', 'vendor')
+
+
+class ProductListAlertView(LoginRequiredMixin, ExportMixin, tables.SingleTableView):
+    """
+    View class to display a list of products.
+
+    Attributes:
+    - model: The model associated with the view.
+    - table_class: The table class used for rendering.
+    - template_name: The HTML template used for rendering the view.
+    - context_object_name: The variable name for the context object.
+    - paginate_by: Number of items per page for pagination.
+    """
+
+    model = Item
+    table_class = ItemTable
+    template_name = "store/productslist.html"
+    context_object_name = "items"
+    paginate_by = 10
+    SingleTableView.table_pagination = False
+    exclude_columns = ('category', 'quantity', 'expiring_date', 'vendor')
+
+    def get_queryset(self):
+        return Item.objects.filter(quantity__lte=5)
 
 
 class ItemSearchListView(ProductListView):
