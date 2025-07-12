@@ -199,7 +199,7 @@ class ProductListAlertView(LoginRequiredMixin, ExportMixin, tables.SingleTableVi
     exclude_columns = ('category', 'quantity', 'expiring_date', 'vendor')
 
     def get_queryset(self):
-        return Item.objects.filter(quantity__lte=5)
+        return Item.objects.filter(quantity__lte=5).order_by('quantity')
 
 
 class ItemSearchListView(ProductListView):
