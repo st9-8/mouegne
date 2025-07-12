@@ -1,0 +1,241 @@
+{% load custom_filters %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Delivery Receipt</title>
+    <style>
+        /* Base */
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'PT Sans', sans-serif;
+        }
+
+        @page {
+            size: 2.8in 11in;
+            margin-top: 0cm;
+            margin-left: 0cm;
+            margin-right: 0cm;
+        }
+
+        /* Header (formerly "header") */
+        .head-ticket {
+            width: 100%;
+            text-align: center;
+            align-content: center;
+            -webkit-align-content: center;
+            vertical-align: middle;
+        }
+
+        .logo {
+            width: 60%;
+            text-align: center;
+            align-content: center;
+            -webkit-align-content: center;
+            padding: 5px;
+            margin: 2px auto;
+            display: block;
+        }
+
+        /* Company name & details */
+        .x-bold {
+            text-align: center;
+            vertical-align: middle;
+            font-weight: bold;
+        }
+        .bold {
+            font-weight: bold;
+        }
+
+        /* Receipt container */
+        .receipt-container,
+        .receipt {
+            font-size: medium;
+        }
+
+        /* Body table */
+        .body-ticket table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .body-ticket table tr {
+            width: 100%;
+        }
+        .body-ticket table thead {
+            text-align: center;
+        }
+        .body-ticket table thead tr th {
+            font-size: 12.5px;
+            text-transform: uppercase;
+            border-top: 1px solid black;
+            border-bottom: 1px solid black;
+            margin-bottom: 4px;
+            vertical-align: middle;
+            padding: 4px 2px;
+        }
+        /* Column widths */
+        .body-ticket table thead tr th:first-child {
+            width: 47%;
+            min-width: 47%;
+            max-width: 47%;
+            word-break: break-all;
+            text-align: left;
+        }
+        .body-ticket table thead tr th:nth-child(2) {
+            width: 5%;
+        }
+        .body-ticket table thead tr th:nth-child(3) {
+            width: 20%;
+        }
+        .body-ticket table thead tr th:nth-child(4) {
+            width: 25%;
+        }
+        .body-ticket table td {
+            font-size: 8.5px;
+            text-align: right;
+            vertical-align: bottom;
+            padding: 2px 4px;
+        }
+        .text-center {
+            text-align: center;
+        }
+        .text-right {
+            text-align: right;
+        }
+
+        /* Horizontal rule mimic */
+        .hr {
+            border-top: 1px solid black !important;
+            margin: 4px 0;
+        }
+
+        /* Summary rows */
+        .col2 {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            padding: 2px 0;
+        }
+        .col2 span {
+            display: inline-block;
+        }
+
+        /* Paragraphs */
+        p {
+            padding: 1px;
+            margin: 0;
+        }
+
+        /* Footer */
+        .footer-ticket {
+            font-size: 12px;
+            text-align: center;
+            margin-top: 8px;
+        }
+        .message-footer {
+            font-size: 12px;
+        }
+        .title-footer {
+            font-size: 12px;
+        }
+        
+        /* Delivery status */
+        .status-badge {
+            background-color: #f39c12;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: bold;
+            text-transform: uppercase;
+            display: inline-block;
+            margin: 4px 0;
+        }
+    </style>
+</head>
+<body>
+<div class="receipt-container">
+    <section class="receipt">
+        <div class="head-ticket">
+            {% if settings.logo %}
+            <div class="logo">
+                <img src="{{ settings.logo.url }}" alt="Company Logo"
+                     style="max-height: 80px; max-width: 100%;">
+            </div>
+            {% endif %}
+            <p class="x-bold">{{ settings.name|default:"Mouegne" }}</p>
+            <p class="bold">{{ settings.address }}</p>
+            <p class="bold">Tel: {{ settings.phone_number }}</p>
+            {% if settings.tax_number %}
+            <p class="bold">NIU: {{ settings.tax_number }}</p>
+            {% endif %}
+            <br/>
+            <p class="x-bold">BON DE LIVRAISON</p>
+            <div class="status-badge">{{ delivery.get_status_display }}</div>
+            <br/>
+            <p style="text-align: left;">Date création: {{ delivery.date_added|date:"Y/m/d H:i:s" }}</p>
+            <p style="text-align: left;">Code: {{ delivery.id }}</p>
+            <p style="text-align: left;">Date livraison prévue: {{ delivery.delivery_date|date:"Y/m/d H:i" }}</p>
+            <br/>
+        </div>
+
+        <div class="body-ticket">
+            <table>
+                <thead>
+                <tr>
+                    <th>Article</th>
+                    <th class="text-center">Qté</th>
+                    <th class="text-right">Prix</th>
+                    <th class="text-right">Total</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for detail in delivery.deliverydetail_set.all %}
+                <tr>
+                    <td style="text-align:left;">{{ detail.item.name }}</td>
+                    <td class="text-center">{{ detail.quantity }}</td>
+                    <td class="text-right">{{ detail.price|currency_format:False }}</td>
+                    <td class="text-right">{{ detail.total_detail|currency_format:False }}</td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+
+            <div class="hr"></div>
+
+            <div class="col2">
+                <span>Sous Total</span>
+                <span class="bold text-right">{{ delivery.sub_total|currency_format }}</span>
+            </div>
+            <div class="col2">
+                <span>Taxes</span>
+                <span class="bold text-right">{{ delivery.tax_amount|currency_format }}</span>
+            </div>
+            <div class="col2">
+                <span>Total</span>
+                <span class="bold text-right">{{ delivery.grand_total|currency_format }}</span>
+            </div>
+            <div class="col2">
+                <span>Montant payé</span>
+                <span class="bold text-right">{{ delivery.amount_paid|currency_format }}</span>
+            </div>
+            <div class="col2">
+                <span>À rembourser</span>
+                <span class="bold text-right">{{ delivery.amount_change|currency_format }}</span>
+            </div>
+
+            <div class="hr"></div>
+            <p class="text-center bold">Client: {{ delivery.customer_name }}</p>
+            <p class="text-center">Téléphone: {{ delivery.phone_number }}</p>
+            <p class="text-center">Adresse: {{ delivery.location }}</p>
+            <div class="hr"></div>
+        </div>
+
+        <div class="footer-ticket">
+            <p class="title-footer">Livraison en cours de préparation</p>
+            <p class="message-footer">Vous serez contacté pour la livraison</p>
+        </div>
+    </section>
+</div>
+</body>
+</html>

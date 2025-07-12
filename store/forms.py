@@ -1,5 +1,5 @@
 from django import forms
-from .models import Item, Category, Delivery
+from .models import Item, Category, Delivery, DeliveryDetail
 
 
 class ItemForm(forms.ModelForm):
@@ -73,18 +73,13 @@ class DeliveryForm(forms.ModelForm):
     class Meta:
         model = Delivery
         fields = [
-            'item',
             'customer_name',
             'phone_number',
             'location',
-            'date',
-            'is_delivered'
+            'delivery_date',
+            'status'
         ]
         widgets = {
-            'item': forms.Select(attrs={
-                'class': 'form-control',
-                'placeholder': 'Select item',
-            }),
             'customer_name': forms.TextInput(attrs={
                 'class': 'form-control',
                 'placeholder': 'Enter customer name',
@@ -97,13 +92,12 @@ class DeliveryForm(forms.ModelForm):
                 'class': 'form-control',
                 'placeholder': 'Enter delivery location',
             }),
-            'date': forms.DateTimeInput(attrs={
+            'delivery_date': forms.DateTimeInput(attrs={
                 'class': 'form-control',
                 'placeholder': 'Select delivery date and time',
                 'type': 'datetime-local'
             }),
-            'is_delivered': forms.CheckboxInput(attrs={
-                'class': 'form-check-input',
-                'label': 'Mark as delivered',
+            'status': forms.Select(attrs={
+                'class': 'form-control',
             }),
         }

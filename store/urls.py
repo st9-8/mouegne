@@ -18,6 +18,7 @@ from .views import (
     DeliveryUpdateView,
     DeliveryDeleteView,
     get_items_ajax_view,
+    update_delivery_status,
     CategoryListView,
     CategoryDetailView,
     CategoryCreateView,
@@ -83,7 +84,7 @@ urlpatterns = [
     ),
     path(
         'new-delivery/',
-        DeliveryCreateView.as_view(),
+        DeliveryCreateView,
         name='delivery-create'
     ),
     path(
@@ -97,11 +98,16 @@ urlpatterns = [
         name='delivery-delete'
     ),
 
-    # AJAX view
+    # AJAX views
     path(
         'get-items/',
         get_items_ajax_view,
         name='get_items'
+    ),
+    path(
+        'delivery/<int:delivery_id>/update-status/',
+        update_delivery_status,
+        name='update_delivery_status'
     ),
 
     # Category URLs

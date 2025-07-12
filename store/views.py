@@ -13,6 +13,8 @@ and querying functionalities.
 # Standard library imports
 import operator
 from functools import reduce
+import json
+import logging
 
 # Django core imports
 from django.db.models import F
@@ -24,6 +26,7 @@ from django.urls import reverse, reverse_lazy
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
 from django.db.models import Q, Count, Sum
+from django.db import transaction
 
 # Authentication and permissions
 from django.contrib.auth.decorators import login_required
@@ -41,13 +44,16 @@ from django_tables2 import SingleTableView
 from django_tables2.export.views import ExportMixin
 
 # Local app imports
-from accounts.models import Vendor
-from transactions.models import Sale
-from .models import Category, Item, Delivery
+from accounts.models import Vendor, Settings, Customer
+from transactions.models import Sale, SaleDetail
+from transactions.utils import generate_pdf, print_document
+from .models import Category, Item, Delivery, DeliveryDetail
 from .forms import ItemForm, CategoryForm, DeliveryForm
 from .tables import ItemTable
 
 User = get_user_model()
+logger = logging.getLogger(__name__)
+settings = Settings.load()
 
 from datetime import datetime, timedelta
 from django.utils import timezone
@@ -361,21 +367,131 @@ class DeliveryDetailView(LoginRequiredMixin, DetailView):
     template_name = "store/deliverydetail.html"
 
 
-class DeliveryCreateView(LoginRequiredMixin, CreateView):
-    """
-    View class to create a new delivery.
+@login_required
+def DeliveryCreateView(request):
+    context = {
+        "active_icon": "deliveries",
+    }
 
-    Attributes:
-    - model: The model associated with the view.
-    - fields: The fields to be included in the form.
-    - template_name: The HTML template used for rendering the view.
-    - success_url: The URL to redirect to upon successful form submission.
-    """
+    if request.method == 'POST':
+        if is_ajax(request=request):
+            try:
+                # Load the JSON data from the request body
+                data = json.loads(request.body)
+                print(data)
+                logger.info(f"Received delivery data: {data}")
 
-    model = Delivery
-    form_class = DeliveryForm
-    template_name = "store/delivery_form.html"
-    success_url = "/deliveries"
+                # Validate required fields
+                required_fields = [
+                    'customer_name', 'phone_number', 'location', 'delivery_date',
+                    'sub_total', 'grand_total', 'amount_paid', 'amount_change', 'items'
+                ]
+                for field in required_fields:
+                    if field not in data:
+                        raise ValueError(f"Missing required field: {field}")
+
+                # Create delivery attributes
+                delivery_attributes = {
+                    "customer_name": data['customer_name'],
+                    "phone_number": data['phone_number'],
+                    "location": data['location'],
+                    "delivery_date": data['delivery_date'],
+                    "status": 'NOT_DELIVERED',
+                    "sub_total": float(data["sub_total"]),
+                    "grand_total": float(data["grand_total"]),
+                    "tax_amount": float(data.get("tax_amount", 0.0)),
+                    "tax_percentage": float(data.get("tax_percentage", 0.0)),
+                    "amount_paid": float(data["amount_paid"]),
+                    "amount_change": float(data["amount_change"]),
+                }
+
+                print(delivery_attributes)
+
+                # Use a transaction to ensure atomicity
+                with transaction.atomic():
+                    # Create the delivery
+                    new_delivery = Delivery.objects.create(**delivery_attributes)
+                    logger.info(f"Delivery created: {new_delivery}")
+
+                    # Create delivery details WITHOUT updating item quantities
+                    items = data["items"]
+                    if not isinstance(items, list):
+                        raise ValueError("Items should be a list")
+
+                    for item in items:
+                        if not all(
+                                k in item for k in [
+                                    "id", "price", "quantity", "total_item"
+                                ]
+                        ):
+                            raise ValueError("Item is missing required fields")
+
+                        item_instance = Item.objects.get(id=int(item["id"]))
+                        
+                        # Check if enough stock is available but don't update yet
+                        if item_instance.quantity < int(item["quantity"]):
+                            raise ValueError(f"Not enough stock for item: {item_instance.name}")
+
+                        detail_attributes = {
+                            "delivery": new_delivery,
+                            "item": item_instance,
+                            "price": float(item["price"]),
+                            "quantity": int(item["quantity"]),
+                            "total_detail": float(item["total_item"])
+                        }
+                        DeliveryDetail.objects.create(**detail_attributes)
+                        logger.info(f"Delivery detail created: {detail_attributes}")
+
+                context = {
+                    'delivery': new_delivery,
+                    'settings': settings,
+                }
+
+                pdf_data = generate_pdf(request, 'store/delivery_receipt.html', context)
+
+                # Send it to printer
+                print_document(pdf_data)
+
+                return JsonResponse(
+                    {
+                        'status': 'success',
+                        'message': 'Delivery created successfully!',
+                        'redirect': '/deliveries/'
+                    }
+                )
+
+            except json.JSONDecodeError:
+                return JsonResponse(
+                    {
+                        'status': 'error',
+                        'message': 'Invalid JSON format in request body!'
+                    }, status=400)
+            except Item.DoesNotExist:
+                return JsonResponse({
+                    'status': 'error',
+                    'message': 'Item does not exist!'
+                }, status=400)
+            except ValueError as ve:
+                return JsonResponse({
+                    'status': 'error',
+                    'message': f'Value error: {str(ve)}'
+                }, status=400)
+            except TypeError as te:
+                return JsonResponse({
+                    'status': 'error',
+                    'message': f'Type error: {str(te)}'
+                }, status=400)
+            except Exception as e:
+                logger.error(f"Exception during delivery creation: {e}")
+                return JsonResponse(
+                    {
+                        'status': 'error',
+                        'message': (
+                            f'There was an error during the creation: {str(e)}'
+                        )
+                    }, status=500)
+
+    return render(request, "store/delivery_create.html", context=context)
 
 
 class DeliveryUpdateView(LoginRequiredMixin, UpdateView):
@@ -479,4 +595,107 @@ def get_items_ajax_view(request):
             return JsonResponse(data, safe=False)
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=500)
+    return JsonResponse({'error': 'Not an AJAX request'}, status=400)
+
+
+@csrf_exempt
+@require_POST
+@login_required
+def update_delivery_status(request, delivery_id):
+    """
+    AJAX endpoint to update delivery status from NOT_DELIVERED to DELIVERED
+    """
+    if is_ajax(request):
+        try:
+            delivery = Delivery.objects.get(id=delivery_id)
+            
+            if delivery.status == 'DELIVERED':
+                return JsonResponse({
+                    'status': 'error',
+                    'message': 'Delivery is already marked as delivered!'
+                }, status=400)
+            
+            # Use a transaction to ensure atomicity
+            with transaction.atomic():
+                # Update delivery status
+                delivery.status = 'DELIVERED'
+                delivery.save()
+                
+                # Create SaleDetail records and update stock
+                for delivery_detail in delivery.deliverydetail_set.all():
+                    item = delivery_detail.item
+                    
+                    # Check if enough stock is available
+                    if item.quantity < delivery_detail.quantity:
+                        raise ValueError(f"Not enough stock for item: {item.name}")
+                    
+                    # Update item quantity
+                    item.quantity -= delivery_detail.quantity
+                    item.save()
+                    
+                    # Create corresponding SaleDetail record
+                    # First, we need to create a Sale record
+                    
+                    # Try to find a customer or create a default one
+                    customer, created = Customer.objects.get_or_create(
+                        phone=delivery.phone_number,
+                        defaults={
+                            'first_name': delivery.customer_name.split()[0] if delivery.customer_name.split() else delivery.customer_name,
+                            'last_name': ' '.join(delivery.customer_name.split()[1:]) if len(delivery.customer_name.split()) > 1 else '',
+                            'address': delivery.location
+                        }
+                    )
+                    
+                    # Create a Sale record for this delivery
+                    sale, created = Sale.objects.get_or_create(
+                        customer=customer,
+                        sub_total=delivery.sub_total,
+                        grand_total=delivery.grand_total,
+                        tax_amount=delivery.tax_amount,
+                        tax_percentage=delivery.tax_percentage,
+                        amount_paid=delivery.amount_paid,
+                        amount_change=delivery.amount_change,
+                        defaults={'date_added': delivery.date_added}
+                    )
+                    
+                    # Create SaleDetail record
+                    SaleDetail.objects.create(
+                        sale=sale,
+                        item=delivery_detail.item,
+                        price=delivery_detail.price,
+                        quantity=delivery_detail.quantity,
+                        total_detail=delivery_detail.total_detail
+                    )
+                
+                # Generate delivery confirmation receipt
+                context = {
+                    'delivery': delivery,
+                    'settings': settings,
+                }
+                
+                pdf_data = generate_pdf(request, 'store/delivery_receipt.html', context)
+                print_document(pdf_data)
+                
+                return JsonResponse({
+                    'status': 'success',
+                    'message': 'Delivery status updated successfully! Receipt printed.'
+                })
+                
+        except Delivery.DoesNotExist:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Delivery not found!'
+            }, status=404)
+        except ValueError as ve:
+            return JsonResponse({
+                'status': 'error',
+                'message': f'Error: {str(ve)}'
+            }, status=400)
+        except Exception as e:
+            logger.error(f"Exception during delivery status update: {e}")
+            return JsonResponse({
+                'status': 'error',
+                'message': f'There was an error: {str(e)}'
+            }, status=500)
+    
     return JsonResponse({'error': 'Not an AJAX request'}, status=400)

@@ -1,0 +1,549 @@
+{% extends "store/base.html" %}
+{% load static %}
+<!-- Page title  -->
+{% block title %}Create delivery{% endblock title %}
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}
+<!--Select2 CSS-->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet"/>
+<link rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@ttskch/select2-bootstrap4-theme@1.5.2/dist/select2-bootstrap4.min.css">
+<style>
+    .formatted-value {
+        font-size: 0.9rem;
+        color: #28a745;
+        margin-top: 5px;
+        font-weight: bold;
+    }
+</style>
+{% endblock stylesheets %}
+
+<!-- Page Heading -->
+<h2>Add delivery</h2>
+
+<!-- Page content  -->
+{% block content %}
+<div class="container py-5">
+    <!-- Go back -->
+    <div class="mb-4">
+        <a href="{% url 'deliveries' %}" class="btn btn-outline-success">
+            <i class="fas fa-arrow-left me-2"></i>
+            Retour
+        </a>
+    </div>
+
+    <!-- Delivery items and details -->
+    <form id="form_delivery" action="{% url 'delivery-create' %}" class="deliveryForm" method="post">
+        <div class="row">
+            <!-- Left column -->
+            <div class="col-lg-8 mb-4">
+                <div class="card border-light shadow-sm">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0">Articles</h5>
+                    </div>
+                    <div class="card-body">
+                        <!-- Search item -->
+                        <div class="mb-4">
+                            <label for="searchbox_items" class="form-label">Rechercher un article:</label>
+                            <select class="form-select select2" name="searchbox_items" id="searchbox_items"
+                                    aria-label="Search items"></select>
+                        </div>
+
+                        <!-- Delete all items from delivery -->
+                        <button type="button" class="btn btn-danger btn-sm mb-4 deleteAll">
+                            <i class="fas fa-trash-alt me-2"></i> Tout supprimer
+                        </button>
+
+                        <!-- Items Table -->
+                        <div class="table-responsive my-3">
+                            <table class="table table-bordered table-striped" id="table_items">
+                                <colgroup>
+                                    <!-- ID column: ~10% -->
+                                    <col>
+                                    <col>
+                                    <!-- Prix column: ~20% -->
+                                    <col class="w-30">
+                                    <!-- other columns will auto-size -->
+                                    <col>
+                                    <col class="w-20">
+                                    <col class="w-10">
+                                    <!-- …etc -->
+                                </colgroup>
+                                <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Nom</th>
+                                    <th>Prix</th>
+                                    <th>Quantité</th>
+                                    <th>Total</th>
+                                    <th class="text-center">Actions</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- End Left Column -->
+
+            <!-- Right Column -->
+            <div class="col-lg-4 mb-4">
+                <div class="card border-light shadow-sm">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0">Détails de livraison</h5>
+                    </div>
+                    <div class="card-body">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="customer_name" class="form-label">Nom du client</label>
+                            <input name="customer_name" type="text" class="form-control" id="customer_name"
+                                   aria-label="Customer Name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="phone_number" class="form-label">Téléphone</label>
+                            <input name="phone_number" type="text" class="form-control" id="phone_number"
+                                   aria-label="Phone Number" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="location" class="form-label">Adresse de livraison</label>
+                            <input name="location" type="text" class="form-control" id="location"
+                                   aria-label="Location" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="delivery_date" class="form-label">Date de livraison</label>
+                            <input name="delivery_date" type="datetime-local" class="form-control" id="delivery_date"
+                                   aria-label="Delivery Date" required>
+                        </div>
+                        <hr>
+                        <div class="mb-3">
+                            <label for="sub_total" class="form-label">Sous total</label>
+                            <input name="sub_total" type="number" class="form-control" id="sub_total"
+                                   aria-label="Subtotal" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="tax_percentage" class="form-label">TVA (%)</label>
+                            <input name="tax_percentage" type="number" class="form-control" id="tax_percentage"
+                                   aria-label="Tax Inclusive" value="0" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="tax_amount" class="form-label">Taxes</label>
+                            <input name="tax_amount" type="number" class="form-control" id="tax_amount"
+                                   aria-label="Tax Amount" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="grand_total" class="form-label">Total</label>
+                            <input name="grand_total" type="number" class="form-control" id="grand_total"
+                                   aria-label="Grand Total" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="amount_paid" class="form-label">Montant payé</label>
+                            <input name="amount_paid" type="number" class="form-control" id="amount_paid"
+                                   aria-label="Amount Paid" required>
+                        </div>
+                        <button type="submit" class="btn btn-success w-100">Créer la livraison</button>
+                    </div>
+                </div>
+            </div>
+            <!-- End Right Column -->
+        </div>
+    </form>
+</div>
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}
+<!-- Datatables -->
+<script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js" defer></script>
+<script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap4.min.js" defer></script>
+
+<!-- Select2 -->
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js" defer></script>
+
+<!-- Bootstrap Touchspin -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-touchspin/3.1.0/jquery.bootstrap-touchspin.min.js"
+        defer></script>
+
+<!-- Sweet Alert -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.15/dist/sweetalert2.all.min.js" defer></script>
+
+<script>
+    // Source: https://stackoverflow.com/a/32605063
+    function roundTo(n, digits) {
+        if (digits === undefined) {
+            digits = 0;
+        }
+
+        var multiplicator = Math.pow(10, digits);
+        n = parseFloat((n * multiplicator).toFixed(11));
+        return Math.round(n) / multiplicator;
+    }
+
+    // Variable for item number in table
+    var number = 1;
+
+    // Format number with thousand separators and FCFA
+    function formatCurrency(amount) {
+        return parseFloat(amount).toLocaleString('fr-FR').replace(/,/g, ' ') + ' FCFA';
+    }
+
+    // Variable to store delivery details and products
+    var delivery = {
+        products: {
+            customer_name: '',
+            phone_number: '',
+            location: '',
+            delivery_date: '',
+            sub_total: 0.00,
+            grand_total: 0.00,
+            tax_amount: 0.00,
+            tax_percentage: 0.00,
+            amount_payed: 0.00,
+            amount_change: 0.00,
+            items: []
+        },
+        calculate_delivery: function () {
+            // Subtotal of all items added
+            var sub_total = 0.00;
+
+            var tax_percentage = $('input[name="tax_percentage"]').val();
+
+            // Calculates the total for each item
+            $.each(this.products.items, function (pos, dict) {
+                dict.pos = pos;
+                dict.total_item = roundTo(dict.quantity * dict.price, 2);
+                // Add the item total to the delivery subtotal
+                sub_total += roundTo(dict.total_item, 2);
+            });
+
+            // Update the delivery subtotal, grand total, and tax amount
+            this.products.sub_total = roundTo(sub_total, 2);
+            this.products.grand_total = roundTo(this.products.sub_total, 2);
+            this.products.tax_amount = roundTo(this.products.sub_total * (tax_percentage / 100), 2);
+
+            // Update the display values with proper formatting
+            $('input[name="sub_total"]').val(this.products.sub_total);
+            $('input[name="tax_amount"]').val(this.products.tax_amount);
+            $('input[name="grand_total"]').val(this.products.grand_total);
+
+            // Add formatted display next to the input fields
+            $('input[name="sub_total"]').next('.formatted-value').remove();
+            $('input[name="tax_amount"]').next('.formatted-value').remove();
+            $('input[name="grand_total"]').next('.formatted-value').remove();
+
+            $('input[name="sub_total"]').after('<div class="formatted-value">' + formatCurrency(this.products.sub_total) + '</div>');
+            $('input[name="tax_amount"]').after('<div class="formatted-value">' + formatCurrency(this.products.tax_amount) + '</div>');
+            $('input[name="grand_total"]').after('<div class="formatted-value">' + formatCurrency(this.products.grand_total) + '</div>');
+        },
+        // Adds an item to the delivery object
+        add_item: function (item) {
+            this.products.items.push(item);
+            this.list_item();
+        },
+        // Shows the selected item in the table
+        list_item: function () {
+            // Calculate the delivery
+            this.calculate_delivery();
+
+            tblItems = $("#table_items").DataTable({
+                destroy: true,
+                data: this.products.items,
+                columns: [
+                    {"data": "number"},
+                    {"data": "name"},
+                    {"data": "price"},
+                    {"data": "quantity"},
+                    {"data": "total_item"},
+                    {"data": "id"},
+                ],
+                columnDefs: [
+                    {
+                        // Quantity
+                        class: 'text-center',
+                        targets: [3],
+                        render: function (data, type, row) {
+                            return '<input name="quantity" type="text" class="form-control form-control-xs text-center input-sm" autocomplete="off" value="' + row.quantity + '">';
+                        },
+                    },
+                    {
+                        // Item price - make editable with normal input
+                        class: 'text-right',
+                        targets: [2],
+                        render: function (data, type, row) {
+                            return '<input name="price" type="number" step="0.01" class="form-control form-control-xs text-center input-sm" autocomplete="off" value="' + row.price + '">';
+                        },
+                    },
+                    {
+                        // Item total
+                        class: 'text-right',
+                        targets: [4],
+                        render: function (data, type, row) {
+                            return formatCurrency(data);
+                        },
+                    },
+                    {
+                        // Delete button
+                        class: 'text-center',
+                        targets: [-1],
+                        orderable: false,
+                        render: function (data, type, row) {
+                            return '<a rel="delete" type="button" class="btn btn-sm btn-danger" data-bs-toggle="tooltip" title="Delete item"> <i class="fas fa-trash-alt fa-xs"></i> </a>';
+                        },
+                    },
+                ],
+                rowCallback(row, data, displayNun, displayIndex, dataIndex) {
+                    // Initialize TouchSpin for quantity only
+                    $(row).find("input[name='quantity']").TouchSpin({
+                        min: 1,
+                        max: 100,
+                        step: 1,
+                        decimals: 0,
+                        boostat: 1,
+                        maxboostedstep: 3,
+                        postfix: ''
+                    });
+                },
+            });
+        },
+    };
+
+    $(document).ready(function () {
+        // Tax percentage touchspin
+        $("input[name='tax_percentage']").TouchSpin({
+            min: 0,
+            max: 100,
+            step: 1,
+            decimals: 2,
+            boostat: 5,
+            maxboostedstep: 10,
+            postfix: '%'
+        }).on('change', function () {
+            delivery.calculate_delivery();
+        });
+
+        // Select2 items searchbox
+        $('#searchbox_items').select2({
+            delay: 250,
+            placeholder: 'Rechercher un article',
+            minimumInputLength: 1,
+            allowClear: true,
+            templateResult: template_item_searchbox,
+            ajax: {
+                url: "{% url 'get_items' %}",
+                type: 'POST',
+                data: function (params) {
+                    return {
+                        term: params.term,
+                        csrfmiddlewaretoken: $('input[name="csrfmiddlewaretoken"]').val()
+                    };
+                },
+                processResults: function (data) {
+                    return {
+                        results: data
+                    };
+                }
+            }
+        }).on('select2:select', function (e) {
+            // When an item is selected from the searchbox
+            var data = e.params.data;
+            // Add number, subtotal, and quantity of the item to the dictionary
+            data.number = number;
+            number++; // Increase the item number in the table
+            // Add the item to the delivery object
+            delivery.add_item(data);
+            // Clear the searchbox after the item is selected
+            $(this).val('').trigger('change.select2');
+        });
+
+        // Tables Events
+        $('#table_items tbody')
+            .on('click', 'a[rel="delete"]', function () {
+                // When an item is deleted
+                var tr = tblItems.cell($(this).closest('td, li')).index();
+                item_name = (tblItems.row(tr.row).data().name);
+
+                Swal.fire({
+                    customClass: {
+                        confirmButton: 'ml-3 btn btn-danger',
+                        cancelButton: 'btn btn-success'
+                    },
+                    buttonsStyling: false,
+                    title: "Êtes-vous sûr de vouloir supprimer cet article de la livraison?",
+                    text: item_name,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Supprimer',
+                    cancelButtonText: 'Annuler',
+                    reverseButtons: true,
+                }).then((result) => {
+                    // If confirmed
+                    if (result.isConfirmed) {
+                        // Delete the item
+                        delivery.products.items.splice(tr.row, 1);
+                        // List the table again
+                        delivery.list_item();
+                        Swal.fire("L'article a été retiré !", '', 'success');
+                    }
+                });
+            })
+            .on('change keyup', 'input[name="quantity"]', function () {
+                // When an item changes its quantity
+                var quantity = parseInt($(this).val());
+                var tr = tblItems.cell($(this).closest('td, li')).index();
+                // Update the item quantity in the delivery object
+                delivery.products.items[tr.row].quantity = quantity;
+                // Calculate the delivery with the new quantity
+                delivery.calculate_delivery();
+                // Find the row to update the item total
+                $('td:eq(4)', tblItems.row(tr.row).node()).html(formatCurrency(delivery.products.items[tr.row].total_item));
+            })
+            .on('change input', 'input[name="price"]', function () {
+                // When an item changes its price
+                var price = parseFloat($(this).val());
+                var tr = tblItems.cell($(this).closest('td, li')).index();
+                // Update the item price in the delivery object
+                delivery.products.items[tr.row].price = price;
+                // Calculate the delivery with the new price
+                delivery.calculate_delivery();
+                // Find the row to update the item total
+                $('td:eq(4)', tblItems.row(tr.row).node()).html(formatCurrency(delivery.products.items[tr.row].total_item));
+            });
+
+        // Delete all items
+        $('.deleteAll').on('click', function () {
+            // If there are no items, don't do anything
+            if (delivery.products.items.length === 0) return false;
+            // Alert the user
+            Swal.fire({
+                customClass: {
+                    confirmButton: 'ml-3 btn btn-danger',
+                    cancelButton: 'btn btn-success'
+                },
+                buttonsStyling: false,
+                title: "Êtes-vous sûr de vouloir supprimer tous les articles de cette livraison ?",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Tout supprimer',
+                cancelButtonText: 'Annuler',
+                reverseButtons: true,
+            }).then((result) => {
+                // If confirmed
+                if (result.isConfirmed) {
+                    // Remove all items from the delivery object
+                    delivery.products.items = [];
+                    // Recalculate the delivery
+                    delivery.list_item();
+                    Swal.fire('Tous les articles ont été éliminés !', '', 'success');
+                }
+            });
+        });
+
+        // Items datatable
+        tblItems = $('#table_items').DataTable({
+            columnDefs: [
+                {
+                    targets: [-1],
+                    orderable: false,
+                }
+            ],
+        });
+
+        // Item searchbox templateResult
+        function template_item_searchbox(repo) {
+            return $(`
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <small class="card-title">${repo.name}</small>
+                    </div>
+                </div>
+            `);
+        }
+
+        // Function to round numbers
+        function roundTo(value, decimals) {
+            const factor = Math.pow(10, decimals);
+            return Math.round(value * factor) / factor;
+        }
+
+        // On form submit
+        $('form#form_delivery').on('submit', function (event) {
+            event.preventDefault();
+
+            // Gather delivery details
+            var amountPaid = parseFloat($('input[name="amount_paid"]').val());
+            var grandTotal = parseFloat($('input[name="grand_total"]').val());
+            var amountChange = roundTo(amountPaid - grandTotal, 2);
+
+            // Gather delivery details
+            var formData = {
+                customer_name: $('input[name="customer_name"]').val(),
+                phone_number: $('input[name="phone_number"]').val(),
+                location: $('input[name="location"]').val(),
+                delivery_date: $('input[name="delivery_date"]').val(),
+                sub_total: $('input[name="sub_total"]').val(),
+                grand_total: grandTotal,
+                amount_paid: amountPaid,
+                amount_change: amountChange,
+                items: delivery.products.items
+            };
+
+            // ensure amountPaid covers the grand total **
+            if (amountPaid < grandTotal) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Erreur',
+                    text: 'Le montant payé doit être supérieur ou égal au total.'
+                });
+                return;  // stop submission
+            }
+
+            // Check if amount_change is present
+            if (isNaN(amountChange)) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Erreur',
+                    text: 'Un changement de montant est nécessaire !'
+                });
+                return;
+            }
+
+            // Get CSRF token
+            var csrftoken = $('input[name="csrfmiddlewaretoken"]').val();
+
+            // Submit the form data via AJAX
+            $.ajax({
+                url: $(this).attr('action'),
+                type: 'POST',
+                contentType: 'application/json',
+                headers: {
+                    'X-CSRFToken': csrftoken
+                },
+                data: JSON.stringify(formData),
+                success: function (response) {
+                    // Handle success response
+                    delivery.products.items = [];
+                    delivery.list_item();
+                    $('form#form_delivery')[0].reset();
+                    $('#searchbox_items').val(null).trigger('change');
+                    number = 1;
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Succès',
+                        text: 'La livraison a été créée avec succès !'
+                    });
+                },
+                error: function (xhr) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Erreur',
+                        text: xhr.responseJSON.message || "Une erreur s'est produite lors de la création de la livraison !"
+                    });
+                }
+            });
+        });
+    });
+</script>
+
+{% endblock javascripts %}

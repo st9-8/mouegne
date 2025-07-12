@@ -79,24 +79,110 @@ class Item(models.Model):
 
 class Delivery(models.Model):
     """
-    Represents a delivery of an item to a customer.
+    Represents a delivery to a customer with multiple items.
     """
-    item = models.ForeignKey(
-        Item, blank=True, null=True, on_delete=models.SET_NULL
+    DELIVERY_STATUS_CHOICES = [
+        ('NOT_DELIVERED', 'Not Delivered'),
+        ('DELIVERED', 'Delivered'),
+    ]
+    
+    date_added = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name="Delivery Creation Date"
     )
     customer_name = models.CharField(max_length=30, blank=True, null=True)
     phone_number = PhoneNumberField(blank=True, null=True)
-    location = models.CharField(max_length=20, blank=True, null=True)
-    date = models.DateTimeField()
-    is_delivered = models.BooleanField(
-        default=False, verbose_name='Is Delivered'
+    location = models.CharField(max_length=50, blank=True, null=True)
+    delivery_date = models.DateTimeField(verbose_name="Expected Delivery Date")
+    status = models.CharField(
+        max_length=15,
+        choices=DELIVERY_STATUS_CHOICES,
+        default='NOT_DELIVERED',
+        verbose_name='Delivery Status'
     )
+    sub_total = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0.0
+    )
+    grand_total = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0.0
+    )
+    tax_amount = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0.0
+    )
+    tax_percentage = models.FloatField(default=0.0)
+    amount_paid = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0.0
+    )
+    amount_change = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0.0
+    )
+
+    class Meta:
+        db_table = "deliveries"
+        verbose_name = "Delivery"
+        verbose_name_plural = "Deliveries"
+        ordering = ['-date_added']
 
     def __str__(self):
         """
         String representation of the delivery.
         """
         return (
-            f"Delivery of {self.item} to {self.customer_name} "
-            f"at {self.location} on {self.date}"
+            f"Delivery #{self.id} to {self.customer_name} "
+            f"- Status: {self.get_status_display()}"
+        )
+    
+    def sum_products(self):
+        """
+        Returns the total quantity of products in the delivery.
+        """
+        return sum(detail.quantity for detail in self.deliverydetail_set.all())
+
+
+class DeliveryDetail(models.Model):
+    """
+    Represents details of a specific delivery, including item and quantity.
+    """
+    delivery = models.ForeignKey(
+        Delivery,
+        on_delete=models.CASCADE,
+        db_column="delivery",
+        related_name="deliverydetail_set"
+    )
+    item = models.ForeignKey(
+        Item,
+        on_delete=models.DO_NOTHING,
+        db_column="item"
+    )
+    price = models.DecimalField(
+        max_digits=10,
+        decimal_places=2
+    )
+    quantity = models.PositiveIntegerField()
+    total_detail = models.DecimalField(max_digits=10, decimal_places=2)
+
+    class Meta:
+        db_table = "delivery_details"
+        verbose_name = "Delivery Detail"
+        verbose_name_plural = "Delivery Details"
+
+    def __str__(self):
+        """
+        Returns a string representation of the DeliveryDetail instance.
+        """
+        return (
+            f"Detail ID: {self.id} | "
+            f"Delivery ID: {self.delivery.id} | "
+            f"Item: {self.item.name} | "
+            f"Quantity: {self.quantity}"
         )

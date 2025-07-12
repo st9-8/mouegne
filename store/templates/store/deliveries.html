@@ -3,25 +3,30 @@
 {% load render_table from django_tables2 %}
 {% load querystring from django_tables2 %}
 {% block title %}Deliveries{% endblock title %}
+
+{% block stylesheets %}
+<style>
+    input[type="text"], select {
+        box-sizing: border-box;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        padding: 6px 20px;
+        margin: 8px 0;
+    }
+    button[type="submit"] {
+        padding: 6px 20px;
+        margin: 8px 0;
+    }
+    .table th, .table td {
+        text-align: center;
+    }
+</style>
+{% endblock stylesheets %}
+
 {% block content %}
 <div class="container p-5">
-    <style>
-        input[type="text"], select {
-            box-sizing: border-box;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            padding: 6px 20px;
-            margin: 8px 0;
-        }
-        button[type="submit"] {
-            padding: 6px 20px;
-            margin: 8px 0;
-        }
-        .table th, .table td {
-            text-align: center;
-        }
-    </style>
-
+    {% csrf_token %}
+    
     <div class="d-flex justify-content-between mb-3">
         <a class="btn btn-success btn-sm" href="{% url 'delivery-create' %}">
             Ajouter une livraison
@@ -35,39 +40,47 @@
         <table class="table table-bordered table-striped table-hover table-sm">
             <thead class="thead-light">
             <tr>
-                <th scope="col"><a href="{% querystring table.prefixed_order_by_field=column.order_by_alias.next %}">ID
-                    <i class="fa-solid fa-sort"></i></a></th>
-                <th scope="col">Nom <i class="fa-solid fa-sort"></i></th>
-                <th scope="col">Nom du client <i class="fa-solid fa-sort"></i></th>
-                <th scope="col">Contact <i class="fa-solid fa-sort"></i></th>
-                <th scope="col">Adresse <i class="fa-solid fa-sort"></i></th>
-                <th scope="col">Date de livraison <i class="fa-solid fa-sort"></i></th>
-                <th scope="col">Statut de la livraison <i class="fa-solid fa-sort"></i></th>
-                <th scope="col">Action <i class="fa-solid fa-sort"></i></th>
+                <th scope="col">ID</th>
+                <th scope="col">Nom du client</th>
+                <th scope="col">Contact</th>
+                <th scope="col">Adresse</th>
+                <th scope="col">Date création</th>
+                <th scope="col">Date livraison prévue</th>
+                <th scope="col">Total</th>
+                <th scope="col">Statut</th>
+                <th scope="col">Actions</th>
             </tr>
             </thead>
             <tbody>
             {% for delivery in deliveries %}
             <tr>
                 <th scope="row">{{ delivery.id }}</th>
-                <td>{{ delivery.item.name }}</td>
                 <td>{{ delivery.customer_name }}</td>
                 <td>{{ delivery.phone_number }}</td>
                 <td>{{ delivery.location }}</td>
-                <td>{{ delivery.date }}</td>
+                <td>{{ delivery.date_added|date:"Y/m/d H:i" }}</td>
+                <td>{{ delivery.delivery_date|date:"Y/m/d H:i" }}</td>
+                <td>{{ delivery.grand_total }} FCFA</td>
                 <td>
-                    {% if delivery.is_delivered %}
+                    {% if delivery.status == 'DELIVERED' %}
                     <span class="badge bg-success text-white">Livré</span>
                     {% else %}
-                    <span class="badge bg-danger text-white">En attente</span>
+                    <span class="badge bg-warning text-dark">Non livré</span>
                     {% endif %}
                 </td>
                 <td>
+                    {% if delivery.status == 'NOT_DELIVERED' %}
+                    <button class="btn btn-outline-success btn-sm update-status-btn" 
+                            data-delivery-id="{{ delivery.id }}"
+                            title="Marquer comme livré">
+                        <i class="fa-solid fa-check"></i> Livrer
+                    </button>
+                    {% endif %}
                     <a class="btn btn-outline-info btn-sm" href="{% url 'delivery-update' delivery.pk %}">
-                        <i class="fa-solid fa-pen"></i> Modifier
+                        <i class="fa-solid fa-pen"></i>
                     </a>
-                    <a class="btn btn-outline-danger btn-sm float-end" href="{% url 'delivery-delete' delivery.pk %}">
-                        <i class="fa-solid fa-trash"></i> Supprimer
+                    <a class="btn btn-outline-danger btn-sm" href="{% url 'delivery-delete' delivery.pk %}">
+                        <i class="fa-solid fa-trash"></i>
                     </a>
                 </td>
             </tr>
@@ -121,3 +134,83 @@
     {% endif %}
 </div>
 {% endblock content %}
+
+{% block javascripts %}
+<!-- Sweet Alert -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.15/dist/sweetalert2.all.min.js"></script>
+
+<script>
+$(document).ready(function() {
+    // Handle status update button clicks
+    $('.update-status-btn').on('click', function() {
+        var deliveryId = $(this).data('delivery-id');
+        var button = $(this);
+        
+        Swal.fire({
+            title: 'Confirmer la livraison',
+            text: 'Êtes-vous sûr que cette livraison a été effectuée?',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#28a745',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Oui, livré!',
+            cancelButtonText: 'Annuler'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Show loading state
+                button.prop('disabled', true);
+                button.html('<i class="fa-solid fa-spinner fa-spin"></i> Traitement...');
+                
+                // Make AJAX request to update status
+                $.ajax({
+                    url: "{% url 'update_delivery_status' 0 %}".replace('0', deliveryId),
+                    type: 'POST',
+                    headers: {
+                        'X-CSRFToken': $('[name=csrfmiddlewaretoken]').val()
+                    },
+                    success: function(response) {
+                        if (response.status === 'success') {
+                            Swal.fire({
+                                title: 'Succès!',
+                                text: response.message,
+                                icon: 'success',
+                                timer: 2000,
+                                showConfirmButton: false
+                            }).then(() => {
+                                // Reload the page to update the status display
+                                location.reload();
+                            });
+                        } else {
+                            Swal.fire({
+                                title: 'Erreur!',
+                                text: response.message,
+                                icon: 'error'
+                            });
+                            // Reset button state
+                            button.prop('disabled', false);
+                            button.html('<i class="fa-solid fa-check"></i> Livrer');
+                        }
+                    },
+                    error: function(xhr) {
+                        var errorMessage = 'Une erreur est survenue.';
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            errorMessage = xhr.responseJSON.message;
+                        }
+                        
+                        Swal.fire({
+                            title: 'Erreur!',
+                            text: errorMessage,
+                            icon: 'error'
+                        });
+                        
+                        // Reset button state
+                        button.prop('disabled', false);
+                        button.html('<i class="fa-solid fa-check"></i> Livrer');
+                    }
+                });
+            }
+        });
+    });
+});
+</script>
+{% endblock javascripts %}
