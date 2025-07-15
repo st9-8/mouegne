@@ -655,7 +655,7 @@ def update_delivery_status(request, delivery_id):
                         tax_percentage=delivery.tax_percentage,
                         amount_paid=delivery.amount_paid,
                         amount_change=delivery.amount_change,
-                        defaults={'date_added': delivery.date_added}
+                        defaults={'date_added': delivery.date_added - timedelta(days=1)}
                     )
                     
                     # Create SaleDetail record
