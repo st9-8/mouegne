@@ -140,17 +140,6 @@
         }
         
         /* Delivery status */
-        .status-badge {
-            background-color: #f39c12;
-            color: white;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 10px;
-            font-weight: bold;
-            text-transform: uppercase;
-            display: inline-block;
-            margin: 4px 0;
-        }
     </style>
 </head>
 <body>
@@ -171,7 +160,6 @@
             {% endif %}
             <br/>
             <p class="x-bold">BON DE LIVRAISON</p>
-            <div class="status-badge">{{ delivery.get_status_display }}</div>
             <br/>
             <p style="text-align: left;">Date création: {{ delivery.date_added|date:"Y/m/d H:i:s" }}</p>
             <p style="text-align: left;">Code: {{ delivery.id }}</p>

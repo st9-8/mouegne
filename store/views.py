@@ -673,12 +673,9 @@ def update_delivery_status(request, delivery_id):
                     'settings': settings,
                 }
                 
-                pdf_data = generate_pdf(request, 'store/delivery_receipt.html', context)
-                print_document(pdf_data)
-                
                 return JsonResponse({
                     'status': 'success',
-                    'message': 'Delivery status updated successfully! Receipt printed.'
+                    'message': 'Delivery status updated successfully!'
                 })
                 
         except Delivery.DoesNotExist:
