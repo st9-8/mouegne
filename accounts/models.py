@@ -81,7 +81,7 @@ class Customer(models.Model):
         return self.first_name + " " + self.last_name
 
     def get_full_name(self):
-        return self.first_name + " " + self.last_name
+        return self.first_name or '' + " " + self.last_name or ''
 
     def to_select2(self):
         item = {
