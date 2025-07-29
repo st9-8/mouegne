@@ -1,7 +1,7 @@
 import os
 import tempfile
-# import win32api
-# import win32print
+import win32api
+import win32print
 import subprocess
 from traceback_with_variables import format_exc
 from django.template.loader import render_to_string
