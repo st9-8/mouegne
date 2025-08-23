@@ -378,13 +378,12 @@ def DeliveryCreateView(request):
             try:
                 # Load the JSON data from the request body
                 data = json.loads(request.body)
-                print(data)
                 logger.info(f"Received delivery data: {data}")
 
                 # Validate required fields
                 required_fields = [
-                    'customer_name', 'phone_number', 'location', 'delivery_date',
-                    'sub_total', 'grand_total', 'amount_paid', 'amount_change', 'items'
+                    'phone_number', 'location', 'delivery_date',
+                    'sub_total', 'grand_total', 'amount_change', 'items'
                 ]
                 for field in required_fields:
                     if field not in data:
@@ -392,7 +391,7 @@ def DeliveryCreateView(request):
 
                 # Create delivery attributes
                 delivery_attributes = {
-                    "customer_name": data['customer_name'],
+                    "customer_name": f'Client livraison {Delivery.objects.count() + 1}',
                     "phone_number": data['phone_number'],
                     "location": data['location'],
                     "delivery_date": data['delivery_date'],
@@ -401,11 +400,8 @@ def DeliveryCreateView(request):
                     "grand_total": float(data["grand_total"]),
                     "tax_amount": float(data.get("tax_amount", 0.0)),
                     "tax_percentage": float(data.get("tax_percentage", 0.0)),
-                    "amount_paid": float(data["amount_paid"]),
-                    "amount_change": float(data["amount_change"]),
+                    "amount_paid": float(data["grand_total"]),
                 }
-
-                print(delivery_attributes)
 
                 # Use a transaction to ensure atomicity
                 with transaction.atomic():
@@ -427,10 +423,10 @@ def DeliveryCreateView(request):
                             raise ValueError("Item is missing required fields")
 
                         item_instance = Item.objects.get(id=int(item["id"]))
-                        
+
                         # Check if enough stock is available but don't update yet
                         if item_instance.quantity < int(item["quantity"]):
-                            raise ValueError(f"Not enough stock for item: {item_instance.name}")
+                            raise ValueError(f"Quantité en stock insuffisante pour: {item_instance.name}")
 
                         detail_attributes = {
                             "delivery": new_delivery,
@@ -608,56 +604,56 @@ def update_delivery_status(request, delivery_id):
     if is_ajax(request):
         try:
             delivery = Delivery.objects.get(id=delivery_id)
-            
+
             if delivery.status == 'DELIVERED':
                 return JsonResponse({
                     'status': 'error',
                     'message': 'Delivery is already marked as delivered!'
                 }, status=400)
-            
+
             # Use a transaction to ensure atomicity
             with transaction.atomic():
                 # Update delivery status
                 delivery.status = 'DELIVERED'
                 delivery.save()
-                
+
                 # Create SaleDetail records and update stock
                 for delivery_detail in delivery.deliverydetail_set.all():
                     item = delivery_detail.item
-                    
+
                     # Check if enough stock is available
                     if item.quantity < delivery_detail.quantity:
-                        raise ValueError(f"Not enough stock for item: {item.name}")
-                    
+                        raise ValueError(f"Quantité en stock insuffisante pour: {item.name}")
+
                     # Update item quantity
                     item.quantity -= delivery_detail.quantity
                     item.save()
-                    
+
                     # Create corresponding SaleDetail record
                     # First, we need to create a Sale record
-                    
+
                     # Try to find a customer or create a default one
                     customer, created = Customer.objects.get_or_create(
                         phone=delivery.phone_number,
                         defaults={
-                            'first_name': delivery.customer_name.split()[0] if delivery.customer_name.split() else delivery.customer_name,
-                            'last_name': ' '.join(delivery.customer_name.split()[1:]) if len(delivery.customer_name.split()) > 1 else '',
+                            'first_name': delivery.customer_name,
                             'address': delivery.location
                         }
                     )
-                    
+
                     # Create a Sale record for this delivery
                     sale, created = Sale.objects.get_or_create(
                         customer=customer,
+                        delivery=delivery,
                         sub_total=delivery.sub_total,
                         grand_total=delivery.grand_total,
                         tax_amount=delivery.tax_amount,
                         tax_percentage=delivery.tax_percentage,
-                        amount_paid=delivery.amount_paid,
+                        amount_paid=delivery.grand_total,
                         amount_change=delivery.amount_change,
                         defaults={'date_added': delivery.date_added - timedelta(days=1)}
                     )
-                    
+
                     # Create SaleDetail record
                     SaleDetail.objects.create(
                         sale=sale,
@@ -666,18 +662,18 @@ def update_delivery_status(request, delivery_id):
                         quantity=delivery_detail.quantity,
                         total_detail=delivery_detail.total_detail
                     )
-                
+
                 # Generate delivery confirmation receipt
                 context = {
                     'delivery': delivery,
                     'settings': settings,
                 }
-                
+
                 return JsonResponse({
                     'status': 'success',
                     'message': 'Delivery status updated successfully!'
                 })
-                
+
         except Delivery.DoesNotExist:
             return JsonResponse({
                 'status': 'error',
@@ -694,5 +690,5 @@ def update_delivery_status(request, delivery_id):
                 'status': 'error',
                 'message': f'There was an error: {str(e)}'
             }, status=500)
-    
+
     return JsonResponse({'error': 'Not an AJAX request'}, status=400)

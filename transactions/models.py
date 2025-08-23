@@ -2,6 +2,7 @@ from django.db import models
 from django_extensions.db.fields import AutoSlugField
 
 from store.models import Item
+from store.models import Delivery
 from accounts.models import Vendor, Customer
 
 DELIVERY_CHOICES = [("P", "En attente"), ("S", "Livré")]
@@ -18,8 +19,10 @@ class Sale(models.Model):
     )
     customer = models.ForeignKey(
         Customer,
-        on_delete=models.DO_NOTHING,
-        db_column="customer"
+        on_delete=models.SET_NULL,
+        db_column="customer",
+        blank=True,
+        null=True
     )
     sub_total = models.DecimalField(
         max_digits=10,
@@ -48,6 +51,8 @@ class Sale(models.Model):
         default=0.0
     )
     has_sav = models.BooleanField(default=False)
+
+    delivery = models.OneToOneField(Delivery, on_delete=models.CASCADE, related_name='sale', blank=True, null=True)
 
     class Meta:
         db_table = "sales"

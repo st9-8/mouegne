@@ -308,7 +308,7 @@ def SaleCreateView(request):
 
                         item_instance = Item.objects.get(id=int(item["id"]))
                         if item_instance.quantity < int(item["quantity"]):
-                            raise ValueError(f"Not enough stock for item: {item_instance.name}")
+                            raise ValueError(f"Quantité en stock insuffisante pour: {item_instance.name}")
 
                         detail_attributes = {
                             "sale": new_sale,

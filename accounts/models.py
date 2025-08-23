@@ -78,7 +78,7 @@ class Customer(models.Model):
         db_table = 'Customers'
 
     def __str__(self) -> str:
-        return f'{self.pk}' + self.first_name or '' + " " + self.last_name or ''
+        return self.first_name or '' + " " + self.last_name or ''
 
     def get_full_name(self):
         return self.first_name or '' + " " + self.last_name or ''

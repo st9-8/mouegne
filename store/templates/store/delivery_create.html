@@ -98,11 +98,6 @@
                     <div class="card-body">
                         {% csrf_token %}
                         <div class="mb-3">
-                            <label for="customer_name" class="form-label">Nom du client</label>
-                            <input name="customer_name" type="text" class="form-control" id="customer_name"
-                                   aria-label="Customer Name" required>
-                        </div>
-                        <div class="mb-3">
                             <label for="phone_number" class="form-label">Téléphone</label>
                             <input name="phone_number" type="text" class="form-control" id="phone_number"
                                    aria-label="Phone Number" required>
@@ -137,11 +132,6 @@
                             <label for="grand_total" class="form-label">Total</label>
                             <input name="grand_total" type="number" class="form-control" id="grand_total"
                                    aria-label="Grand Total" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="amount_paid" class="form-label">Montant payé</label>
-                            <input name="amount_paid" type="number" class="form-control" id="amount_paid"
-                                   aria-label="Amount Paid" required>
                         </div>
                         <button type="submit" class="btn btn-success w-100">Créer la livraison</button>
                     </div>
@@ -500,15 +490,6 @@
             }
 
             // Check if amount_change is present
-            if (isNaN(amountChange)) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Erreur',
-                    text: 'Un changement de montant est nécessaire !'
-                });
-                return;
-            }
-
             // Get CSRF token
             var csrftoken = $('input[name="csrfmiddlewaretoken"]').val();
 
