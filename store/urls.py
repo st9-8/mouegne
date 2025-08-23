@@ -89,7 +89,7 @@ urlpatterns = [
     ),
     path(
         'delivery/<int:pk>/update/',
-        DeliveryUpdateView.as_view(),
+        DeliveryUpdateView,
         name='delivery-update'
     ),
     path(

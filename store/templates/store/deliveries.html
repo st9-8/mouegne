@@ -76,9 +76,11 @@
                         <i class="fa-solid fa-check"></i> Livrer
                     </button>
                     {% endif %}
+                    {% if delivery.status == 'NOT_DELIVERED' %}
                     <a class="btn btn-outline-info btn-sm" href="{% url 'delivery-update' delivery.pk %}">
                         <i class="fa-solid fa-pen"></i>
                     </a>
+                    {% endif %}
                     <a class="btn btn-outline-danger btn-sm" href="{% url 'delivery-delete' delivery.pk %}">
                         <i class="fa-solid fa-trash"></i>
                     </a>

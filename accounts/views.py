@@ -142,10 +142,23 @@ def is_ajax(request):
 def get_customers(request):
     if is_ajax(request) and request.method == 'POST':
         term = request.POST.get('term', '')
+        # Search by both name (first_name, last_name) and phone
+        from django.db.models import Q
         customers = Customer.objects.filter(
-            name__icontains=term
-        ).values('id', 'name')
-        customer_list = list(customers)
+            Q(first_name__icontains=term) |
+            Q(last_name__icontains=term) |
+            Q(phone__icontains=term)
+        )
+        customer_list = []
+        for customer in customers:
+            customer_list.append({
+                'id': customer.id,
+                'text': f"{customer.first_name} {customer.last_name or ''} - {customer.phone or ''}".strip(),
+                'first_name': customer.first_name,
+                'last_name': customer.last_name or '',
+                'phone': customer.phone or '',
+                'address': customer.address or ''
+            })
         return JsonResponse(customer_list, safe=False)
     return JsonResponse({'error': 'Invalid request method'}, status=400)
 

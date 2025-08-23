@@ -389,9 +389,27 @@ def DeliveryCreateView(request):
                     if field not in data:
                         raise ValueError(f"Missing required field: {field}")
 
+                # Determine customer name
+                customer_name = None
+                
+                # First check if customer_name was provided directly from frontend
+                if data.get('customer_name'):
+                    customer_name = data['customer_name']
+                # Otherwise, try to find customer by phone number
+                elif data.get('phone_number'):
+                    try:
+                        customer = Customer.objects.get(phone=data['phone_number'])
+                        customer_name = f"{customer.first_name} {customer.last_name or ''}".strip()
+                    except Customer.DoesNotExist:
+                        pass
+                
+                # If no customer name found, use default
+                if not customer_name:
+                    customer_name = f'Client livraison {Delivery.objects.count() + 1}'
+
                 # Create delivery attributes
                 delivery_attributes = {
-                    "customer_name": f'Client livraison {Delivery.objects.count() + 1}',
+                    "customer_name": customer_name,
                     "phone_number": data['phone_number'],
                     "location": data['location'],
                     "delivery_date": data['delivery_date'],
@@ -490,21 +508,121 @@ def DeliveryCreateView(request):
     return render(request, "store/delivery_create.html", context=context)
 
 
-class DeliveryUpdateView(LoginRequiredMixin, UpdateView):
+@login_required
+def DeliveryUpdateView(request, pk):
     """
-    View class to update delivery information.
-
-    Attributes:
-    - model: The model associated with the view.
-    - fields: The fields to be updated.
-    - template_name: The HTML template used for rendering the view.
-    - success_url: The URL to redirect to upon successful form submission.
+    View function to update delivery information with AJAX support.
     """
+    delivery = Delivery.objects.get(pk=pk)
+    
+    context = {
+        "active_icon": "deliveries",
+        "delivery": delivery,
+    }
 
-    model = Delivery
-    form_class = DeliveryForm
-    template_name = "store/delivery_form.html"
-    success_url = "/deliveries"
+    if request.method == 'POST':
+        if is_ajax(request=request):
+            try:
+                # Load the JSON data from the request body
+                data = json.loads(request.body)
+                logger.info(f"Received delivery update data: {data}")
+
+                # Validate required fields
+                required_fields = [
+                    'phone_number', 'location', 'delivery_date',
+                    'sub_total', 'grand_total', 'tax_amount', 'tax_percentage', 'items'
+                ]
+                for field in required_fields:
+                    if field not in data:
+                        raise ValueError(f"Missing required field: {field}")
+
+                # Use a transaction to ensure atomicity
+                with transaction.atomic():
+                    # Update delivery attributes
+                    delivery.phone_number = data['phone_number']
+                    delivery.location = data['location']
+                    delivery.delivery_date = data['delivery_date']
+                    delivery.sub_total = float(data["sub_total"])
+                    delivery.grand_total = float(data["grand_total"])
+                    delivery.tax_amount = float(data["tax_amount"])
+                    delivery.tax_percentage = float(data["tax_percentage"])
+                    delivery.save()
+                    
+                    logger.info(f"Delivery updated: {delivery}")
+
+                    # Delete existing delivery details
+                    DeliveryDetail.objects.filter(delivery=delivery).delete()
+
+                    # Create new delivery details WITHOUT updating item quantities
+                    items = data["items"]
+                    if not isinstance(items, list):
+                        raise ValueError("Items should be a list")
+
+                    for item in items:
+                        if not all(
+                                k in item for k in [
+                                    "id", "price", "quantity", "total_item"
+                                ]
+                        ):
+                            raise ValueError("Item is missing required fields")
+
+                        item_instance = Item.objects.get(id=int(item["id"]))
+
+                        detail_attributes = {
+                            "delivery": delivery,
+                            "item": item_instance,
+                            "price": float(item["price"]),
+                            "quantity": int(item["quantity"]),
+                            "total_detail": float(item["total_item"])
+                        }
+                        DeliveryDetail.objects.create(**detail_attributes)
+                        logger.info(f"Delivery detail created: {detail_attributes}")
+
+                return JsonResponse(
+                    {
+                        'status': 'success',
+                        'message': 'Delivery updated successfully!',
+                        'redirect': '/deliveries/'
+                    }
+                )
+
+            except json.JSONDecodeError:
+                return JsonResponse(
+                    {
+                        'status': 'error',
+                        'message': 'Invalid JSON format in request body!'
+                    }, status=400)
+            except Delivery.DoesNotExist:
+                return JsonResponse({
+                    'status': 'error',
+                    'message': 'Delivery does not exist!'
+                }, status=404)
+            except Item.DoesNotExist:
+                return JsonResponse({
+                    'status': 'error',
+                    'message': 'Item does not exist!'
+                }, status=400)
+            except ValueError as ve:
+                return JsonResponse({
+                    'status': 'error',
+                    'message': f'Value error: {str(ve)}'
+                }, status=400)
+            except TypeError as te:
+                return JsonResponse({
+                    'status': 'error',
+                    'message': f'Type error: {str(te)}'
+                }, status=400)
+            except Exception as e:
+                logger.error(f"Exception during delivery update: {e}")
+                return JsonResponse(
+                    {
+                        'status': 'error',
+                        'message': (
+                            f'There was an error during the update: {str(e)}'
+                        )
+                    }, status=500)
+
+    return render(request, "store/delivery_update.html", context=context)
 
 
 class DeliveryDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):

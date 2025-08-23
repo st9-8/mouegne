@@ -1,7 +1,8 @@
 {% extends "store/base.html" %}
 {% load static %}
+{% load l10n %}
 <!-- Page title  -->
-{% block title %}Create delivery{% endblock title %}
+{% block title %}Update delivery{% endblock title %}
 
 <!-- Specific Page CSS goes HERE  -->
 {% block stylesheets %}
@@ -20,7 +21,7 @@
 {% endblock stylesheets %}
 
 <!-- Page Heading -->
-<h2>Add delivery</h2>
+<h2>Update delivery</h2>
 
 <!-- Page content  -->
 {% block content %}
@@ -34,7 +35,7 @@
     </div>
 
     <!-- Delivery items and details -->
-    <form id="form_delivery" action="{% url 'delivery-create' %}" class="deliveryForm" method="post">
+    <form id="form_delivery" action="{% url 'delivery-update' delivery.pk %}" class="deliveryForm" method="post">
         <div class="row">
             <!-- Left column -->
             <div class="col-lg-8 mb-4">
@@ -105,23 +106,23 @@
                         <div class="mb-3">
                             <label for="phone_number" class="form-label">Téléphone</label>
                             <input name="phone_number" type="text" class="form-control" id="phone_number"
-                                   aria-label="Phone Number" required>
+                                   aria-label="Phone Number" value="{{ delivery.phone_number }}" required>
                         </div>
                         <div class="mb-3">
                             <label for="location" class="form-label">Adresse de livraison</label>
                             <input name="location" type="text" class="form-control" id="location"
-                                   aria-label="Location" required>
+                                   aria-label="Location" value="{{ delivery.location }}" required>
                         </div>
                         <div class="mb-3">
                             <label for="delivery_date" class="form-label">Date de livraison</label>
                             <input name="delivery_date" type="datetime-local" class="form-control" id="delivery_date"
-                                   aria-label="Delivery Date" required>
+                                   aria-label="Delivery Date" value="{{ delivery.delivery_date|date:'Y-m-d\TH:i' }}" required>
                         </div>
                         <hr>
                         <div class="mb-3">
                             <label for="sub_total" class="form-label">Sous total</label>
                             <input name="sub_total" type="number" class="form-control" id="sub_total"
-                                   aria-label="Subtotal" required>
+                                   aria-label="Subtotal" value="{{ delivery.sub_total }}" required>
                         </div>
                         <div class="mb-3">
                             <label for="tax_percentage" class="form-label">TVA (%)</label>
@@ -131,14 +132,14 @@
                         <div class="mb-3">
                             <label for="tax_amount" class="form-label">Taxes</label>
                             <input name="tax_amount" type="number" class="form-control" id="tax_amount"
-                                   aria-label="Tax Amount" required>
+                                   aria-label="Tax Amount" value="{{ delivery.tax_amount }}" required>
                         </div>
                         <div class="mb-3">
                             <label for="grand_total" class="form-label">Total</label>
                             <input name="grand_total" type="number" class="form-control" id="grand_total"
-                                   aria-label="Grand Total" required>
+                                   aria-label="Grand Total" value="{{ delivery.grand_total }}" required>
                         </div>
-                        <button type="submit" class="btn btn-success w-100">Créer la livraison</button>
+                        <button type="submit" class="btn btn-success w-100">Mettre à jour la livraison</button>
                     </div>
                 </div>
             </div>
@@ -187,15 +188,16 @@
     // Variable to store delivery details and products
     var delivery = {
         products: {
-            customer_id: null,
+            delivery_id: {{ delivery.pk }},
             customer_name: '',
-            phone_number: '',
-            location: '',
-            delivery_date: '',
-            sub_total: 0.00,
-            grand_total: 0.00,
-            tax_amount: 0.00,
-            tax_percentage: 0.00,
+            phone_number: '{{ delivery.phone_number }}',
+            location: '{{ delivery.location }}',
+            delivery_date: '{{ delivery.delivery_date|date:'Y-m-d\TH:i' }}',
+            status: '{{ delivery.status }}',
+            sub_total: {{ delivery.sub_total|default:"0.00"|unlocalize }},
+            grand_total: {{ delivery.grand_total|default:"0.00"|unlocalize }},
+            tax_amount: {{ delivery.tax_amount|default:"0.00"|unlocalize }},
+            tax_percentage: {{ delivery.tax_percentage|default:"0.00"|unlocalize }},
             amount_payed: 0.00,
             amount_change: 0.00,
             items: []
@@ -306,15 +308,22 @@
     };
 
     $(document).ready(function () {
-        // Set default delivery date to current date and time
-        var now = new Date();
-        var year = now.getFullYear();
-        var month = String(now.getMonth() + 1).padStart(2, '0');
-        var day = String(now.getDate()).padStart(2, '0');
-        var hours = String(now.getHours()).padStart(2, '0');
-        var minutes = String(now.getMinutes()).padStart(2, '0');
-        var currentDateTime = year + '-' + month + '-' + day + 'T' + hours + ':' + minutes;
-        $('#delivery_date').val(currentDateTime);
+        // Load existing delivery items
+        {% for detail in delivery.deliverydetail_set.all %}
+        delivery.products.items.push({
+            id: {{ detail.item.id }},
+            name: '{{ detail.item.name }}',
+            price: {{ detail.price|unlocalize }},
+            quantity: {{ detail.quantity }},
+            total_item: {{ detail.total_detail|unlocalize }},
+            number: number++
+        });
+        {% endfor %}
+        
+        // Display loaded items
+        if (delivery.products.items.length > 0) {
+            delivery.list_item();
+        }
 
         // Tax percentage touchspin
         $("input[name='tax_percentage']").TouchSpin({
@@ -353,16 +362,11 @@
         }).on('select2:select', function (e) {
             // When a customer is selected from the searchbox
             var data = e.params.data;
-            // Store customer ID and name
-            delivery.products.customer_id = data.id;
-            delivery.products.customer_name = (data.first_name + ' ' + (data.last_name || '')).trim();
             // Auto-fill phone number and location fields
             $('#phone_number').val(data.phone);
             $('#location').val(data.address);
         }).on('select2:clear', function (e) {
-            // Clear customer data when customer is cleared
-            delivery.products.customer_id = null;
-            delivery.products.customer_name = '';
+            // Clear phone and location when customer is cleared
             $('#phone_number').val('');
             $('#location').val('');
         });
@@ -484,15 +488,6 @@
             });
         });
 
-        // Items datatable
-        tblItems = $('#table_items').DataTable({
-            columnDefs: [
-                {
-                    targets: [-1],
-                    orderable: false,
-                }
-            ],
-        });
 
         // Item searchbox templateResult
         function template_item_searchbox(repo) {
@@ -516,35 +511,18 @@
             event.preventDefault();
 
             // Gather delivery details
-            var amountPaid = parseFloat($('input[name="amount_paid"]').val());
-            var grandTotal = parseFloat($('input[name="grand_total"]').val());
-            var amountChange = roundTo(amountPaid - grandTotal, 2);
-
-            // Gather delivery details
             var formData = {
-                customer_id: delivery.products.customer_id,
-                customer_name: delivery.products.customer_name,
+                delivery_id: {{ delivery.pk }},
                 phone_number: $('input[name="phone_number"]').val(),
                 location: $('input[name="location"]').val(),
                 delivery_date: $('input[name="delivery_date"]').val(),
                 sub_total: $('input[name="sub_total"]').val(),
-                grand_total: grandTotal,
-                amount_paid: amountPaid,
-                amount_change: amountChange,
+                grand_total: $('input[name="grand_total"]').val(),
+                tax_amount: $('input[name="tax_amount"]').val(),
+                tax_percentage: $('input[name="tax_percentage"]').val(),
                 items: delivery.products.items
             };
 
-            // ensure amountPaid covers the grand total **
-            if (amountPaid < grandTotal) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Erreur',
-                    text: 'Le montant payé doit être supérieur ou égal au total.'
-                });
-                return;  // stop submission
-            }
-
-            // Check if amount_change is present
             // Get CSRF token
             var csrftoken = $('input[name="csrfmiddlewaretoken"]').val();
 
@@ -558,23 +536,19 @@
                 },
                 data: JSON.stringify(formData),
                 success: function (response) {
-                    // Handle success response
-                    delivery.products.items = [];
-                    delivery.list_item();
-                    $('form#form_delivery')[0].reset();
-                    $('#searchbox_items').val(null).trigger('change');
-                    number = 1;
                     Swal.fire({
                         icon: 'success',
                         title: 'Succès',
-                        text: 'La livraison a été créée avec succès !'
+                        text: 'La livraison a été mise à jour avec succès !'
+                    }).then(() => {
+                        window.location.href = '/deliveries/';
                     });
                 },
                 error: function (xhr) {
                     Swal.fire({
                         icon: 'error',
                         title: 'Erreur',
-                        text: xhr.responseJSON.message || "Une erreur s'est produite lors de la création de la livraison !"
+                        text: xhr.responseJSON.message || "Une erreur s'est produite lors de la mise à jour de la livraison !"
                     });
                 }
             });
