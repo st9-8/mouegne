@@ -20,6 +20,232 @@
     .table th, .table td {
         text-align: center;
     }
+
+    /* Enhanced Day Tabs Styling */
+    #dayTabs {
+        margin-bottom: 20px;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-radius: 10px;
+        padding: 15px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    #dayTabsList {
+        border: none;
+        background: transparent;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+        justify-content: center;
+    }
+
+    #dayTabsList .nav-item {
+        flex: 1;
+        min-width: 120px;
+        max-width: 150px;
+    }
+
+    #dayTabsList .nav-link {
+        border: 2px solid #dee2e6;
+        border-radius: 12px;
+        padding: 12px 8px;
+        margin: 0;
+        background: linear-gradient(145deg, #ffffff, #f8f9fa);
+        color: #495057;
+        font-weight: 600;
+        text-align: center;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        min-height: 70px;
+        justify-content: center;
+    }
+
+    #dayTabsList .nav-link:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        border-color: #0d6efd;
+        background: linear-gradient(145deg, #f8f9fa, #ffffff);
+    }
+
+    #dayTabsList .nav-link.active {
+        background: linear-gradient(145deg, #0d6efd, #0b5ed7);
+        color: #ffffff;
+        border-color: #0a58ca;
+        box-shadow: 0 4px 15px rgba(13,110,253,0.3);
+        transform: translateY(-1px);
+    }
+
+    #dayTabsList .nav-link.today {
+        border-color: #fd7e14;
+        box-shadow: 0 0 0 2px rgba(253,126,20,0.25);
+    }
+
+    #dayTabsList .nav-link.today:not(.active) {
+        background: linear-gradient(145deg, #fff3cd, #fef9e7);
+        color: #fd7e14;
+        font-weight: 700;
+    }
+
+    .tab-day-name {
+        font-size: 14px;
+        line-height: 1.2;
+        margin-bottom: 2px;
+    }
+
+    .delivery-count-badge {
+        background: rgba(255,255,255,0.9);
+        color: #495057;
+        border-radius: 10px;
+        padding: 2px 8px;
+        font-size: 11px;
+        font-weight: 700;
+        margin-top: 2px;
+        min-width: 20px;
+        text-align: center;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .nav-link.active .delivery-count-badge {
+        background: rgba(255,255,255,0.95);
+        color: #0d6efd;
+    }
+
+    .nav-link.today .delivery-count-badge {
+        background: rgba(253,126,20,0.1);
+        color: #fd7e14;
+    }
+
+    .nav-link.active.today .delivery-count-badge {
+        background: rgba(255,255,255,0.95);
+        color: #fd7e14;
+    }
+
+    /* Tab Content Styling */
+    .tab-content {
+        animation: fadeIn 0.3s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .tab-pane {
+        border-radius: 8px;
+        background: #ffffff;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        overflow: hidden;
+    }
+
+    .tab-pane .mb-2 {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        padding: 15px 20px;
+        margin: 0;
+        border-bottom: 2px solid #dee2e6;
+        font-size: 16px;
+        font-weight: 600;
+        color: #495057;
+    }
+
+    /* Mobile Responsiveness */
+    @media (max-width: 768px) {
+        #dayTabsList {
+            overflow-x: auto;
+            flex-wrap: nowrap;
+            justify-content: flex-start;
+            padding-bottom: 10px;
+            scrollbar-width: thin;
+            scrollbar-color: #dee2e6 transparent;
+        }
+
+        #dayTabsList::-webkit-scrollbar {
+            height: 6px;
+        }
+
+        #dayTabsList::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        #dayTabsList::-webkit-scrollbar-thumb {
+            background: #dee2e6;
+            border-radius: 3px;
+        }
+
+        #dayTabsList .nav-item {
+            flex: 0 0 100px;
+            min-width: 100px;
+            max-width: 100px;
+        }
+
+        #dayTabsList .nav-link {
+            padding: 10px 6px;
+            min-height: 60px;
+            font-size: 12px;
+        }
+
+        .tab-day-name {
+            font-size: 12px;
+        }
+
+        .delivery-count-badge {
+            font-size: 10px;
+            padding: 1px 6px;
+        }
+    }
+
+    @media (max-width: 576px) {
+        #dayTabs {
+            padding: 10px;
+            margin-bottom: 15px;
+        }
+
+        #dayTabsList .nav-item {
+            flex: 0 0 85px;
+            min-width: 85px;
+            max-width: 85px;
+        }
+
+        #dayTabsList .nav-link {
+            padding: 8px 4px;
+            min-height: 55px;
+            border-radius: 8px;
+        }
+
+        .tab-day-name {
+            font-size: 11px;
+        }
+    }
+
+    /* Status Filter and Toggle Button Enhancements */
+    #statusFilter {
+        border-radius: 8px;
+        border: 2px solid #dee2e6;
+        background: #ffffff;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+    }
+
+    #statusFilter:focus {
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 0.2rem rgba(13,110,253,0.25);
+    }
+
+    #toggleView {
+        border-radius: 8px;
+        padding: 10px 15px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        border: 2px solid #0d6efd;
+    }
+
+    #toggleView:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(13,110,253,0.25);
+    }
 </style>
 {% endblock stylesheets %}
 
@@ -36,7 +262,73 @@
         </a>
     </div>
 
-    <div class="mb-4">
+    <!-- Filter and View Toggle Controls -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <label for="statusFilter" class="form-label">Filtrer par statut:</label>
+            <select id="statusFilter" class="form-select">
+                <option value="all">Tous les statuts</option>
+                <option value="NOT_DELIVERED">Non livrés</option>
+                <option value="DELIVERED">Livrés</option>
+            </select>
+        </div>
+        <div class="col-md-6 d-flex align-items-end">
+            <button id="toggleView" class="btn btn-outline-primary">
+                <i class="fa-solid fa-list"></i> Toutes les livraisons
+            </button>
+        </div>
+    </div>
+
+    <!-- Tabs for Days of Week -->
+    <div id="dayTabs">
+        <ul class="nav nav-tabs" id="dayTabsList" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="monday-tab" data-bs-toggle="tab" data-bs-target="#monday" 
+                        type="button" role="tab" aria-controls="monday" aria-selected="false" data-day="1">
+                    <span class="tab-day-name">Lundi</span>
+                    <span class="delivery-count-badge" id="monday-count">0</span>
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="tuesday-tab" data-bs-toggle="tab" data-bs-target="#tuesday" 
+                        type="button" role="tab" aria-controls="tuesday" aria-selected="false" data-day="2">
+                    <span class="tab-day-name">Mardi</span>
+                    <span class="delivery-count-badge" id="tuesday-count">0</span>
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="wednesday-tab" data-bs-toggle="tab" data-bs-target="#wednesday" 
+                        type="button" role="tab" aria-controls="wednesday" aria-selected="false" data-day="3">
+                    <span class="tab-day-name">Mercredi</span>
+                    <span class="delivery-count-badge" id="wednesday-count">0</span>
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="thursday-tab" data-bs-toggle="tab" data-bs-target="#thursday" 
+                        type="button" role="tab" aria-controls="thursday" aria-selected="false" data-day="4">
+                    <span class="tab-day-name">Jeudi</span>
+                    <span class="delivery-count-badge" id="thursday-count">0</span>
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="friday-tab" data-bs-toggle="tab" data-bs-target="#friday" 
+                        type="button" role="tab" aria-controls="friday" aria-selected="false" data-day="5">
+                    <span class="tab-day-name">Vendredi</span>
+                    <span class="delivery-count-badge" id="friday-count">0</span>
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="saturday-tab" data-bs-toggle="tab" data-bs-target="#saturday" 
+                        type="button" role="tab" aria-controls="saturday" aria-selected="false" data-day="6">
+                    <span class="tab-day-name">Samedi</span>
+                    <span class="delivery-count-badge" id="saturday-count">0</span>
+                </button>
+            </li>
+        </ul>
+    </div>
+
+    <!-- All Deliveries View -->
+    <div id="allDeliveries" class="mb-4" style="display: none;">
         <table class="table table-bordered table-striped table-hover table-sm">
             <thead class="thead-light">
             <tr>
@@ -51,9 +343,10 @@
                 <th scope="col">Actions</th>
             </tr>
             </thead>
-            <tbody>
+            <tbody id="deliveriesTableBody">
             {% for delivery in deliveries %}
-            <tr>
+            <tr data-status="{{ delivery.status }}" data-delivery-day="{{ delivery.delivery_date|date:'w' }}"
+                data-delivery-date="{{ delivery.delivery_date|date:'Y-m-d' }}">
                 <th scope="row">{{ delivery.id }}</th>
                 <td>{{ delivery.customer_name }}</td>
                 <td>{{ delivery.phone_number }}</td>
@@ -89,6 +382,124 @@
             {% endfor %}
             </tbody>
         </table>
+    </div>
+
+    <!-- Tab Content for Days of Week -->
+    <div id="dayTabContent" class="tab-content">
+        <div class="tab-pane fade show active" id="monday" role="tabpanel" aria-labelledby="monday-tab">
+            <div class="mb-2"><strong>Livraisons prévues pour Lundi</strong></div>
+            <table class="table table-bordered table-striped table-hover table-sm">
+                <thead class="thead-light">
+                <tr>
+                    <th scope="col">ID</th>
+                    <th scope="col">Nom du client</th>
+                    <th scope="col">Contact</th>
+                    <th scope="col">Adresse</th>
+                    <th scope="col">Date création</th>
+                    <th scope="col">Date livraison prévue</th>
+                    <th scope="col">Total</th>
+                    <th scope="col">Statut</th>
+                    <th scope="col">Actions</th>
+                </tr>
+                </thead>
+                <tbody class="day-deliveries-body" data-day="1"></tbody>
+            </table>
+        </div>
+        <div class="tab-pane fade" id="tuesday" role="tabpanel" aria-labelledby="tuesday-tab">
+            <div class="mb-2"><strong>Livraisons prévues pour Mardi</strong></div>
+            <table class="table table-bordered table-striped table-hover table-sm">
+                <thead class="thead-light">
+                <tr>
+                    <th scope="col">ID</th>
+                    <th scope="col">Nom du client</th>
+                    <th scope="col">Contact</th>
+                    <th scope="col">Adresse</th>
+                    <th scope="col">Date création</th>
+                    <th scope="col">Date livraison prévue</th>
+                    <th scope="col">Total</th>
+                    <th scope="col">Statut</th>
+                    <th scope="col">Actions</th>
+                </tr>
+                </thead>
+                <tbody class="day-deliveries-body" data-day="2"></tbody>
+            </table>
+        </div>
+        <div class="tab-pane fade" id="wednesday" role="tabpanel" aria-labelledby="wednesday-tab">
+            <div class="mb-2"><strong>Livraisons prévues pour Mercredi</strong></div>
+            <table class="table table-bordered table-striped table-hover table-sm">
+                <thead class="thead-light">
+                <tr>
+                    <th scope="col">ID</th>
+                    <th scope="col">Nom du client</th>
+                    <th scope="col">Contact</th>
+                    <th scope="col">Adresse</th>
+                    <th scope="col">Date création</th>
+                    <th scope="col">Date livraison prévue</th>
+                    <th scope="col">Total</th>
+                    <th scope="col">Statut</th>
+                    <th scope="col">Actions</th>
+                </tr>
+                </thead>
+                <tbody class="day-deliveries-body" data-day="3"></tbody>
+            </table>
+        </div>
+        <div class="tab-pane fade" id="thursday" role="tabpanel" aria-labelledby="thursday-tab">
+            <div class="mb-2"><strong>Livraisons prévues pour Jeudi</strong></div>
+            <table class="table table-bordered table-striped table-hover table-sm">
+                <thead class="thead-light">
+                <tr>
+                    <th scope="col">ID</th>
+                    <th scope="col">Nom du client</th>
+                    <th scope="col">Contact</th>
+                    <th scope="col">Adresse</th>
+                    <th scope="col">Date création</th>
+                    <th scope="col">Date livraison prévue</th>
+                    <th scope="col">Total</th>
+                    <th scope="col">Statut</th>
+                    <th scope="col">Actions</th>
+                </tr>
+                </thead>
+                <tbody class="day-deliveries-body" data-day="4"></tbody>
+            </table>
+        </div>
+        <div class="tab-pane fade" id="friday" role="tabpanel" aria-labelledby="friday-tab">
+            <div class="mb-2"><strong>Livraisons prévues pour Vendredi</strong></div>
+            <table class="table table-bordered table-striped table-hover table-sm">
+                <thead class="thead-light">
+                <tr>
+                    <th scope="col">ID</th>
+                    <th scope="col">Nom du client</th>
+                    <th scope="col">Contact</th>
+                    <th scope="col">Adresse</th>
+                    <th scope="col">Date création</th>
+                    <th scope="col">Date livraison prévue</th>
+                    <th scope="col">Total</th>
+                    <th scope="col">Statut</th>
+                    <th scope="col">Actions</th>
+                </tr>
+                </thead>
+                <tbody class="day-deliveries-body" data-day="5"></tbody>
+            </table>
+        </div>
+        <div class="tab-pane fade" id="saturday" role="tabpanel" aria-labelledby="saturday-tab">
+            <div class="mb-2"><strong>Livraisons prévues pour Samedi</strong></div>
+            <table class="table table-bordered table-striped table-hover table-sm">
+                <thead class="thead-light">
+                <tr>
+                    <th scope="col">ID</th>
+                    <th scope="col">Nom du client</th>
+                    <th scope="col">Contact</th>
+                    <th scope="col">Adresse</th>
+                    <th scope="col">Date création</th>
+                    <th scope="col">Date livraison prévue</th>
+                    <th scope="col">Total</th>
+                    <th scope="col">Statut</th>
+                    <th scope="col">Actions</th>
+                </tr>
+                </thead>
+                <tbody class="day-deliveries-body" data-day="6"></tbody>
+            </table>
+        </div>
     </div>
 
     {% if is_paginated %}
@@ -143,76 +554,277 @@
 
 <script>
 $(document).ready(function() {
-    // Handle status update button clicks
-    $('.update-status-btn').on('click', function() {
-        var deliveryId = $(this).data('delivery-id');
-        var button = $(this);
+    let isDayView = true; // Day view is now the default
+    let currentDayNumber = getCurrentDay();
+    
+    // Initialize delivery rows data
+    const allDeliveryRows = $('#deliveriesTableBody tr').clone();
+    
+    // Initialize current day highlighting and counts
+    initializeCurrentDay();
+    updateTabCounts();
+    
+    // Initialize day view on page load
+    populateDayTabs();
+    setActiveTab(currentDayNumber);
+    applyStatusFilter();
+    
+    function getCurrentDay() {
+        const today = new Date();
+        let dayNumber = today.getDay(); // 0=Sunday, 1=Monday, ..., 6=Saturday
         
-        Swal.fire({
-            title: 'Confirmer la livraison',
-            text: 'Êtes-vous sûr que cette livraison a été effectuée?',
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonColor: '#28a745',
-            cancelButtonColor: '#6c757d',
-            confirmButtonText: 'Oui, livré!',
-            cancelButtonText: 'Annuler'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                // Show loading state
-                button.prop('disabled', true);
-                button.html('<i class="fa-solid fa-spinner fa-spin"></i> Traitement...');
-                
-                // Make AJAX request to update status
-                $.ajax({
-                    url: "{% url 'update_delivery_status' 0 %}".replace('0', deliveryId),
-                    type: 'POST',
-                    headers: {
-                        'X-CSRFToken': $('[name=csrfmiddlewaretoken]').val()
-                    },
-                    success: function(response) {
-                        if (response.status === 'success') {
-                            Swal.fire({
-                                title: 'Succès!',
-                                text: response.message,
-                                icon: 'success',
-                                timer: 2000,
-                                showConfirmButton: false
-                            }).then(() => {
-                                // Reload the page to update the status display
-                                location.reload();
-                            });
-                        } else {
+        // Convert JavaScript day format to our format (1=Monday, ..., 6=Saturday)
+        // If Sunday (0), default to Monday (1)
+        if (dayNumber === 0) {
+            dayNumber = 1; // Sunday becomes Monday
+        }
+        
+        return dayNumber;
+    }
+    
+    function initializeCurrentDay() {
+        // Remove any existing 'today' classes
+        $('.nav-link').removeClass('today');
+        
+        // Add 'today' class to current day tab
+        const todayTabId = getDayTabId(currentDayNumber);
+        $(`#${todayTabId}`).addClass('today');
+    }
+    
+    function getDayTabId(dayNumber) {
+        const dayNames = {
+            1: 'monday-tab',
+            2: 'tuesday-tab', 
+            3: 'wednesday-tab',
+            4: 'thursday-tab',
+            5: 'friday-tab',
+            6: 'saturday-tab'
+        };
+        return dayNames[dayNumber] || 'monday-tab';
+    }
+    
+    function getDayCountId(dayNumber) {
+        const dayNames = {
+            1: 'monday-count',
+            2: 'tuesday-count',
+            3: 'wednesday-count', 
+            4: 'thursday-count',
+            5: 'friday-count',
+            6: 'saturday-count'
+        };
+        return dayNames[dayNumber] || 'monday-count';
+    }
+    
+    function setActiveTab(dayNumber) {
+        // Remove active class from all tabs
+        $('.nav-link').removeClass('active').attr('aria-selected', 'false');
+        $('.tab-pane').removeClass('show active');
+        
+        // Add active class to selected tab
+        const tabId = getDayTabId(dayNumber);
+        const targetId = tabId.replace('-tab', '');
+        
+        $(`#${tabId}`).addClass('active').attr('aria-selected', 'true');
+        $(`#${targetId}`).addClass('show active');
+    }
+    
+    function updateTabCounts() {
+        // Count deliveries for each day
+        const dayCounts = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0};
+        const selectedStatus = $('#statusFilter').val();
+        
+        allDeliveryRows.each(function() {
+            const deliveryDay = parseInt($(this).data('delivery-day'));
+            const deliveryStatus = $(this).data('status');
+            
+            // Only count if day is valid (Monday=1 to Saturday=6) and matches status filter
+            if (deliveryDay >= 1 && deliveryDay <= 6) {
+                if (selectedStatus === 'all' || deliveryStatus === selectedStatus) {
+                    dayCounts[deliveryDay]++;
+                }
+            }
+        });
+        
+        // Update badge counts
+        for (let day = 1; day <= 6; day++) {
+            const countId = getDayCountId(day);
+            $(`#${countId}`).text(dayCounts[day]);
+        }
+    }
+    
+    // Toggle between day view and all deliveries
+    $('#toggleView').on('click', function() {
+        if (isDayView) {
+            // Switch to all deliveries view
+            $('#dayTabs').hide();
+            $('#dayTabContent').hide();
+            $('#allDeliveries').show();
+            $(this).html('<i class="fa-solid fa-calendar-days"></i> Vue par jour');
+            isDayView = false;
+        } else {
+            // Switch to day view
+            $('#allDeliveries').hide();
+            $('#dayTabs').show();
+            $('#dayTabContent').show();
+            $(this).html('<i class="fa-solid fa-list"></i> Toutes les livraisons');
+            isDayView = true;
+            
+            // Populate day tabs with deliveries
+            populateDayTabs();
+            
+            // Set current day as active tab
+            setActiveTab(currentDayNumber);
+            
+            // Apply current status filter to day tabs
+            applyStatusFilter();
+        }
+    });
+    
+    // Status filter functionality
+    $('#statusFilter').on('change', function() {
+        applyStatusFilter();
+        updateTabCounts(); // Update badge counts when status filter changes
+    });
+    
+    function applyStatusFilter() {
+        const selectedStatus = $('#statusFilter').val();
+        
+        if (!isDayView) {
+            // Filter all deliveries view
+            $('#deliveriesTableBody tr').each(function() {
+                const rowStatus = $(this).data('status');
+                if (selectedStatus === 'all' || rowStatus === selectedStatus) {
+                    $(this).show();
+                } else {
+                    $(this).hide();
+                }
+            });
+        } else {
+            // Filter day tabs
+            $('.day-deliveries-body tr').each(function() {
+                const rowStatus = $(this).data('status');
+                if (selectedStatus === 'all' || rowStatus === selectedStatus) {
+                    $(this).show();
+                } else {
+                    $(this).hide();
+                }
+            });
+        }
+    }
+    
+    function populateDayTabs() {
+        // Clear all day tab bodies
+        $('.day-deliveries-body').empty();
+        
+        // Group deliveries by day of week (Monday=1 to Saturday=6, skip Sunday=0)
+        allDeliveryRows.each(function() {
+            const deliveryDay = $(this).data('delivery-day');
+            const rowClone = $(this).clone();
+            
+            // Only add to day tabs if it's Monday (1) through Saturday (6)
+            if (deliveryDay >= 1 && deliveryDay <= 6) {
+                $(`.day-deliveries-body[data-day="${deliveryDay}"]`).append(rowClone);
+            }
+        });
+        
+        // Show "Aucune livraison" message for empty days
+        $('.day-deliveries-body').each(function() {
+            if ($(this).children().length === 0) {
+                $(this).append(`
+                    <tr>
+                        <td colspan="9" class="text-center text-muted">
+                            <i class="fa-solid fa-calendar-xmark"></i> Aucune livraison prévue pour ce jour
+                        </td>
+                    </tr>
+                `);
+            }
+        });
+        
+        // Reattach event listeners to cloned elements
+        attachStatusUpdateListeners();
+        
+        // Update tab counts after populating
+        updateTabCounts();
+    }
+    
+    function attachStatusUpdateListeners() {
+        // Remove existing listeners to avoid duplicates
+        $(document).off('click', '.update-status-btn');
+        
+        // Attach new listeners
+        $(document).on('click', '.update-status-btn', function() {
+            var deliveryId = $(this).data('delivery-id');
+            var button = $(this);
+            
+            Swal.fire({
+                title: 'Confirmer la livraison',
+                text: 'Êtes-vous sûr que cette livraison a été effectuée?',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#28a745',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Oui, livré!',
+                cancelButtonText: 'Annuler'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Show loading state
+                    button.prop('disabled', true);
+                    button.html('<i class="fa-solid fa-spinner fa-spin"></i> Traitement...');
+                    
+                    // Make AJAX request to update status
+                    $.ajax({
+                        url: "{% url 'update_delivery_status' 0 %}".replace('0', deliveryId),
+                        type: 'POST',
+                        headers: {
+                            'X-CSRFToken': $('[name=csrfmiddlewaretoken]').val()
+                        },
+                        success: function(response) {
+                            if (response.status === 'success') {
+                                Swal.fire({
+                                    title: 'Succès!',
+                                    text: response.message,
+                                    icon: 'success',
+                                    timer: 2000,
+                                    showConfirmButton: false
+                                }).then(() => {
+                                    // Reload the page to update the status display
+                                    location.reload();
+                                });
+                            } else {
+                                Swal.fire({
+                                    title: 'Erreur!',
+                                    text: response.message,
+                                    icon: 'error'
+                                });
+                                // Reset button state
+                                button.prop('disabled', false);
+                                button.html('<i class="fa-solid fa-check"></i> Livrer');
+                            }
+                        },
+                        error: function(xhr) {
+                            var errorMessage = 'Une erreur est survenue.';
+                            if (xhr.responseJSON && xhr.responseJSON.message) {
+                                errorMessage = xhr.responseJSON.message;
+                            }
+                            
                             Swal.fire({
                                 title: 'Erreur!',
-                                text: response.message,
+                                text: errorMessage,
                                 icon: 'error'
                             });
+                            
                             // Reset button state
                             button.prop('disabled', false);
                             button.html('<i class="fa-solid fa-check"></i> Livrer');
                         }
-                    },
-                    error: function(xhr) {
-                        var errorMessage = 'Une erreur est survenue.';
-                        if (xhr.responseJSON && xhr.responseJSON.message) {
-                            errorMessage = xhr.responseJSON.message;
-                        }
-                        
-                        Swal.fire({
-                            title: 'Erreur!',
-                            text: errorMessage,
-                            icon: 'error'
-                        });
-                        
-                        // Reset button state
-                        button.prop('disabled', false);
-                        button.html('<i class="fa-solid fa-check"></i> Livrer');
-                    }
-                });
-            }
+                    });
+                }
+            });
         });
-    });
+    }
+    
+    // Initial setup
+    attachStatusUpdateListeners();
 });
 </script>
 {% endblock javascripts %}
