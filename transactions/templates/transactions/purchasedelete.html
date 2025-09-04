@@ -1,16 +1,92 @@
-{% extends "store/base.html" %}{% block title %}Confirmer la suppression{% endblock %}
+{% extends "store/base.html" %}
+{% load static %}
+
+{% block title %}Supprimer l'achat{% endblock %}
+
 {% block content %}
-<div class="container pt-5">
-    <form method="POST">
-        {% csrf_token %}
-        <fieldset class="form-group">
-            <legend class="border-bottom mb-4">Supprimer l'achat</legend>
-            <h5>Êtes-vous sûr de vouloir supprimer l'achat "{{ object.slug }}" ?</h5>
-        </fieldset>
-        <div class="form-group">
-            <button class="btn btn-outline-danger btn-sm" type="submit">Yes, Delete</button>
-            <a class="btn btn-outline-success btn-sm" href="{% url 'purchaseslist' %}">Cancel</a>
+<div class="container p-5">
+    <h2>Confirmer la suppression de l'achat</h2>
+    
+    <!-- Go back -->
+    <div class="mb-4">
+        <a href="{% url 'purchaseslist' %}" class="btn btn-outline-success">
+            <i class="fas fa-arrow-left me-2"></i>
+            Retour à la liste
+        </a>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <div class="alert alert-danger">
+                <h5 class="alert-heading">
+                    <i class="fas fa-exclamation-triangle"></i> Attention - Suppression d'achat
+                </h5>
+                <p>Êtes-vous sûr de vouloir supprimer cet achat ?</p>
+                
+                <hr>
+                
+                <div class="mb-3">
+                    <strong>Détails de l'achat :</strong>
+                    <ul class="mt-2">
+                        <li><strong>Produit:</strong> {{ object.item.name }}</li>
+                        <li><strong>Quantité achetée:</strong> {{ object.quantity }} unités</li>
+                        <li><strong>Date d'achat:</strong> {{ object.delivery_date|date:"d/m/Y H:i" }}</li>
+                        {% if object.vendor %}
+                        <li><strong>Fournisseur:</strong> {{ object.vendor.name }}</li>
+                        {% endif %}
+                        <li><strong>Valeur totale:</strong> {{ object.total_value }} FCFA</li>
+                    </ul>
+                </div>
+                
+                <div class="alert alert-warning">
+                    <p class="mb-2">
+                        <i class="fas fa-info-circle"></i> 
+                        <strong>Impact sur le stock:</strong>
+                    </p>
+                    <p>
+                        La suppression de cet achat <strong>retirera {{ object.quantity }} unités</strong> 
+                        du stock du produit.
+                    </p>
+                    <ul>
+                        <li>Stock actuel: <strong>{{ current_stock }}</strong> unités</li>
+                        <li>Stock après suppression: 
+                            <strong class="{% if new_stock < 0 %}text-danger{% endif %}">
+                                {{ new_stock }}
+                            </strong> unités
+                        </li>
+                    </ul>
+                    
+                    {% if new_stock < 0 %}
+                    <div class="alert alert-danger mt-2">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <strong>Avertissement:</strong> Cette suppression entraînera un stock négatif!
+                        Le stock passerait à {{ new_stock }} unités.
+                    </div>
+                    {% elif new_stock == 0 %}
+                    <div class="alert alert-warning mt-2">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <strong>Attention:</strong> Cette suppression épuisera complètement le stock!
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <p class="text-danger mb-0">
+                    <strong>Cette action est irréversible.</strong>
+                </p>
+            </div>
+
+            <form method="post" class="mt-4">
+                {% csrf_token %}
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash"></i> Confirmer la suppression
+                    </button>
+                    <a href="{% url 'purchaseslist' %}" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Annuler
+                    </a>
+                </div>
+            </form>
         </div>
-    </form>
+    </div>
 </div>
 {% endblock content %}

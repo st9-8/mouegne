@@ -599,11 +599,47 @@ class PurchaseUpdateView(LoginRequiredMixin, UpdateView):
 
 class PurchaseDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     """
-    View to delete a purchase.
+    View to delete a purchase with inventory adjustment.
     """
 
     model = Purchase
     template_name = "transactions/purchasedelete.html"
+
+    def get_context_data(self, **kwargs):
+        """
+        Add stock information to the context for the confirmation page.
+        """
+        context = super().get_context_data(**kwargs)
+        purchase = self.get_object()
+        item = purchase.item
+        
+        # Calculate stock after deletion
+        context['current_stock'] = item.quantity
+        context['new_stock'] = item.quantity - purchase.quantity
+        
+        return context
+
+    def delete(self, request, *args, **kwargs):
+        """
+        Handle the deletion with inventory adjustment.
+        Remove the purchase quantity from the item stock.
+        """
+        # Get the purchase before deletion
+        purchase = self.get_object()
+        item = purchase.item
+        quantity_to_remove = purchase.quantity
+        
+        # Reduce item stock by the purchase quantity
+        item.quantity -= quantity_to_remove
+        item.save()
+        
+        # Log the inventory adjustment
+        logger.info(f"Deleting purchase {purchase.id}: "
+                   f"Removing {quantity_to_remove} from {item.name} stock. "
+                   f"Stock adjusted from {item.quantity + quantity_to_remove} to {item.quantity}")
+        
+        # Proceed with the deletion
+        return super().delete(request, *args, **kwargs)
 
     def get_success_url(self):
         """
