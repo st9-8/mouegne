@@ -33,8 +33,8 @@
             <th scope="col">Nom <i class="fa-solid fa-sort"></i></th>
             <th scope="col">Quantité <i class="fa-solid fa-sort"></i></th>
             <th scope="col">Prix <i class="fa-solid fa-sort"></i></th>
-            <th scope="col">Statut de la livraison <i class="fa-solid fa-sort"></i></th>
-            <th scope="col">Date de livraison<i class="fa-solid fa-sort"></i></th>
+            <th scope="col">Statut <i class="fa-solid fa-sort"></i></th>
+            <th scope="col">Date d'achat<i class="fa-solid fa-sort"></i></th>
             <th scope="col">Vendeur <i class="fa-solid fa-sort"></i></th>
             <th scope="col">Action</th>
         </tr>
@@ -47,19 +47,12 @@
             <td>{{ purchase.quantity }}</td>
             <td>{{ purchase.total_value }}</td>
             <td>
-                {% if purchase.delivery_status == 'P' %}
-                <span class="badge badge-pill bg-soft-danger text-danger me-2">
-                            En attente
-                        </span>
-                {% else %}
                 <span class="badge badge-pill bg-soft-success text-success me-2">
-                            Effectuée
-                        </span>
-                {% endif %}
+                    Livré
+                </span>
             </td>
             <td>{{ purchase.delivery_date }}</td>
-            <td>{{ purchase.vendor.name }}</td>
-            {% if purchase.delivery_status == "P" %}
+            <td>{{ purchase.vendor.name|default:"Non spécifié" }}</td>
             <td>
                 <a class="text-info" href="{% url 'purchase-update' purchase.id %}">
                     <i class="fa-solid fa-pen"></i>
@@ -68,7 +61,6 @@
                     <i class="fa-solid fa-trash"></i>
                 </a>
             </td>
-            {% endif %}
         </tr>
         {% endfor %}
         </tbody>

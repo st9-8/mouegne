@@ -412,6 +412,9 @@ class PurchaseListView(LoginRequiredMixin, ListView):
     context_object_name = "purchases"
     paginate_by = 10
 
+    def get_queryset(self):
+        return Purchase.objects.order_by('-delivery_date')
+
 
 class PurchaseDetailView(LoginRequiredMixin, DetailView):
     """
@@ -431,9 +434,97 @@ class PurchaseCreateView(LoginRequiredMixin, CreateView):
     form_class = PurchaseForm
     template_name = "transactions/purchases_form.html"
 
+    def get(self, request, *args, **kwargs):
+        """
+        Handle GET request for the form display.
+        """
+        return render(request, self.template_name, {})
+
+    def post(self, request, *args, **kwargs):
+        """
+        Handle POST request for multiple products purchase.
+        """
+        if request.content_type == 'application/json':
+            return self.handle_ajax_request(request)
+        else:
+            # Handle regular form submission (fallback)
+            return super().post(request, *args, **kwargs)
+
+    def handle_ajax_request(self, request):
+        """
+        Handle AJAX request with multiple products.
+        """
+        try:
+            import json
+            data = json.loads(request.body)
+            items = data.get('items', [])
+
+            if not items:
+                return JsonResponse({
+                    'success': False,
+                    'message': 'Aucun produit spécifié'
+                }, status=400)
+
+            created_purchases = []
+            
+            # Use database transaction to ensure all purchases are created or none
+            with transaction.atomic():
+                for item_data in items:
+                    try:
+                        # Get the item
+                        item = Item.objects.get(id=item_data['id'])
+                        quantity = int(item_data.get('quantity', 1))
+                        
+                        # Create purchase instance
+                        purchase = Purchase(
+                            item=item,
+                            quantity=quantity,
+                            delivery_date=timezone.now(),
+                            delivery_status='S',  # Livré
+                            price=item.purchase_price,
+                            vendor=item.vendor if item.vendor else None
+                        )
+                        
+                        # Save the purchase
+                        purchase.save()
+                        created_purchases.append({
+                            'id': purchase.id,
+                            'item': item.name,
+                            'quantity': quantity
+                        })
+
+                    except Item.DoesNotExist:
+                        return JsonResponse({
+                            'success': False,
+                            'message': f'Produit avec l\'ID {item_data["id"]} non trouvé'
+                        }, status=400)
+                    except ValueError as e:
+                        return JsonResponse({
+                            'success': False,
+                            'message': f'Quantité invalide: {e}'
+                        }, status=400)
+
+            return JsonResponse({
+                'success': True,
+                'message': f'{len(created_purchases)} achat(s) créé(s) avec succès',
+                'purchases': created_purchases
+            })
+
+        except json.JSONDecodeError:
+            return JsonResponse({
+                'success': False,
+                'message': 'Format de données invalide'
+            }, status=400)
+        except Exception as e:
+            logger.error(f"Error creating purchases: {e}")
+            return JsonResponse({
+                'success': False,
+                'message': 'Erreur interne du serveur'
+            }, status=500)
+
     def form_valid(self, form):
         """
-        Set default values before saving the form.
+        Set default values before saving the form (fallback for regular form submission).
         """
         purchase = form.save(commit=False)
         # Set delivery date to today

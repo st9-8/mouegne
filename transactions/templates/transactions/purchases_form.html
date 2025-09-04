@@ -1,27 +1,386 @@
 {% extends "store/base.html" %}
-{% load static %}{% load crispy_forms_tags %}
-{% block title %}Modifier l'achat{% endblock %}
+{% load static %}
+
+<!-- Page title  -->
+{% block title %}Créer un achat{% endblock title %}
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}
+<!--Select2 CSS-->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet"/>
+<link rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@ttskch/select2-bootstrap4-theme@1.5.2/dist/select2-bootstrap4.min.css">
+{% endblock stylesheets %}
+
+<!-- Page Heading -->
+<h2>Créer un achat</h2>
+
+<!-- Page content  -->
 {% block content %}
-<div class="container p-5">
-    <h2>Créer ou modifier l'achat</h2>
-    <form method="post">
-        {% csrf_token %}
-        {{ form.non_field_errors }}
-        <div class="row mt-5">
-            <div class="form-group col-md-6">
-                {{ form.item.label_tag }}
-                {{ form.item }}
-                {{ form.item.errors }}
+<div class="container py-5">
+    <!-- Go back -->
+    <div class="mb-4">
+        <a href="{% url 'purchaseslist' %}" class="btn btn-outline-success">
+            <i class="fas fa-arrow-left me-2"></i>
+            Retour
+        </a>
+    </div>
+
+    <!-- Purchase items and details -->
+    <form id="form_purchase" action="{% url 'purchase-create' %}" class="purchaseForm" method="post">
+        <div class="row">
+            <!-- Left column -->
+            <div class="col-lg-8 mb-4">
+                <div class="card border-light shadow-sm">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">Produits</h5>
+                    </div>
+                    <div class="card-body">
+                        <!-- Search item -->
+                        <div class="mb-4">
+                            <label for="searchbox_items" class="form-label">Rechercher un produit:</label>
+                            <select class="form-select select2" name="searchbox_items" id="searchbox_items"
+                                    aria-label="Search items"></select>
+                        </div>
+
+                        <!-- Delete all items from purchase -->
+                        <button type="button" class="btn btn-danger btn-sm mb-4 deleteAll">
+                            <i class="fas fa-trash-alt me-2"></i> Tout supprimer
+                        </button>
+
+                        <!-- Items Table -->
+                        <div class="table-responsive my-3">
+                            <table class="table table-bordered table-striped" id="table_items">
+                                <colgroup>
+                                    <col>
+                                    <col>
+                                    <col class="w-30">
+                                    <col class="w-20">
+                                </colgroup>
+                                <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Nom</th>
+                                    <th>Quantité</th>
+                                    <th class="text-center">Actions</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="form-group col-md-6">
-                {{ form.quantity.label_tag }}
-                {{ form.quantity }}
-                {{ form.quantity.errors }}
+            <!-- End Left Column -->
+
+            <!-- Right Column -->
+            <div class="col-lg-4 mb-4">
+                <div class="card border-light shadow-sm">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">Résumé</h5>
+                    </div>
+                    <div class="card-body">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="total_items" class="form-label">Nombre total d'articles</label>
+                            <input name="total_items" type="number" class="form-control" id="total_items"
+                                   aria-label="Total Items" readonly value="0">
+                        </div>
+                        <div class="mb-3">
+                            <label for="total_quantity" class="form-label">Quantité totale</label>
+                            <input name="total_quantity" type="number" class="form-control" id="total_quantity"
+                                   aria-label="Total Quantity" readonly value="0">
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-save me-2"></i>Enregistrer l'achat
+                        </button>
+                    </div>
+                </div>
             </div>
+            <!-- End Right Column -->
         </div>
-        <button type="submit" class="mt-3 btn btn-primary">
-            <i class="fas fa-save"></i> Enregistrer
-        </button>
     </form>
 </div>
-{% endblock %}
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}
+<!-- Datatables -->
+<script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js" defer></script>
+<script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap4.min.js" defer></script>
+
+<!-- Select2 -->
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js" defer></script>
+
+<!-- Bootstrap Touchspin -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-touchspin/3.1.0/jquery.bootstrap-touchspin.min.js"
+        defer></script>
+
+<!-- Sweet Alert -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.15/dist/sweetalert2.all.min.js" defer></script>
+
+<script>
+    // Variable for item number in table
+    var number = 1;
+
+    // Variable to store purchase details and products
+    var purchase = {
+        products: {
+            items: []
+        },
+        calculate_purchase: function () {
+            var total_items = this.products.items.length;
+            var total_quantity = 0;
+
+            // Calculate total quantity
+            $.each(this.products.items, function (pos, dict) {
+                dict.pos = pos;
+                total_quantity += parseInt(dict.quantity);
+            });
+
+            // Update the display values
+            $('input[name="total_items"]').val(total_items);
+            $('input[name="total_quantity"]').val(total_quantity);
+        },
+        // Adds an item to the purchase object
+        add_item: function (item) {
+            this.products.items.push(item);
+            this.list_item();
+        },
+        // Shows the selected item in the table
+        list_item: function () {
+            // Calculate the purchase
+            this.calculate_purchase();
+
+            tblItems = $("#table_items").DataTable({
+                destroy: true,
+                data: this.products.items,
+                columns: [
+                    {"data": "number"},
+                    {"data": "name"},
+                    {"data": "quantity"},
+                    {"data": "id"},
+                ],
+                columnDefs: [
+                    {
+                        // Quantity
+                        class: 'text-center',
+                        targets: [2],
+                        render: function (data, type, row) {
+                            return '<input name="quantity" type="text" class="form-control form-control-xs text-center input-sm" autocomplete="off" value="' + row.quantity + '">';
+                        },
+                    },
+                    {
+                        // Delete button
+                        class: 'text-center',
+                        targets: [-1],
+                        orderable: false,
+                        render: function (data, type, row) {
+                            return '<a rel="delete" type="button" class="btn btn-sm btn-danger" data-bs-toggle="tooltip" title="Delete item"> <i class="fas fa-trash-alt fa-xs"></i> </a>';
+                        },
+                    },
+                ],
+                rowCallback(row, data, displayNun, displayIndex, dataIndex) {
+                    // Initialize TouchSpin for quantity
+                    $(row).find("input[name='quantity']").TouchSpin({
+                        min: 1,
+                        max: 1000,
+                        step: 1,
+                        decimals: 0,
+                        boostat: 1,
+                        maxboostedstep: 10,
+                        postfix: ''
+                    });
+                },
+            });
+        },
+    };
+
+    $(document).ready(function () {
+        // Select2 items searchbox
+        $('#searchbox_items').select2({
+            delay: 250,
+            placeholder: 'Rechercher un produit',
+            minimumInputLength: 1,
+            allowClear: true,
+            templateResult: template_item_searchbox,
+            ajax: {
+                url: "{% url 'get_items' %}",
+                type: 'POST',
+                data: function (params) {
+                    return {
+                        term: params.term,
+                        csrfmiddlewaretoken: $('input[name="csrfmiddlewaretoken"]').val()
+                    };
+                },
+                processResults: function (data) {
+                    return {
+                        results: data
+                    };
+                }
+            }
+        }).on('select2:select', function (e) {
+            // When an item is selected from the searchbox
+            var data = e.params.data;
+            // Add number and quantity to the dictionary
+            data.number = number;
+            data.quantity = 1; // Default quantity
+            number++; // Increase the item number in the table
+            // Add the item to the purchase object
+            purchase.add_item(data);
+            // Clear the searchbox after the item is selected
+            $(this).val('').trigger('change.select2');
+        });
+
+        // Tables Events
+        $('#table_items tbody')
+            .on('click', 'a[rel="delete"]', function () {
+                // When an item is deleted
+                var tr = tblItems.cell($(this).closest('td, li')).index();
+                item_name = (tblItems.row(tr.row).data().name);
+
+                Swal.fire({
+                    customClass: {
+                        confirmButton: 'ml-3 btn btn-danger',
+                        cancelButton: 'btn btn-success'
+                    },
+                    buttonsStyling: false,
+                    title: "Êtes-vous sûr de vouloir supprimer cet article de l'achat?",
+                    text: item_name,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Supprimer',
+                    cancelButtonText: 'Annuler',
+                    reverseButtons: true,
+                }).then((result) => {
+                    // If confirmed
+                    if (result.isConfirmed) {
+                        // Delete the item
+                        purchase.products.items.splice(tr.row, 1);
+                        // List the table again
+                        purchase.list_item();
+                        Swal.fire("L'article a été retiré !", '', 'success');
+                    }
+                });
+            })
+            .on('change keyup', 'input[name="quantity"]', function () {
+                // When an item changes its quantity
+                var quantity = parseInt($(this).val());
+                var tr = tblItems.cell($(this).closest('td, li')).index();
+                // Update the item quantity in the purchase object
+                purchase.products.items[tr.row].quantity = quantity;
+                // Calculate the purchase with the new quantity
+                purchase.calculate_purchase();
+            });
+
+        // Delete all items
+        $('.deleteAll').on('click', function () {
+            // If there are no items, don't do anything
+            if (purchase.products.items.length === 0) return false;
+            // Alert the user
+            Swal.fire({
+                customClass: {
+                    confirmButton: 'ml-3 btn btn-danger',
+                    cancelButton: 'btn btn-success'
+                },
+                buttonsStyling: false,
+                title: "Êtes-vous sûr de vouloir supprimer tous les produits de cet achat ?",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Tout supprimer',
+                cancelButtonText: 'Annuler',
+                reverseButtons: true,
+            }).then((result) => {
+                // If confirmed
+                if (result.isConfirmed) {
+                    // Remove all items from the purchase object
+                    purchase.products.items = [];
+                    // Recalculate the purchase
+                    purchase.list_item();
+                    Swal.fire('Tous les produits ont été supprimés !', '', 'success');
+                }
+            });
+        });
+
+        // Items datatable
+        tblItems = $('#table_items').DataTable({
+            columnDefs: [
+                {
+                    targets: [-1],
+                    orderable: false,
+                }
+            ],
+        });
+
+        // Item searchbox templateResult
+        function template_item_searchbox(repo) {
+            return $(`
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <small class="card-title">${repo.name}</small>
+                    </div>
+                </div>
+            `);
+        }
+
+        // On form submit
+        $('form#form_purchase').on('submit', function (event) {
+            event.preventDefault();
+
+            // Check if there are items
+            if (purchase.products.items.length === 0) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Erreur',
+                    text: 'Veuillez ajouter au moins un produit à l\'achat.'
+                });
+                return;
+            }
+
+            // Prepare form data
+            var formData = {
+                items: purchase.products.items
+            };
+
+            // Get CSRF token
+            var csrftoken = $('input[name="csrfmiddlewaretoken"]').val();
+
+            // Submit the form data via AJAX
+            $.ajax({
+                url: $(this).attr('action'),
+                type: 'POST',
+                contentType: 'application/json',
+                headers: {
+                    'X-CSRFToken': csrftoken
+                },
+                data: JSON.stringify(formData),
+                success: function (response) {
+                    // Handle success response
+                    purchase.products.items = [];
+                    purchase.list_item();
+                    $('form#form_purchase')[0].reset();
+                    $('#searchbox_items').val(null).trigger('change');
+                    number = 1;
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Succès',
+                        text: 'L\'achat a été enregistré avec succès !'
+                    }).then(() => {
+                        // Redirect to purchases list
+                        window.location.href = "{% url 'purchaseslist' %}";
+                    });
+                },
+                error: function (xhr) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Erreur',
+                        text: xhr.responseJSON.message || "Une erreur s'est produite lors de l'enregistrement de l'achat !"
+                    });
+                }
+            });
+        });
+    });
+</script>
+
+{% endblock javascripts %}
