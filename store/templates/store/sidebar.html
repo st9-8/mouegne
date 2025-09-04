@@ -165,6 +165,12 @@
                     <i class="fa fa-shopping-bag fa-fw me-2"></i> Ventes
                 </a>
             </li>
+            <li class="nav-item mb-2">
+                <a class="nav-link text-light {% if request.resolver_match.url_name == 'deliveries' %}active{% endif %}"
+                   href="{% url 'deliveries' %}">
+                    <i class="fa-solid fa-box me-2"></i> Livraisons
+                </a>
+            </li>
         </ul>
         {% endif %}
     </div>

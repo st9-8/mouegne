@@ -29,7 +29,7 @@ from store.models import Item
 from accounts.models import Customer
 from accounts.models import Settings
 from transactions.models import Sale, Purchase, SaleDetail
-from transactions.forms import PurchaseForm
+from transactions.forms import PurchaseForm, PurchaseUpdateForm
 from transactions.utils import generate_pdf, print_document
 
 logger = logging.getLogger(__name__)
@@ -410,7 +410,7 @@ class PurchaseListView(LoginRequiredMixin, ListView):
     model = Purchase
     template_name = "transactions/purchases_list.html"
     context_object_name = "purchases"
-    paginate_by = 10
+    paginate_by = 20
 
     def get_queryset(self):
         return Purchase.objects.order_by('-delivery_date')
@@ -547,23 +547,47 @@ class PurchaseCreateView(LoginRequiredMixin, CreateView):
 
 class PurchaseUpdateView(LoginRequiredMixin, UpdateView):
     """
-    View to update an existing purchase.
+    View to update an existing purchase with smart quantity adjustment.
     """
 
     model = Purchase
-    form_class = PurchaseForm
-    template_name = "transactions/purchases_form.html"
+    form_class = PurchaseUpdateForm
+    template_name = "transactions/purchase_update.html"
 
     def form_valid(self, form):
         """
-        Set default values before saving the form.
+        Handle quantity update with inventory adjustment.
+        Calculate the difference and update item stock accordingly.
         """
+        # Get the purchase object and original quantity
+        purchase = self.get_object()
+        old_quantity = purchase.quantity
+        
+        # Get the new quantity from the form
+        new_quantity = form.cleaned_data['quantity']
+        
+        # Calculate the difference
+        quantity_difference = new_quantity - old_quantity
+        
+        # Update the item's inventory based on the difference
+        item = purchase.item
+        item.quantity += quantity_difference
+        item.save()
+        
+        # Log the inventory adjustment for debugging
+        logger.info(f"Purchase {purchase.id} quantity updated: "
+                   f"{old_quantity} -> {new_quantity} "
+                   f"(difference: {quantity_difference}). "
+                   f"Item {item.name} stock adjusted by {quantity_difference}")
+        
+        # Save the purchase with the new quantity
         purchase = form.save(commit=False)
-        # Update price from item's purchase_price
+        # Update price from item's current purchase_price
         purchase.price = purchase.item.purchase_price
         # Update vendor from item if available and not already set
         if not purchase.vendor and purchase.item.vendor:
             purchase.vendor = purchase.item.vendor
+        
         return super().form_valid(form)
 
     def get_success_url(self):
