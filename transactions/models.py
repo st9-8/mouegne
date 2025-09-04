@@ -5,7 +5,7 @@ from store.models import Item
 from store.models import Delivery
 from accounts.models import Vendor, Customer
 
-DELIVERY_CHOICES = [("P", "En attente"), ("S", "Livré")]
+DELIVERY_CHOICES = [("S", "Livré")]
 
 
 class Sale(models.Model):
@@ -121,11 +121,12 @@ class Purchase(models.Model):
     including vendor details and delivery status.
     """
 
-    slug = AutoSlugField(unique=True, populate_from="vendor")
+    slug = AutoSlugField(unique=True, populate_from="item")
     item = models.ForeignKey(Item, on_delete=models.CASCADE, verbose_name='Produit')
     description = models.TextField(max_length=300, blank=True, null=True)
     vendor = models.ForeignKey(
-        Vendor, related_name="purchases", on_delete=models.CASCADE, verbose_name='Fournisseur'
+        Vendor, related_name="purchases", on_delete=models.CASCADE, verbose_name='Fournisseur',
+        blank=True, null=True
     )
     order_date = models.DateTimeField(auto_now_add=True)
     delivery_date = models.DateTimeField(
@@ -135,7 +136,7 @@ class Purchase(models.Model):
     delivery_status = models.CharField(
         choices=DELIVERY_CHOICES,
         max_length=1,
-        default="P",
+        default="S",
         verbose_name="Statut",
     )
     price = models.DecimalField(

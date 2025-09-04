@@ -431,6 +431,22 @@ class PurchaseCreateView(LoginRequiredMixin, CreateView):
     form_class = PurchaseForm
     template_name = "transactions/purchases_form.html"
 
+    def form_valid(self, form):
+        """
+        Set default values before saving the form.
+        """
+        purchase = form.save(commit=False)
+        # Set delivery date to today
+        purchase.delivery_date = timezone.now()
+        # Set delivery status to 'S' (Livré)
+        purchase.delivery_status = 'S'
+        # Set price from item's purchase_price
+        purchase.price = purchase.item.purchase_price
+        # Set vendor from item if available
+        if purchase.item.vendor:
+            purchase.vendor = purchase.item.vendor
+        return super().form_valid(form)
+
     def get_success_url(self):
         """
         Redirect to the purchases list after successful form submission.
@@ -446,6 +462,18 @@ class PurchaseUpdateView(LoginRequiredMixin, UpdateView):
     model = Purchase
     form_class = PurchaseForm
     template_name = "transactions/purchases_form.html"
+
+    def form_valid(self, form):
+        """
+        Set default values before saving the form.
+        """
+        purchase = form.save(commit=False)
+        # Update price from item's purchase_price
+        purchase.price = purchase.item.purchase_price
+        # Update vendor from item if available and not already set
+        if not purchase.vendor and purchase.item.vendor:
+            purchase.vendor = purchase.item.vendor
+        return super().form_valid(form)
 
     def get_success_url(self):
         """
