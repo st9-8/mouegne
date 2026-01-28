@@ -89,8 +89,10 @@ class SaleDetail(models.Model):
     )
     item = models.ForeignKey(
         Item,
-        on_delete=models.DO_NOTHING,
-        db_column="item"
+        on_delete=models.SET_NULL,
+        db_column="item",
+        blank=True,
+        null=True
     )
     price = models.DecimalField(
         max_digits=10,
@@ -158,7 +160,7 @@ class Purchase(models.Model):
         """
         Returns a string representation of the Purchase instance.
         """
-        return str(self.item.name)
+        return str(self.ite.name)
 
     class Meta:
         ordering = ["order_date"]
