@@ -112,7 +112,12 @@ def dashboard(request):
     # Calculate turnover (total of all sales) with date filtering only for last 30 days
     start_date = timezone.now() - timedelta(days=30)
 
-    turnover = sales_query.filter(date_added__gte=start_date).aggregate(total=Sum('grand_total')).get('total', 0.00) or 0
+    turnover_qs = sales_query.filter(date_added__gte=start_date)
+    turnover = turnover_qs.aggregate(total=Sum('grand_total')).get('total', 0.00) or 0
+    sales_count = turnover_qs.count()
+
+    # Delivery over last 30 days
+    deliveries_count = Delivery.objects.filter(date_added__gte=start_date).count()
 
     # Prepare data for charts - optimize with values and annotate
     category_counts = Category.objects.annotate(
@@ -141,9 +146,8 @@ def dashboard(request):
         "profiles_count": profiles_count,
         "items_count": items_count,
         "total_items": total_items,
-        "vendors": Vendor.objects.all(),
-        "delivery": Delivery.objects.all(),
-        "sales": sales_query,  # Filtered sales
+        "deliveries_count": deliveries_count,
+        "sales_count": sales_count,  # Filtered sales
         "categories": categories,
         "category_counts": category_counts,
         "sale_dates_labels": sale_dates_labels,
