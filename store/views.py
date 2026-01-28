@@ -73,19 +73,19 @@ def dashboard(request):
     sales_query = Sale.objects.all()
 
     # Apply date filters if provided
-    if date_after:
-        try:
-            date_after = datetime.strptime(date_after, '%Y-%m-%d').date()
-            sales_query = sales_query.filter(date_added__date__gte=date_after)
-        except ValueError:
-            pass
-
-    if date_before:
-        try:
-            date_before = datetime.strptime(date_before, '%Y-%m-%d').date()
-            sales_query = sales_query.filter(date_added__date__lte=date_before)
-        except ValueError:
-            pass
+    # if date_after:
+    #     try:
+    #         date_after = datetime.strptime(date_after, '%Y-%m-%d').date()
+    #         sales_query = sales_query.filter(date_added__date__gte=date_after)
+    #     except ValueError:
+    #         pass
+    #
+    # if date_before:
+    #     try:
+    #         date_before = datetime.strptime(date_before, '%Y-%m-%d').date()
+    #         sales_query = sales_query.filter(date_added__date__lte=date_before)
+    #     except ValueError:
+    #         pass
 
     # Calculate today's sales
     today = timezone.now().date()
@@ -109,8 +109,10 @@ def dashboard(request):
 
     stock_alert_count = items.filter(quantity__lte=5).count()
 
-    # Calculate turnover (total of all sales) with date filtering
-    turnover = sales_query.aggregate(total=Sum('grand_total')).get('total', 0.00) or 0
+    # Calculate turnover (total of all sales) with date filtering only for last 30 days
+    start_date = timezone.now() - timedelta(days=30)
+
+    turnover = sales_query.filter(date_added__gte=start_date).aggregate(total=Sum('grand_total')).get('total', 0.00) or 0
 
     # Prepare data for charts - optimize with values and annotate
     category_counts = Category.objects.annotate(
