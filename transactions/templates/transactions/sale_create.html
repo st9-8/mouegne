@@ -46,8 +46,14 @@
                         <!-- Search item -->
                         <div class="mb-4">
                             <label for="searchbox_items" class="form-label">Rechercher un article:</label>
-                            <select class="form-select select2" name="searchbox_items" id="searchbox_items"
-                                    aria-label="Search items"></select>
+                            <div class="d-flex flex-column flex-md-row gap-2">
+                                <select class="form-select select2 flex-grow-1" name="searchbox_items"
+                                        id="searchbox_items" aria-label="Search items"></select>
+                                <button type="button" id="openCreateItemModal"
+                                        class="btn btn-outline-success d-flex align-items-center justify-content-center">
+                                    <i class="fas fa-plus me-2"></i> Nouvel article
+                                </button>
+                            </div>
                         </div>
 
                         <!-- Delete all items from sale -->
@@ -146,6 +152,41 @@
         </div>
     </form>
 </div>
+
+<!-- Modal: Create Item -->
+<div class="modal fade" id="createItemModal" tabindex="-1" aria-labelledby="createItemModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="createItemModalLabel">Créer un nouvel article</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-danger d-none" id="createItemGeneralError"></div>
+                <form id="createItemForm">
+                    {% csrf_token %}
+                    {% for field in item_form %}
+                    <div class="mb-3">
+                        <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                        {{ field }}
+                        {% if field.help_text %}
+                        <small class="form-text text-muted">{{ field.help_text }}</small>
+                        {% endif %}
+                        <div class="invalid-feedback d-block text-danger small" data-field-error="{{ field.name }}"></div>
+                    </div>
+                    {% endfor %}
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
+                <button type="submit" form="createItemForm" class="btn btn-success" id="submitNewItem">
+                    <i class="fas fa-save me-1"></i> Enregistrer l'article
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock content %}
 
 <!-- Specific Page JS goes HERE  -->
@@ -176,6 +217,8 @@
         return Math.round(n) / multiplicator;
     }
 
+    // Control for zero-stock usage
+    var allowZeroStockSale = {{ allow_zero_stock_sale|yesno:"true,false"|default:"false" }};
     // Variable for item number in table
     var number = 1;
 
@@ -302,6 +345,93 @@
     };
 
     $(document).ready(function () {
+        var $createItemForm = $('#createItemForm');
+        var $createItemGeneralError = $('#createItemGeneralError');
+        var createItemModalEl = document.getElementById('createItemModal');
+        var createItemModal = null;
+        if (createItemModalEl && typeof bootstrap !== 'undefined') {
+            createItemModal = new bootstrap.Modal(createItemModalEl);
+        }
+
+        function clearCreateItemErrors() {
+            $createItemGeneralError.addClass('d-none').text('');
+            $createItemForm.find('[data-field-error]').text('');
+            $createItemForm.find('.is-invalid').removeClass('is-invalid');
+        }
+
+        function resetCreateItemForm() {
+            if ($createItemForm.length) {
+                $createItemForm[0].reset();
+            }
+            clearCreateItemErrors();
+        }
+
+        $('#openCreateItemModal').on('click', function () {
+            resetCreateItemForm();
+            if (createItemModal) {
+                createItemModal.show();
+            }
+        });
+
+        $createItemForm.on('submit', function (event) {
+            event.preventDefault();
+            var submitBtn = $('#submitNewItem');
+            clearCreateItemErrors();
+            submitBtn.prop('disabled', true);
+
+            var formData = $createItemForm.serialize();
+            var csrftoken = $createItemForm.find('input[name="csrfmiddlewaretoken"]').val();
+
+            $.ajax({
+                url: "{% url 'create_item_ajax' %}",
+                type: 'POST',
+                data: formData,
+                headers: {
+                    'X-CSRFToken': csrftoken
+                },
+                success: function (response) {
+                    var itemData = response.item;
+                    itemData.number = number;
+                    number++;
+                    sale.add_item(itemData);
+
+                    // Add the new item as an option in the search select for later
+                    var option = new Option(itemData.name, itemData.id, false, false);
+                    $('#searchbox_items').append(option);
+
+                    if (createItemModal) {
+                        createItemModal.hide();
+                    }
+                    resetCreateItemForm();
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Succès',
+                        text: response.message || "L'article a été créé."
+                    });
+                },
+                error: function (xhr) {
+                    if (xhr.status === 400 && xhr.responseJSON && xhr.responseJSON.errors) {
+                        var errors = xhr.responseJSON.errors;
+                        $.each(errors, function (field, messages) {
+                            if (field === '__all__') {
+                                $createItemGeneralError.text(messages.join(' ')).removeClass('d-none');
+                                return;
+                            }
+                            var fieldInput = $('#id_' + field);
+                            fieldInput.addClass('is-invalid');
+                            $createItemForm.find('[data-field-error="' + field + '"]').text(messages.join(' '));
+                        });
+                    } else {
+                        $createItemGeneralError.text("Une erreur est survenue lors de la création de l'article.")
+                            .removeClass('d-none');
+                    }
+                },
+                complete: function () {
+                    submitBtn.prop('disabled', false);
+                }
+            });
+        });
+
         // Tax percentage touchspin
         $("input[name='tax_percentage']").TouchSpin({
             min: 0,
@@ -367,6 +497,24 @@
         }).on('select2:select', function (e) {
             // When an item is selected from the searchbox
             var data = e.params.data;
+            var stockQty = parseFloat(data.stock_quantity || 0);
+            if (stockQty <= 0) {
+                if (!allowZeroStockSale) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Stock insuffisant',
+                        text: "Cet article n'a plus de stock disponible."
+                    });
+                    $(this).val('').trigger('change.select2');
+                    return;
+                } else {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Stock épuisé',
+                        text: "Vous continuez malgré un stock nul pour cet article."
+                    });
+                }
+            }
             // Add number, subtotal, and quantity of the item to the dictionary
             data.number = number;
             number++; // Increase the item number in the table

@@ -68,6 +68,7 @@ class Item(models.Model):
         product['id'] = self.id
         product['text'] = self.name
         product['category'] = self.category.name
+        product['stock_quantity'] = self.quantity
         product['quantity'] = 1
         product['total_product'] = 0
         return product

@@ -130,6 +130,7 @@ class Settings(Singleton):
     address = models.CharField(max_length=255)
     tax_number = models.CharField(max_length=255)
     logo = models.ImageField(upload_to='logos/')
+    allow_zero_stock_sale = models.BooleanField(default=False)
 
     def __str__(self):
         return self.name

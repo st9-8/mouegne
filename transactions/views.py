@@ -26,6 +26,7 @@ from traceback_with_variables import format_exc
 
 # Local app imports
 from store.models import Item
+from store.forms import ItemForm
 from accounts.models import Customer
 from accounts.models import Settings
 from transactions.models import Sale, Purchase, SaleDetail
@@ -250,10 +251,14 @@ class SaleDetailView(LoginRequiredMixin, DetailView):
 
 @login_required
 def SaleCreateView(request):
+    app_settings = Settings.load()
+    allow_zero_stock_sale = getattr(app_settings, 'allow_zero_stock_sale', False)
     context = {
         "active_icon": "sales",
         "default_client": Customer.objects.first(),
-        "customers": [c.to_select2() for c in Customer.objects.all()]
+        "customers": [c.to_select2() for c in Customer.objects.all()],
+        "item_form": ItemForm(),
+        "allow_zero_stock_sale": allow_zero_stock_sale
     }
 
     if request.method == 'POST':
@@ -307,7 +312,7 @@ def SaleCreateView(request):
                             raise ValueError("Item is missing required fields")
 
                         item_instance = Item.objects.get(id=int(item["id"]))
-                        if item_instance.quantity < int(item["quantity"]):
+                        if not allow_zero_stock_sale and item_instance.quantity < int(item["quantity"]):
                             raise ValueError(f"Quantité en stock insuffisante pour: {item_instance.name}")
 
                         detail_attributes = {

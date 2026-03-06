@@ -95,11 +95,12 @@ class VendorForm(forms.ModelForm):
 class SettingForm(forms.ModelForm):
     class Meta:
         model = Settings
-        fields = ['name', 'email', 'phone_number', 'address', 'tax_number', 'logo']
+        fields = ['name', 'email', 'phone_number', 'address', 'tax_number', 'logo', 'allow_zero_stock_sale']
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control'}),
             'email': forms.EmailInput(attrs={'class': 'form-control'}),
             'phone_number': forms.TextInput(attrs={'class': 'form-control'}),
             'address': forms.TextInput(attrs={'class': 'form-control'}),
             'tax_number': forms.TextInput(attrs={'class': 'form-control'}),
+            'allow_zero_stock_sale': forms.CheckboxInput(attrs={'class': 'form-check-input'})
         }

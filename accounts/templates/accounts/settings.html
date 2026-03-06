@@ -119,6 +119,23 @@
                         </div>
                         {% endif %}
 
+                        <div class="border rounded p-3 bg-light mb-4">
+                            <h5 class="text-success mb-3">Paramètres de stock</h5>
+                            <div class="form-check form-switch">
+                                {{ form.allow_zero_stock_sale }}
+                                <label class="form-check-label" for="{{ form.allow_zero_stock_sale.id_for_label }}">
+                                    Autoriser la vente d'articles avec un stock nul
+                                </label>
+                                <div class="form-text text-muted">
+                                    Lorsque cette option est activée, les ventes peuvent inclure des articles dont le
+                                    stock est épuisé (ce qui peut entraîner un stock négatif).
+                                </div>
+                                {% if form.allow_zero_stock_sale.errors %}
+                                <div class="text-danger">{{ form.allow_zero_stock_sale.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
                         <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
                             <button type="submit" class="btn btn-success">
                                 <i class="fas fa-save"></i> Enregistrer les paramètres

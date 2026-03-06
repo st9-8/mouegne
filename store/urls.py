@@ -105,6 +105,11 @@ urlpatterns = [
         name='get_items'
     ),
     path(
+        'ajax/items/create/',
+        views.create_item_ajax,
+        name='create_item_ajax'
+    ),
+    path(
         'delivery/<int:delivery_id>/update-status/',
         update_delivery_status,
         name='update_delivery_status'

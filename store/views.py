@@ -718,6 +718,30 @@ def get_items_ajax_view(request):
     return JsonResponse({'error': 'Not an AJAX request'}, status=400)
 
 
+@login_required
+@require_POST
+def create_item_ajax(request):
+    """
+    Handle inline item creation from the sale form modal.
+    """
+    form = ItemForm(request.POST)
+    if form.is_valid():
+        item = form.save()
+        return JsonResponse(
+            {
+                'status': 'success',
+                'message': 'Article créé avec succès.',
+                'item': item.to_json()
+            }
+        )
+    return JsonResponse(
+        {
+            'status': 'error',
+            'errors': form.errors
+        }, status=400
+    )
+
+
 @csrf_exempt
 @require_POST
 @login_required

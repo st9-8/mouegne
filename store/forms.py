@@ -6,6 +6,16 @@ class ItemForm(forms.ModelForm):
     """
     A form for creating or updating an Item in the inventory.
     """
+    description = forms.CharField(
+        required=False,
+        widget=forms.Textarea(
+            attrs={
+                'class': 'form-control',
+                'rows': 2
+            }
+        )
+    )
+
     class Meta:
         model = Item
         fields = [
@@ -20,12 +30,6 @@ class ItemForm(forms.ModelForm):
         ]
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control'}),
-            'description': forms.Textarea(
-                attrs={
-                    'class': 'form-control',
-                    'rows': 2
-                }
-            ),
             'category': forms.Select(attrs={'class': 'form-control'}),
             'quantity': forms.NumberInput(attrs={'class': 'form-control'}),
             'price': forms.NumberInput(
