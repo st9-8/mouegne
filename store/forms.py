@@ -54,6 +54,46 @@ class ItemForm(forms.ModelForm):
         }
 
 
+class SaleInlineItemForm(forms.ModelForm):
+    """
+    Simplified item form used when creating an article inline from a sale.
+    Only exposes name and price while deriving the other required fields.
+    """
+    DEFAULT_CATEGORY_NAME = "Divers"
+
+    class Meta:
+        model = Item
+        fields = [
+            'name',
+            'price',
+        ]
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control'}),
+            'price': forms.NumberInput(
+                attrs={
+                    'class': 'form-control',
+                    'step': '0.01'
+                }
+            ),
+        }
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+
+        default_category = Category.objects.order_by('id').first()
+        if default_category is None:
+            default_category = Category.objects.create(name=self.DEFAULT_CATEGORY_NAME)
+        instance.category = default_category
+
+        # Fill mandatory fields that are hidden from the inline form
+        instance.description = instance.description or ''
+        instance.purchase_price = instance.purchase_price or instance.price or 0
+
+        if commit:
+            instance.save()
+        return instance
+
+
 class CategoryForm(forms.ModelForm):
     """
     A form for creating or updating category.

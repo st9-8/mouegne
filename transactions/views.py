@@ -26,7 +26,7 @@ from traceback_with_variables import format_exc
 
 # Local app imports
 from store.models import Item
-from store.forms import ItemForm
+from store.forms import SaleInlineItemForm
 from accounts.models import Customer
 from accounts.models import Settings
 from transactions.models import Sale, Purchase, SaleDetail
@@ -257,7 +257,7 @@ def SaleCreateView(request):
         "active_icon": "sales",
         "default_client": Customer.objects.first(),
         "customers": [c.to_select2() for c in Customer.objects.all()],
-        "item_form": ItemForm(),
+        "item_form": SaleInlineItemForm(),
         "allow_zero_stock_sale": allow_zero_stock_sale
     }
 

@@ -48,7 +48,7 @@ from accounts.models import Vendor, Settings, Customer
 from transactions.models import Sale, SaleDetail
 from transactions.utils import generate_pdf, print_document
 from .models import Category, Item, Delivery, DeliveryDetail
-from .forms import ItemForm, CategoryForm, DeliveryForm
+from .forms import ItemForm, CategoryForm, DeliveryForm, SaleInlineItemForm
 from .tables import ItemTable
 
 User = get_user_model()
@@ -724,7 +724,7 @@ def create_item_ajax(request):
     """
     Handle inline item creation from the sale form modal.
     """
-    form = ItemForm(request.POST)
+    form = SaleInlineItemForm(request.POST)
     if form.is_valid():
         item = form.save()
         return JsonResponse(

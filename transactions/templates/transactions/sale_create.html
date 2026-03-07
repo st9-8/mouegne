@@ -166,16 +166,16 @@
                 <div class="alert alert-danger d-none" id="createItemGeneralError"></div>
                 <form id="createItemForm">
                     {% csrf_token %}
-                    {% for field in item_form %}
                     <div class="mb-3">
-                        <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
-                        {{ field }}
-                        {% if field.help_text %}
-                        <small class="form-text text-muted">{{ field.help_text }}</small>
-                        {% endif %}
-                        <div class="invalid-feedback d-block text-danger small" data-field-error="{{ field.name }}"></div>
+                        <label for="{{ item_form.name.id_for_label }}" class="form-label">{{ item_form.name.label }}</label>
+                        {{ item_form.name }}
+                        <div class="invalid-feedback d-block text-danger small" data-field-error="name"></div>
                     </div>
-                    {% endfor %}
+                    <div class="mb-3">
+                        <label for="{{ item_form.price.id_for_label }}" class="form-label">{{ item_form.price.label }}</label>
+                        {{ item_form.price }}
+                        <div class="invalid-feedback d-block text-danger small" data-field-error="price"></div>
+                    </div>
                 </form>
             </div>
             <div class="modal-footer">
@@ -507,12 +507,6 @@
                     });
                     $(this).val('').trigger('change.select2');
                     return;
-                } else {
-                    Swal.fire({
-                        icon: 'warning',
-                        title: 'Stock épuisé',
-                        text: "Vous continuez malgré un stock nul pour cet article."
-                    });
                 }
             }
             // Add number, subtotal, and quantity of the item to the dictionary
