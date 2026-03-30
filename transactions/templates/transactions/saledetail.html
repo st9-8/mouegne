@@ -427,6 +427,18 @@
                                 <p>Montant payé</p>
                                 <p class="prix"><b>{{ sale.amount_paid|currency_format }}</b></p>
                             </div>
+                            {% if sale.total_mobile_money %}
+                            <div class="col2">
+                                <p>Mobile Money</p>
+                                <p class="prix"><b>{{ sale.total_mobile_money|currency_format }}</b></p>
+                            </div>
+                            {% endif %}
+                            {% if sale.cash_payment_amount %}
+                            <div class="col2">
+                                <p>Espèces</p>
+                                <p class="prix"><b>{{ sale.cash_payment_amount|currency_format }}</b></p>
+                            </div>
+                            {% endif %}
                             <div class="col2">
                                 <p>À rembourser</p>
                                 <p class="prix"><b>{{ sale.amount_change|currency_format }}</b></p>

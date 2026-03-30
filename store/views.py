@@ -89,8 +89,12 @@ def dashboard(request):
 
     # Calculate today's sales
     today = timezone.now().date()
-    today_sales = Sale.objects.filter(date_added__date=today).aggregate(
+    today_sales_qs = Sale.objects.filter(date_added__date=today)
+    today_sales = today_sales_qs.aggregate(
         total=Sum('grand_total')
+    ).get('total', 0.00) or 0
+    today_mobile_money_sales = today_sales_qs.aggregate(
+        total=Sum('total_mobile_money')
     ).get('total', 0.00) or 0
 
     # Calculate total purchases (sum of purchase_price * quantity for all items)
@@ -154,6 +158,7 @@ def dashboard(request):
         "sale_dates_values": sale_dates_values,
         "turnover": turnover,
         "today_sales": today_sales,
+        "today_mobile_money_sales": today_mobile_money_sales,
         "total_purchases": total_purchases,
         "date_after": date_after,
         "date_before": date_before,

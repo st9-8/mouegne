@@ -135,9 +135,49 @@
                                    aria-label="Grand Total" required>
                         </div>
                         <div class="mb-3">
+                            <label class="form-label d-block">Méthode de paiement</label>
+                            <div class="form-check">
+                                <input class="form-check-input payment-method" type="checkbox" value="cash"
+                                       id="payment_method_cash" checked>
+                                <label class="form-check-label" for="payment_method_cash">
+                                    Espèces
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input payment-method" type="checkbox" value="mobile_money"
+                                       id="payment_method_mobile_money">
+                                <label class="form-check-label" for="payment_method_mobile_money">
+                                    Mobile Money
+                                </label>
+                            </div>
+                            <div class="mt-2 ps-3 border-start" id="mobile_money_options" style="display:none;">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="mobile_money_total_toggle">
+                                    <label class="form-check-label" for="mobile_money_total_toggle">
+                                        Total payé par Mobile Money
+                                    </label>
+                                </div>
+                                <small class="text-muted">Décochez pour répartir le montant entre Mobile Money et cash.</small>
+                            </div>
+                        </div>
+                        <div class="row g-2 mb-3" id="payment_amounts">
+                            <div class="col-12 cash-amount-container">
+                                <label for="cash_payment_amount" class="form-label">Montant en espèces</label>
+                                <input type="number" class="form-control" id="cash_payment_amount" name="cash_payment_amount"
+                                       step="0.01" min="0" placeholder="0">
+                            </div>
+                            <div class="col-12 mobile-money-container" style="display:none;">
+                                <label for="mobile_money_amount" class="form-label">Montant Mobile Money</label>
+                                <input type="number" class="form-control" id="mobile_money_amount" name="mobile_money_amount"
+                                       step="0.01" min="0" placeholder="0">
+                            </div>
+                        </div>
+                        <div class="text-danger small d-none mb-3" id="payment_method_error"></div>
+                        <div class="mb-3">
                             <label for="amount_paid" class="form-label">Montant payé</label>
                             <input name="amount_paid" type="number" class="form-control" id="amount_paid"
-                                   aria-label="Amount Paid" required>
+                                   aria-label="Amount Paid" readonly required>
+                            <small class="text-muted">Ce montant est calculé automatiquement selon la répartition des paiements.</small>
                         </div>
                         <div class="form-check">
                             <label for="has_sav" class="form-label">Service après vente</label>
@@ -271,6 +311,8 @@
             $('input[name="sub_total"]').after('<div class="formatted-value">' + formatCurrency(this.products.sub_total) + '</div>');
             $('input[name="tax_amount"]').after('<div class="formatted-value">' + formatCurrency(this.products.tax_amount) + '</div>');
             $('input[name="grand_total"]').after('<div class="formatted-value">' + formatCurrency(this.products.grand_total) + '</div>');
+
+            $(document).trigger('sale:totals-updated', [this.products]);
         },
         // Adds an item to the sale object
         add_item: function (item) {
@@ -345,6 +387,164 @@
     };
 
     $(document).ready(function () {
+        var $cashMethod = $('#payment_method_cash');
+        var $mobileMethod = $('#payment_method_mobile_money');
+        var $mobileOptions = $('#mobile_money_options');
+        var $mobileTotalToggle = $('#mobile_money_total_toggle');
+        var $cashAmountInput = $('#cash_payment_amount');
+        var $mobileAmountInput = $('#mobile_money_amount');
+        var $cashAmountContainer = $('.cash-amount-container');
+        var $mobileAmountContainer = $('.mobile-money-container');
+        var $amountPaidInput = $('#amount_paid');
+        var $grandTotalInput = $('#grand_total');
+        var $paymentError = $('#payment_method_error');
+
+        function getNumericValue($input) {
+            var value = parseFloat($input.val());
+            return isNaN(value) ? 0 : value;
+        }
+
+        function showPaymentError(message) {
+            if (!message) {
+                $paymentError.addClass('d-none').text('');
+                return;
+            }
+            $paymentError.removeClass('d-none').text(message);
+        }
+
+        function updateAmountPaidDisplay() {
+            var cashValue = $cashMethod.is(':checked') ? getNumericValue($cashAmountInput) : 0;
+            var mobileValue = $mobileMethod.is(':checked') ? getNumericValue($mobileAmountInput) : 0;
+            var total = roundTo(cashValue + mobileValue, 2);
+            if (total > 0) {
+                $amountPaidInput.val(total);
+            } else {
+                $amountPaidInput.val('');
+            }
+        }
+
+        function togglePaymentSections() {
+            var hasCash = $cashMethod.is(':checked');
+            var hasMobile = $mobileMethod.is(':checked');
+
+            if (!hasCash && !hasMobile) {
+                $cashMethod.prop('checked', true);
+                hasCash = true;
+            }
+
+            $cashAmountContainer.toggle(hasCash);
+            if (!hasCash) {
+                $cashAmountInput.val('');
+            }
+
+            $mobileAmountContainer.toggle(hasMobile);
+            $mobileOptions.toggle(hasMobile);
+            if (!hasMobile) {
+                $mobileAmountInput.val('');
+                $mobileTotalToggle.prop('checked', false);
+            }
+        }
+
+        function syncPaymentInputsWithTotals(forceFill) {
+            togglePaymentSections();
+            var grandTotal = parseFloat($grandTotalInput.val());
+            if (isNaN(grandTotal)) {
+                grandTotal = 0;
+            }
+
+            if ($mobileMethod.is(':checked') && $mobileTotalToggle.is(':checked')) {
+                $cashMethod.prop('checked', false);
+                $cashAmountContainer.hide();
+                $cashAmountInput.val('');
+                if (grandTotal > 0) {
+                    $mobileAmountInput.val(roundTo(grandTotal, 2));
+                } else {
+                    $mobileAmountInput.val('');
+                }
+            } else {
+                if ($cashMethod.is(':checked') && (forceFill || (!getNumericValue($cashAmountInput) && grandTotal > 0))) {
+                    if ($mobileMethod.is(':checked') && getNumericValue($mobileAmountInput)) {
+                        var diff = roundTo(grandTotal - getNumericValue($mobileAmountInput), 2);
+                        $cashAmountInput.val(diff >= 0 ? diff : 0);
+                    } else if (!forceFill && getNumericValue($cashAmountInput)) {
+                        // keep existing value when user already entered something
+                    } else if (grandTotal > 0) {
+                        $cashAmountInput.val(roundTo(grandTotal, 2));
+                    }
+                }
+
+                if ($mobileMethod.is(':checked') && (forceFill || (!getNumericValue($mobileAmountInput) && grandTotal > 0))) {
+                    if (!$cashMethod.is(':checked') || forceFill) {
+                        $mobileAmountInput.val(roundTo(grandTotal, 2));
+                    }
+                }
+            }
+
+            updateAmountPaidDisplay();
+            showPaymentError('');
+        }
+
+        function collectPaymentData(grandTotal) {
+            showPaymentError('');
+            var paymentMethods = [];
+            var cashAmount = 0;
+            var mobileMoneyAmount = 0;
+            var mobileMoneyCoversTotal = $mobileMethod.is(':checked') && $mobileTotalToggle.is(':checked');
+
+            if ($cashMethod.is(':checked')) {
+                paymentMethods.push('cash');
+                cashAmount = getNumericValue($cashAmountInput);
+            }
+
+            if ($mobileMethod.is(':checked')) {
+                paymentMethods.push('mobile_money');
+                if (mobileMoneyCoversTotal) {
+                    mobileMoneyAmount = grandTotal;
+                    cashAmount = 0;
+                } else {
+                    mobileMoneyAmount = getNumericValue($mobileAmountInput);
+                }
+            }
+
+            if (!paymentMethods.length) {
+                showPaymentError('Sélectionnez au moins une méthode de paiement.');
+                return null;
+            }
+
+            if ($cashMethod.is(':checked') && !$mobileMethod.is(':checked') && cashAmount <= 0 && grandTotal > 0) {
+                showPaymentError('Indiquez le montant payé en espèces.');
+                return null;
+            }
+
+            if ($mobileMethod.is(':checked') && !mobileMoneyCoversTotal && mobileMoneyAmount <= 0 && grandTotal > 0) {
+                showPaymentError('Indiquez le montant payé par Mobile Money.');
+                return null;
+            }
+
+            if ($mobileMethod.is(':checked') && $cashMethod.is(':checked') && !mobileMoneyCoversTotal) {
+                if (cashAmount <= 0 || mobileMoneyAmount <= 0) {
+                    showPaymentError('Renseignez les montants Mobile Money et Espèces.');
+                    return null;
+                }
+            }
+
+            var amountPaid = roundTo(cashAmount + mobileMoneyAmount, 2);
+            if (amountPaid <= 0 && grandTotal > 0) {
+                showPaymentError('Le montant total payé doit être supérieur à 0.');
+                return null;
+            }
+
+            $amountPaidInput.val(amountPaid);
+
+            return {
+                payment_methods: paymentMethods,
+                mobile_money_amount: roundTo(mobileMoneyAmount, 2),
+                cash_amount: roundTo(cashAmount, 2),
+                mobile_money_covers_total: mobileMoneyCoversTotal,
+                amount_paid: amountPaid
+            };
+        }
+
         var $createItemForm = $('#createItemForm');
         var $createItemGeneralError = $('#createItemGeneralError');
         var createItemModalEl = document.getElementById('createItemModal');
@@ -372,6 +572,42 @@
                 createItemModal.show();
             }
         });
+
+        $cashMethod.on('change', function () {
+            syncPaymentInputsWithTotals();
+        });
+
+        $mobileMethod.on('change', function () {
+            if (!$mobileMethod.is(':checked')) {
+                $mobileTotalToggle.prop('checked', false);
+            }
+            syncPaymentInputsWithTotals();
+        });
+
+        $mobileTotalToggle.on('change', function () {
+            syncPaymentInputsWithTotals(true);
+        });
+
+        $cashAmountInput.on('input', function () {
+            $mobileTotalToggle.prop('checked', false);
+            updateAmountPaidDisplay();
+            showPaymentError('');
+        });
+
+        $mobileAmountInput.on('input', function () {
+            updateAmountPaidDisplay();
+            showPaymentError('');
+        });
+
+        $grandTotalInput.on('input', function () {
+            syncPaymentInputsWithTotals();
+        });
+
+        $(document).on('sale:totals-updated', function () {
+            syncPaymentInputsWithTotals();
+        });
+
+        syncPaymentInputsWithTotals(true);
 
         $createItemForm.on('submit', function (event) {
             event.preventDefault();
@@ -644,8 +880,17 @@
             event.preventDefault();
 
             // Gather sale details
-            var amountPaid = parseFloat($('input[name="amount_paid"]').val());
             var grandTotal = parseFloat($('input[name="grand_total"]').val());
+            if (isNaN(grandTotal)) {
+                grandTotal = 0;
+            }
+
+            var paymentData = collectPaymentData(grandTotal);
+            if (!paymentData) {
+                return;
+            }
+
+            var amountPaid = paymentData.amount_paid;
             var amountChange = roundTo(amountPaid - grandTotal, 2);
 
             // Gather sale details
@@ -656,7 +901,11 @@
                 amount_paid: amountPaid,
                 amount_change: amountChange,
                 items: sale.products.items,
-                has_sav: $('input[name="has_sav"]').is(':checked')
+                has_sav: $('input[name="has_sav"]').is(':checked'),
+                payment_methods: paymentData.payment_methods,
+                total_mobile_money: paymentData.mobile_money_amount,
+                cash_payment_amount: paymentData.cash_amount,
+                mobile_money_covers_total: paymentData.mobile_money_covers_total
             };
 
             // ensure amountPaid covers the grand total **
@@ -697,6 +946,11 @@
                     sale.list_item();
                     $('form#form_sale')[0].reset();
                     $('#searchbox_items').val(null).trigger('change');
+                    $cashMethod.prop('checked', true);
+                    $mobileMethod.prop('checked', false);
+                    $mobileTotalToggle.prop('checked', false);
+                    syncPaymentInputsWithTotals(true);
+                    showPaymentError('');
                     number = 1;
                     Swal.fire({
                         icon: 'success',

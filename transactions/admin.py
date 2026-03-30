@@ -12,6 +12,8 @@ class SaleAdmin(admin.ModelAdmin):
         'customer',
         'date_added',
         'grand_total',
+        'total_mobile_money',
+        'cash_payment_amount',
         'amount_paid',
         'amount_change'
     )

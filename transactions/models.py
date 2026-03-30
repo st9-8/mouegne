@@ -50,6 +50,17 @@ class Sale(models.Model):
         decimal_places=2,
         default=0.0
     )
+    total_mobile_money = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0.0
+    )
+    cash_payment_amount = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0.0
+    )
+    mobile_money_covers_total = models.BooleanField(default=False)
     has_sav = models.BooleanField(default=False)
 
     delivery = models.OneToOneField(Delivery, on_delete=models.CASCADE, related_name='sale', blank=True, null=True)

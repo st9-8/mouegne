@@ -278,6 +278,24 @@ def SaleCreateView(request):
                     if field not in data:
                         raise ValueError(f"Missing required field: {field}")
 
+                payment_methods = data.get('payment_methods', [])
+                if not isinstance(payment_methods, list):
+                    raise ValueError("payment_methods doit être une liste.")
+
+                if not payment_methods:
+                    raise ValueError("Aucune méthode de paiement sélectionnée.")
+
+                total_mobile_money = float(data.get("total_mobile_money", 0.0))
+                cash_payment_amount = float(data.get("cash_payment_amount", 0.0))
+                mobile_money_covers_total = bool(data.get("mobile_money_covers_total", False))
+                amount_paid = float(data["amount_paid"])
+
+                if round(total_mobile_money + cash_payment_amount, 2) != round(amount_paid, 2):
+                    raise ValueError("La somme des montants Mobile Money et Espèces ne correspond pas au montant payé.")
+
+                if amount_paid < float(data["grand_total"]):
+                    raise ValueError("Le montant payé doit être supérieur ou égal au total général.")
+
                 # Create sale attributes
                 sale_attributes = {
                     "customer": Customer.objects.get(id=int(data['customer'])),
@@ -285,9 +303,12 @@ def SaleCreateView(request):
                     "grand_total": float(data["grand_total"]),
                     "tax_amount": float(data.get("tax_amount", 0.0)),
                     "tax_percentage": float(data.get("tax_percentage", 0.0)),
-                    "amount_paid": float(data["amount_paid"]),
+                    "amount_paid": amount_paid,
                     "amount_change": float(data["amount_change"]),
-                    "has_sav": data['has_sav']
+                    "has_sav": data['has_sav'],
+                    "total_mobile_money": total_mobile_money,
+                    "cash_payment_amount": cash_payment_amount,
+                    "mobile_money_covers_total": mobile_money_covers_total
                 }
 
                 print(sale_attributes)
