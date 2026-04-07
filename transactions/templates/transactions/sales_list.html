@@ -39,6 +39,7 @@
             <th>Taxes</th>
             <th>TVA</th>
             <th>Montant payé</th>
+            <th>Mobile Money</th>
             <th>À rembourser</th>
             <th>Actions</th>
         </tr>
@@ -54,6 +55,7 @@
             <td>{{ sale.tax_amount|currency_format }}</td>
             <td>{{ sale.tax_percentage }}%</td>
             <td>{{ sale.amount_paid|currency_format }}</td>
+            <td>{{ sale.total_mobile_money|currency_format }}</td>
             <td>{{ sale.amount_change|currency_format }}</td>
             <td>
                 <a class="btn btn-outline-info btn-sm" href="{% url 'sale-detail' sale.id %}">
@@ -118,6 +120,12 @@
             {{ total_sales|currency_format }}
           </span>
         </h3>
+        <h5 class="mt-2">
+            Total Mobile Money:
+            <span class="badge bg-warning text-dark">
+                {{ total_mobile_money_sales|currency_format }}
+            </span>
+        </h5>
     </div>
 </div>
 {% endblock %}

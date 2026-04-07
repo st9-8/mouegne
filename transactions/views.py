@@ -234,9 +234,13 @@ class SaleListView(LoginRequiredMixin, ListView):
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         # aggregate the grand_total of the same queryset
-        totals = self.get_queryset().aggregate(total=Sum('grand_total'))
+        totals = self.get_queryset().aggregate(
+            total=Sum('grand_total'),
+            mobile_money_total=Sum('total_mobile_money')
+        )
         # if there are no sales, Sum will be None
         ctx['total_sales'] = totals['total'] or 0
+        ctx['total_mobile_money_sales'] = totals['mobile_money_total'] or 0
         return ctx
 
 
