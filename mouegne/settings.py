@@ -36,11 +36,12 @@ INSTALLED_APPS = [
     'django_filters',
     'django_tables2',
 
-    'store.apps.StoreConfig',
-    'accounts.apps.AccountsConfig',
-    'transactions.apps.TransactionsConfig',
-    'invoice.apps.InvoiceConfig',
-    'bills.apps.BillsConfig',
+    'core',
+    'accounts',
+    'tenants',
+    'catalog',
+    'inventory',
+    'sales',
 ]
 
 MIDDLEWARE = [
@@ -53,7 +54,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'InventoryMS.urls'
+ROOT_URLCONF = 'mouegne.urls'
 
 TEMPLATES = [
     {
@@ -72,7 +73,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'InventoryMS.wsgi.application'
+WSGI_APPLICATION = 'mouegne.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases

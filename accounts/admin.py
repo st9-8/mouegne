@@ -3,9 +3,12 @@ from django.contrib.auth.models import Group
 from django.contrib.auth.admin import UserAdmin
 
 from accounts.models import User
-from accounts.models import Vendor
-from accounts.models import Settings
-from accounts.models import Customer
+
+from sales.models import Customer
+
+from inventory.models import Vendor
+
+from tenants.models import ShopSettings
 
 
 @admin.register(User)
@@ -31,8 +34,8 @@ class VendorAdmin(admin.ModelAdmin):
     search_fields = ('name', 'phone_number', 'address')
 
 
-@admin.register(Settings)
-class SettingAdmin(admin.ModelAdmin):
+@admin.register(ShopSettings)
+class ShopSettingAdmin(admin.ModelAdmin):
     pass
 
 

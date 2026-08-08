@@ -24,12 +24,12 @@ from django_tables2 import SingleTableView
 from django_tables2.export.views import ExportMixin
 
 # Local app imports
-from accounts.models import Vendor
-from accounts.models import Settings
-from accounts.models import Customer
+from inventory.models import Vendor
+from tenants.models import ShopSettings
+from sales.models import Customer
 
 from accounts.forms import VendorForm
-from accounts.forms import SettingForm
+# from accounts.forms import SettingForm
 from accounts.forms import CustomerForm
 from accounts.forms import CreateUserForm
 
@@ -193,29 +193,29 @@ class VendorDeleteView(LoginRequiredMixin, DeleteView):
 from django.contrib import messages
 
 
-class SettingsUpdateView(UpdateView):
-    model = Settings
-    form_class = SettingForm
-    template_name = 'accounts/settings.html'
-    success_url = reverse_lazy('settings')
-
-    def get_object(self, queryset=None):
-        return Settings.load()
-
-    def get_form(self, form_class=None):
-        """Initialize form with current settings values"""
-        form = super().get_form(form_class)
-        settings = Settings.load()
-        if settings:
-            for field_name, field in form.fields.items():
-                form.initial[field_name] = getattr(settings, field_name, None)
-        return form
-
-    def form_valid(self, form):
-        messages.success(self.request, 'Company settings updated successfully!')
-        return super().form_valid(form)
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['settings'] = Settings.load()
-        return context
+# class SettingsUpdateView(UpdateView):
+#     model = Settings
+#     form_class = SettingForm
+#     template_name = 'accounts/settings.html'
+#     success_url = reverse_lazy('settings')
+#
+#     def get_object(self, queryset=None):
+#         return Settings.load()
+#
+#     def get_form(self, form_class=None):
+#         """Initialize form with current settings values"""
+#         form = super().get_form(form_class)
+#         settings = Settings.load()
+#         if settings:
+#             for field_name, field in form.fields.items():
+#                 form.initial[field_name] = getattr(settings, field_name, None)
+#         return form
+#
+#     def form_valid(self, form):
+#         messages.success(self.request, 'Company settings updated successfully!')
+#         return super().form_valid(form)
+#
+#     def get_context_data(self, **kwargs):
+#         context = super().get_context_data(**kwargs)
+#         context['settings'] = Settings.load()
+#         return context

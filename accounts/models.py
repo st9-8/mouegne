@@ -37,60 +37,6 @@ class User(AbstractUser):
             return ''
 
 
-class Vendor(models.Model):
-    """
-    Represents a vendor with contact and address information.
-    """
-    name = models.CharField(max_length=50, verbose_name='Name')
-    slug = AutoSlugField(
-        unique=True,
-        populate_from='name',
-        verbose_name='Slug'
-    )
-    phone_number = models.BigIntegerField(
-        blank=True, null=True, verbose_name='Phone Number'
-    )
-    address = models.CharField(
-        max_length=50, blank=True, null=True, verbose_name='Address'
-    )
-
-    def __str__(self):
-        """
-        Returns a string representation of the vendor.
-        """
-        return self.name
-
-    class Meta:
-        """Meta options for the Vendor model."""
-        verbose_name = 'Vendor'
-        verbose_name_plural = 'Vendors'
-
-
-class Customer(models.Model):
-    first_name = models.CharField(max_length=256)
-    last_name = models.CharField(max_length=256, blank=True, null=True)
-    address = models.TextField(max_length=256, blank=True, null=True)
-    email = models.EmailField(max_length=256, blank=True, null=True)
-    phone = models.CharField(max_length=30, blank=True, null=True)
-    loyalty_points = models.IntegerField(default=0)
-
-    class Meta:
-        db_table = 'Customers'
-
-    def __str__(self) -> str:
-        return self.first_name or '' + " " + self.last_name or ''
-
-    def get_full_name(self):
-        return self.first_name or '' + " " + self.last_name or ''
-
-    def to_select2(self):
-        item = {
-            "label": self.get_full_name(),
-            "value": self.id
-        }
-        return item
-
-
 class Singleton(models.Model):
     class Meta:
         abstract = True
@@ -121,16 +67,3 @@ class Singleton(models.Model):
             pass
 
         return cache.get(cls.__name__)
-
-
-class Settings(Singleton):
-    name = models.CharField(max_length=255)
-    email = models.EmailField()
-    phone_number = models.CharField(max_length=13)
-    address = models.CharField(max_length=255)
-    tax_number = models.CharField(max_length=255)
-    logo = models.ImageField(upload_to='logos/')
-    allow_zero_stock_sale = models.BooleanField(default=False)
-
-    def __str__(self):
-        return self.name

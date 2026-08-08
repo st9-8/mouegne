@@ -2,9 +2,9 @@ from django import forms
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import UserCreationForm
 
-from accounts.models import Vendor
-from accounts.models import Settings
-from accounts.models import Customer
+from inventory.models import Vendor
+from tenants.models import ShopSettings
+from sales.models import Customer
 
 User = get_user_model()
 
@@ -92,15 +92,15 @@ class VendorForm(forms.ModelForm):
         }
 
 
-class SettingForm(forms.ModelForm):
-    class Meta:
-        model = Settings
-        fields = ['name', 'email', 'phone_number', 'address', 'tax_number', 'logo', 'allow_zero_stock_sale']
-        widgets = {
-            'name': forms.TextInput(attrs={'class': 'form-control'}),
-            'email': forms.EmailInput(attrs={'class': 'form-control'}),
-            'phone_number': forms.TextInput(attrs={'class': 'form-control'}),
-            'address': forms.TextInput(attrs={'class': 'form-control'}),
-            'tax_number': forms.TextInput(attrs={'class': 'form-control'}),
-            'allow_zero_stock_sale': forms.CheckboxInput(attrs={'class': 'form-check-input'})
-        }
+# class SettingForm(forms.ModelForm):
+#     class Meta:
+#         model = ShopSettings
+#         fields = ['name', 'email', 'phone_number', 'address', 'tax_number', 'logo', 'allow_zero_stock_sale']
+#         widgets = {
+#             'name': forms.TextInput(attrs={'class': 'form-control'}),
+#             'email': forms.EmailInput(attrs={'class': 'form-control'}),
+#             'phone_number': forms.TextInput(attrs={'class': 'form-control'}),
+#             'address': forms.TextInput(attrs={'class': 'form-control'}),
+#             'tax_number': forms.TextInput(attrs={'class': 'form-control'}),
+#             'allow_zero_stock_sale': forms.CheckboxInput(attrs={'class': 'form-check-input'})
+#         }

@@ -16,7 +16,8 @@ from django.urls import reverse
 from django.forms import model_to_dict
 from django_extensions.db.fields import AutoSlugField
 from phonenumber_field.modelfields import PhoneNumberField
-from accounts.models import Vendor
+
+from inventory.models import Vendor
 
 
 class Category(models.Model):
