@@ -22,20 +22,13 @@ class Vendor(MerchantScopedModel):
 
 
 class Purchase(ShopScopedModel):
-    """
-        Stock purchase
-    """
-
     item = models.ForeignKey(Item, on_delete=models.CASCADE, related_name='purchases')
     vendor = models.ForeignKey(Vendor, on_delete=models.SET_NULL, blank=True, null=True, related_name="purchases")
     description = models.TextField(max_length=300, blank=True, null=True)
-    quantity = models.PositiveIntegerField(default=0, verbose_name='Quantité')
-    price = models.DecimalField(max_digits=10, decimal_places=2, default=0.0, verbose_name="Prix d'achat (FCFA)", )
+    quantity = models.PositiveIntegerField(default=0)
+    price = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
     total_value = models.DecimalField(max_digits=10, decimal_places=2)
-    order_date = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f'{self.item.name} x {self.quantity} <- {self.vendor.name}'
-
-    class Meta:
-        ordering = ['-order_date']
+        vendor_name = self.vendor.name if self.vendor else "N/A"
+        return f'{self.item.name} x {self.quantity} <- {vendor_name}'

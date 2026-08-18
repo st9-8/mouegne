@@ -7,4 +7,4 @@ from tenants.models import Shop, ShopSettings
 @receiver(post_save, sender=Shop)
 def create_shop_settings(sender, instance, created, **kwargs):
     if created:
-        ShopSettings.objects.create(user=instance)
+        ShopSettings.objects.create(shop=instance)

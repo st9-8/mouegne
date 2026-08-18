@@ -1,0 +1,2153 @@
+openapi: 3.0.3
+info:
+  title: Mouegne API
+  version: 1.0.0
+  description: API de gestion de vente au comptoir multi-boutiques pour AEME Consulting.
+paths:
+  /api/shops/:
+    get:
+      operationId: api_shops_list
+      description: |-
+        Liste/CRUD des boutiques accessibles à l'utilisateur connecté.
+        Pas de nesting ici : c'est la racine, /api/shops/.
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Shop'
+          description: ''
+    post:
+      operationId: api_shops_create
+      description: |-
+        Liste/CRUD des boutiques accessibles à l'utilisateur connecté.
+        Pas de nesting ici : c'est la racine, /api/shops/.
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ShopRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ShopRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ShopRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Shop'
+          description: ''
+  /api/shops/{id}/:
+    get:
+      operationId: api_shops_retrieve
+      description: |-
+        Liste/CRUD des boutiques accessibles à l'utilisateur connecté.
+        Pas de nesting ici : c'est la racine, /api/shops/.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: Un(une) Chaîne UUID identifiant ce(cette) shop.
+        required: true
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Shop'
+          description: ''
+    put:
+      operationId: api_shops_update
+      description: |-
+        Liste/CRUD des boutiques accessibles à l'utilisateur connecté.
+        Pas de nesting ici : c'est la racine, /api/shops/.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: Un(une) Chaîne UUID identifiant ce(cette) shop.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ShopRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ShopRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ShopRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Shop'
+          description: ''
+    patch:
+      operationId: api_shops_partial_update
+      description: |-
+        Liste/CRUD des boutiques accessibles à l'utilisateur connecté.
+        Pas de nesting ici : c'est la racine, /api/shops/.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: Un(une) Chaîne UUID identifiant ce(cette) shop.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedShopRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedShopRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedShopRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Shop'
+          description: ''
+    delete:
+      operationId: api_shops_destroy
+      description: |-
+        Liste/CRUD des boutiques accessibles à l'utilisateur connecté.
+        Pas de nesting ici : c'est la racine, /api/shops/.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: Un(une) Chaîne UUID identifiant ce(cette) shop.
+        required: true
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/shops/{shop_pk}/categories/:
+    get:
+      operationId: categories_list
+      parameters:
+      - in: path
+        name: shop_pk
+        schema:
+          type: string
+        description: Identifiant UUID de la boutique
+        required: true
+      tags:
+      - categories
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Category'
+          description: ''
+    post:
+      operationId: categories_create
+      parameters:
+      - in: path
+        name: shop_pk
+        schema:
+          type: string
+        description: Identifiant UUID de la boutique
+        required: true
+      tags:
+      - categories
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CategoryRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CategoryRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CategoryRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+          description: ''
+  /api/shops/{shop_pk}/categories/{id}/:
+    get:
+      operationId: categories_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: Un(une) Chaîne UUID identifiant ce(cette) category.
+        required: true
+      - in: path
+        name: shop_pk
+        schema:
+          type: string
+        description: Identifiant UUID de la boutique
+        required: true
+      tags:
+      - categories
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+          description: ''
+    put:
+      operationId: categories_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: Un(une) Chaîne UUID identifiant ce(cette) category.
+        required: true
+      - in: path
+        name: shop_pk
+        schema:
+          type: string
+        description: Identifiant UUID de la boutique
+        required: true
+      tags:
+      - categories
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CategoryRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CategoryRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CategoryRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+          description: ''
+    patch:
+      operationId: categories_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: Un(une) Chaîne UUID identifiant ce(cette) category.
+        required: true
+      - in: path
+        name: shop_pk
+        schema:
+          type: string
+        description: Identifiant UUID de la boutique
+        required: true
+      tags:
+      - categories
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedCategoryRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedCategoryRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedCategoryRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+          description: ''
+    delete:
+      operationId: categories_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: Un(une) Chaîne UUID identifiant ce(cette) category.
+        required: true
+      - in: path
+        name: shop_pk
+        schema:
+          type: string
+        description: Identifiant UUID de la boutique
+        required: true
+      tags:
+      - categories
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/shops/{shop_pk}/customers/:
+    get:
+      operationId: customers_list
+      parameters:
+      - in: path
+        name: shop_pk
+        schema:
+          type: string
+        description: Identifiant UUID de la boutique
+        required: true
+      tags:
+      - customers
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Customer'
+          description: ''
+    post:
+      operationId: customers_create
+      parameters:
+      - in: path
+        name: shop_pk
+        schema:
+          type: string
+        description: Identifiant UUID de la boutique
+        required: true
+      tags:
+      - customers
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomerRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CustomerRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CustomerRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Customer'
+          description: ''
+  /api/shops/{shop_pk}/customers/{id}/:
+    get:
+      operationId: customers_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: Un(une) Chaîne UUID identifiant ce(cette) customer.
+        required: true
+      - in: path
+        name: shop_pk
+        schema:
+          type: string
+        description: Identifiant UUID de la boutique
+        required: true
+      tags:
+      - customers
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Customer'
+          description: ''
+    put:
+      operationId: customers_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: Un(une) Chaîne UUID identifiant ce(cette) customer.
+        required: true
+      - in: path
+        name: shop_pk
+        schema:
+          type: string
+        description: Identifiant UUID de la boutique
+        required: true
+      tags:
+      - customers
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomerRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CustomerRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CustomerRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Customer'
+          description: ''
+    patch:
+      operationId: customers_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: Un(une) Chaîne UUID identifiant ce(cette) customer.
+        required: true
+      - in: path
+        name: shop_pk
+        schema:
+          type: string
+        description: Identifiant UUID de la boutique
+        required: true
+      tags:
+      - customers
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedCustomerRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedCustomerRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedCustomerRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Customer'
+          description: ''
+    delete:
+      operationId: customers_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: Un(une) Chaîne UUID identifiant ce(cette) customer.
+        required: true
+      - in: path
+        name: shop_pk
+        schema:
+          type: string
+        description: Identifiant UUID de la boutique
+        required: true
+      tags:
+      - customers
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/shops/{shop_pk}/employees/:
+    get:
+      operationId: employees_list
+      parameters:
+      - in: path
+        name: shop_pk
+        schema:
+          type: string
+        description: Identifiant UUID de la boutique
+        required: true
+      tags:
+      - employees
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Employee'
+          description: ''
+    post:
+      operationId: employees_create
+      parameters:
+      - in: path
+        name: shop_pk
+        schema:
+          type: string
+        description: Identifiant UUID de la boutique
+        required: true
+      tags:
+      - employees
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmployeeRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/EmployeeRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/EmployeeRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Employee'
+          description: ''
+  /api/shops/{shop_pk}/employees/{id}/:
+    get:
+      operationId: employees_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: Un(une) Chaîne UUID identifiant ce(cette) employee.
+        required: true
+      - in: path
+        name: shop_pk
+        schema:
+          type: string
+        description: Identifiant UUID de la boutique
+        required: true
+      tags:
+      - employees
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Employee'
+          description: ''
+    put:
+      operationId: employees_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: Un(une) Chaîne UUID identifiant ce(cette) employee.
+        required: true
+      - in: path
+        name: shop_pk
+        schema:
+          type: string
+        description: Identifiant UUID de la boutique
+        required: true
+      tags:
+      - employees
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmployeeRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/EmployeeRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/EmployeeRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Employee'
+          description: ''
+    patch:
+      operationId: employees_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: Un(une) Chaîne UUID identifiant ce(cette) employee.
+        required: true
+      - in: path
+        name: shop_pk
+        schema:
+          type: string
+        description: Identifiant UUID de la boutique
+        required: true
+      tags:
+      - employees
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedEmployeeRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedEmployeeRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedEmployeeRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Employee'
+          description: ''
+    delete:
+      operationId: employees_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: Un(une) Chaîne UUID identifiant ce(cette) employee.
+        required: true
+      - in: path
+        name: shop_pk
+        schema:
+          type: string
+        description: Identifiant UUID de la boutique
+        required: true
+      tags:
+      - employees
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/shops/{shop_pk}/items/:
+    get:
+      operationId: items_list
+      parameters:
+      - in: path
+        name: shop_pk
+        schema:
+          type: string
+        description: Identifiant UUID de la boutique
+        required: true
+      tags:
+      - items
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Item'
+          description: ''
+    post:
+      operationId: items_create
+      parameters:
+      - in: path
+        name: shop_pk
+        schema:
+          type: string
+        description: Identifiant UUID de la boutique
+        required: true
+      tags:
+      - items
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ItemRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ItemRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ItemRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Item'
+          description: ''
+  /api/shops/{shop_pk}/items/{id}/:
+    get:
+      operationId: items_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: Un(une) Chaîne UUID identifiant ce(cette) item.
+        required: true
+      - in: path
+        name: shop_pk
+        schema:
+          type: string
+        description: Identifiant UUID de la boutique
+        required: true
+      tags:
+      - items
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Item'
+          description: ''
+    put:
+      operationId: items_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: Un(une) Chaîne UUID identifiant ce(cette) item.
+        required: true
+      - in: path
+        name: shop_pk
+        schema:
+          type: string
+        description: Identifiant UUID de la boutique
+        required: true
+      tags:
+      - items
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ItemRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ItemRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ItemRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Item'
+          description: ''
+    patch:
+      operationId: items_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: Un(une) Chaîne UUID identifiant ce(cette) item.
+        required: true
+      - in: path
+        name: shop_pk
+        schema:
+          type: string
+        description: Identifiant UUID de la boutique
+        required: true
+      tags:
+      - items
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedItemRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedItemRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedItemRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Item'
+          description: ''
+    delete:
+      operationId: items_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: Un(une) Chaîne UUID identifiant ce(cette) item.
+        required: true
+      - in: path
+        name: shop_pk
+        schema:
+          type: string
+        description: Identifiant UUID de la boutique
+        required: true
+      tags:
+      - items
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/shops/{shop_pk}/purchases/:
+    get:
+      operationId: purchases_list
+      parameters:
+      - in: path
+        name: shop_pk
+        schema:
+          type: string
+        description: Identifiant UUID de la boutique
+        required: true
+      tags:
+      - purchases
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Purchase'
+          description: ''
+    post:
+      operationId: purchases_create
+      parameters:
+      - in: path
+        name: shop_pk
+        schema:
+          type: string
+        description: Identifiant UUID de la boutique
+        required: true
+      tags:
+      - purchases
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PurchaseRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PurchaseRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PurchaseRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Purchase'
+          description: ''
+  /api/shops/{shop_pk}/purchases/{id}/:
+    get:
+      operationId: purchases_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: Un(une) Chaîne UUID identifiant ce(cette) purchase.
+        required: true
+      - in: path
+        name: shop_pk
+        schema:
+          type: string
+        description: Identifiant UUID de la boutique
+        required: true
+      tags:
+      - purchases
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Purchase'
+          description: ''
+    put:
+      operationId: purchases_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: Un(une) Chaîne UUID identifiant ce(cette) purchase.
+        required: true
+      - in: path
+        name: shop_pk
+        schema:
+          type: string
+        description: Identifiant UUID de la boutique
+        required: true
+      tags:
+      - purchases
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PurchaseRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PurchaseRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PurchaseRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Purchase'
+          description: ''
+    patch:
+      operationId: purchases_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: Un(une) Chaîne UUID identifiant ce(cette) purchase.
+        required: true
+      - in: path
+        name: shop_pk
+        schema:
+          type: string
+        description: Identifiant UUID de la boutique
+        required: true
+      tags:
+      - purchases
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedPurchaseRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedPurchaseRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedPurchaseRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Purchase'
+          description: ''
+    delete:
+      operationId: purchases_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: Un(une) Chaîne UUID identifiant ce(cette) purchase.
+        required: true
+      - in: path
+        name: shop_pk
+        schema:
+          type: string
+        description: Identifiant UUID de la boutique
+        required: true
+      tags:
+      - purchases
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/shops/{shop_pk}/sales/:
+    get:
+      operationId: sales_list
+      parameters:
+      - in: path
+        name: shop_pk
+        schema:
+          type: string
+        description: Identifiant UUID de la boutique
+        required: true
+      tags:
+      - sales
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Sale'
+          description: ''
+    post:
+      operationId: sales_create
+      summary: Créer une vente au comptoir
+      parameters:
+      - in: path
+        name: shop_pk
+        schema:
+          type: string
+        description: Identifiant UUID de la boutique
+        required: true
+      tags:
+      - sales
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SaleCreateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/SaleCreateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SaleCreateRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Sale'
+          description: ''
+  /api/shops/{shop_pk}/sales/{id}/:
+    get:
+      operationId: sales_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: Un(une) Chaîne UUID identifiant ce(cette) Sale.
+        required: true
+      - in: path
+        name: shop_pk
+        schema:
+          type: string
+        description: Identifiant UUID de la boutique
+        required: true
+      tags:
+      - sales
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Sale'
+          description: ''
+  /api/shops/{shop_pk}/vendors/:
+    get:
+      operationId: vendors_list
+      parameters:
+      - in: path
+        name: shop_pk
+        schema:
+          type: string
+        description: Identifiant UUID de la boutique
+        required: true
+      tags:
+      - vendors
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Vendor'
+          description: ''
+    post:
+      operationId: vendors_create
+      parameters:
+      - in: path
+        name: shop_pk
+        schema:
+          type: string
+        description: Identifiant UUID de la boutique
+        required: true
+      tags:
+      - vendors
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VendorRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/VendorRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/VendorRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Vendor'
+          description: ''
+  /api/shops/{shop_pk}/vendors/{id}/:
+    get:
+      operationId: vendors_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: Un(une) Chaîne UUID identifiant ce(cette) vendor.
+        required: true
+      - in: path
+        name: shop_pk
+        schema:
+          type: string
+        description: Identifiant UUID de la boutique
+        required: true
+      tags:
+      - vendors
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Vendor'
+          description: ''
+    put:
+      operationId: vendors_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: Un(une) Chaîne UUID identifiant ce(cette) vendor.
+        required: true
+      - in: path
+        name: shop_pk
+        schema:
+          type: string
+        description: Identifiant UUID de la boutique
+        required: true
+      tags:
+      - vendors
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VendorRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/VendorRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/VendorRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Vendor'
+          description: ''
+    patch:
+      operationId: vendors_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: Un(une) Chaîne UUID identifiant ce(cette) vendor.
+        required: true
+      - in: path
+        name: shop_pk
+        schema:
+          type: string
+        description: Identifiant UUID de la boutique
+        required: true
+      tags:
+      - vendors
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedVendorRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedVendorRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedVendorRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Vendor'
+          description: ''
+    delete:
+      operationId: vendors_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: Un(une) Chaîne UUID identifiant ce(cette) vendor.
+        required: true
+      - in: path
+        name: shop_pk
+        schema:
+          type: string
+        description: Identifiant UUID de la boutique
+        required: true
+      tags:
+      - vendors
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+components:
+  schemas:
+    Category:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          maxLength: 50
+        slug:
+          type: string
+          readOnly: true
+          pattern: ^[-a-zA-Z0-9_]+$
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - id
+      - name
+      - slug
+      - updated_at
+    CategoryRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 50
+      required:
+      - name
+    Customer:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        first_name:
+          type: string
+          maxLength: 256
+        last_name:
+          type: string
+          nullable: true
+          maxLength: 256
+        address:
+          type: string
+          nullable: true
+          maxLength: 256
+        email:
+          nullable: true
+          oneOf:
+          - type: string
+            format: email
+            maxLength: 256
+          - type: string
+            maxLength: 0
+        phone:
+          type: string
+          nullable: true
+          maxLength: 30
+        loyalty_points:
+          type: integer
+          readOnly: true
+      required:
+      - first_name
+      - id
+      - loyalty_points
+    CustomerRequest:
+      type: object
+      properties:
+        first_name:
+          type: string
+          minLength: 1
+          maxLength: 256
+        last_name:
+          type: string
+          nullable: true
+          maxLength: 256
+        address:
+          type: string
+          nullable: true
+          maxLength: 256
+        email:
+          nullable: true
+          oneOf:
+          - type: string
+            format: email
+            maxLength: 256
+          - type: string
+            maxLength: 0
+        phone:
+          type: string
+          nullable: true
+          maxLength: 30
+      required:
+      - first_name
+    Employee:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        user:
+          type: integer
+        username:
+          type: string
+          readOnly: true
+        shop:
+          type: string
+          format: uuid
+          readOnly: true
+        role:
+          $ref: '#/components/schemas/RoleEnum'
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - id
+      - role
+      - shop
+      - user
+      - username
+    EmployeeRequest:
+      type: object
+      properties:
+        user:
+          type: integer
+        role:
+          $ref: '#/components/schemas/RoleEnum'
+        is_active:
+          type: boolean
+      required:
+      - role
+      - user
+    Item:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          maxLength: 50
+        slug:
+          type: string
+          readOnly: true
+          pattern: ^[-a-zA-Z0-9_]+$
+        description:
+          type: string
+          maxLength: 256
+        category:
+          type: string
+          format: uuid
+        category_name:
+          type: string
+          readOnly: true
+        vendor:
+          type: string
+          format: uuid
+          nullable: true
+        vendor_name:
+          type: string
+          readOnly: true
+        quantity:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+        price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+        purchase_price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+        expiring_date:
+          type: string
+          format: date-time
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - category
+      - category_name
+      - created_at
+      - description
+      - id
+      - name
+      - slug
+      - updated_at
+      - vendor_name
+    ItemRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 50
+        description:
+          type: string
+          minLength: 1
+          maxLength: 256
+        category:
+          type: string
+          format: uuid
+        vendor:
+          type: string
+          format: uuid
+          nullable: true
+        quantity:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+        price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+        purchase_price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+        expiring_date:
+          type: string
+          format: date-time
+          nullable: true
+      required:
+      - category
+      - description
+      - name
+    PatchedCategoryRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 50
+    PatchedCustomerRequest:
+      type: object
+      properties:
+        first_name:
+          type: string
+          minLength: 1
+          maxLength: 256
+        last_name:
+          type: string
+          nullable: true
+          maxLength: 256
+        address:
+          type: string
+          nullable: true
+          maxLength: 256
+        email:
+          nullable: true
+          oneOf:
+          - type: string
+            format: email
+            maxLength: 256
+          - type: string
+            maxLength: 0
+        phone:
+          type: string
+          nullable: true
+          maxLength: 30
+    PatchedEmployeeRequest:
+      type: object
+      properties:
+        user:
+          type: integer
+        role:
+          $ref: '#/components/schemas/RoleEnum'
+        is_active:
+          type: boolean
+    PatchedItemRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 50
+        description:
+          type: string
+          minLength: 1
+          maxLength: 256
+        category:
+          type: string
+          format: uuid
+        vendor:
+          type: string
+          format: uuid
+          nullable: true
+        quantity:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+        price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+        purchase_price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+        expiring_date:
+          type: string
+          format: date-time
+          nullable: true
+    PatchedPurchaseRequest:
+      type: object
+      properties:
+        item:
+          type: string
+          format: uuid
+        vendor:
+          type: string
+          format: uuid
+          nullable: true
+        description:
+          type: string
+          nullable: true
+          maxLength: 300
+        quantity:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+        price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+    PatchedShopRequest:
+      type: object
+      properties:
+        owner:
+          type: string
+          format: uuid
+        slug:
+          type: string
+          minLength: 1
+          maxLength: 50
+          pattern: ^[-a-zA-Z0-9_]+$
+        address:
+          type: string
+          nullable: true
+          maxLength: 255
+        description:
+          type: string
+          nullable: true
+        phone_number:
+          type: string
+          nullable: true
+          maxLength: 255
+        currency:
+          type: string
+          minLength: 1
+          maxLength: 255
+        is_active:
+          type: boolean
+    PatchedVendorRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 50
+        phone_number:
+          type: string
+          nullable: true
+          maxLength: 128
+        address:
+          type: string
+          nullable: true
+          maxLength: 50
+    Purchase:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        item:
+          type: string
+          format: uuid
+        item_name:
+          type: string
+          readOnly: true
+        vendor:
+          type: string
+          format: uuid
+          nullable: true
+        vendor_name:
+          type: string
+          readOnly: true
+        description:
+          type: string
+          nullable: true
+          maxLength: 300
+        quantity:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+        price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+        total_value:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - id
+      - item
+      - item_name
+      - total_value
+      - vendor_name
+    PurchaseRequest:
+      type: object
+      properties:
+        item:
+          type: string
+          format: uuid
+        vendor:
+          type: string
+          format: uuid
+          nullable: true
+        description:
+          type: string
+          nullable: true
+          maxLength: 300
+        quantity:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+        price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+      required:
+      - item
+    RoleEnum:
+      enum:
+      - OWNER
+      - MANAGER
+      - CASHIER
+      type: string
+      description: |-
+        * `OWNER` - Owner
+        * `MANAGER` - Manager
+        * `CASHIER` - Cashier
+    Sale:
+      type: object
+      description: Serializer de sortie (list/retrieve), lecture seule.
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        customer:
+          type: string
+          format: uuid
+          nullable: true
+        customer_name:
+          type: string
+          readOnly: true
+        employee:
+          type: string
+          format: uuid
+          nullable: true
+        employee_username:
+          type: string
+          readOnly: true
+        sub_total:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+        grand_total:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+        tax_amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+        tax_percentage:
+          type: number
+          format: double
+        amount_paid:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+        amount_change:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+        total_mobile_money:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+        cash_payment_amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+        mobile_money_covers_total:
+          type: boolean
+        has_sav:
+          type: boolean
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/SaleDetailOutput'
+          readOnly: true
+      required:
+      - created_at
+      - customer_name
+      - employee_username
+      - id
+      - items
+    SaleCreateRequest:
+      type: object
+      description: |-
+        Serializer d'entrée uniquement — la création réelle passe par sales.services.create_sale.
+        Ne valide que la FORME des données ; les règles métier (stock, montants, cross-tenant)
+        sont dans le service.
+      properties:
+        customer_id:
+          type: string
+          format: uuid
+          nullable: true
+        sub_total:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+        grand_total:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+        tax_amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+          default: '0.00'
+        tax_percentage:
+          type: number
+          format: double
+          default: 0.0
+        amount_paid:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+        amount_change:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+          default: '0.00'
+        total_mobile_money:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+          default: '0.00'
+        cash_payment_amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+          default: '0.00'
+        mobile_money_covers_total:
+          type: boolean
+          default: false
+        has_sav:
+          type: boolean
+          default: false
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/SaleItemInputRequest'
+      required:
+      - amount_paid
+      - grand_total
+      - items
+      - sub_total
+    SaleDetailOutput:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        item:
+          type: string
+          format: uuid
+          nullable: true
+        item_name:
+          type: string
+          readOnly: true
+        price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+        quantity:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+        total_detail:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+      required:
+      - id
+      - item_name
+      - price
+      - quantity
+      - total_detail
+    SaleItemInputRequest:
+      type: object
+      properties:
+        item_id:
+          type: string
+          format: uuid
+        price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+        quantity:
+          type: integer
+          minimum: 1
+        total_item:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+      required:
+      - item_id
+      - price
+      - quantity
+      - total_item
+    Shop:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        owner:
+          type: string
+          format: uuid
+        slug:
+          type: string
+          maxLength: 50
+          pattern: ^[-a-zA-Z0-9_]+$
+        address:
+          type: string
+          nullable: true
+          maxLength: 255
+        description:
+          type: string
+          nullable: true
+        phone_number:
+          type: string
+          nullable: true
+          maxLength: 255
+        currency:
+          type: string
+          maxLength: 255
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - id
+      - owner
+      - slug
+      - updated_at
+    ShopRequest:
+      type: object
+      properties:
+        owner:
+          type: string
+          format: uuid
+        slug:
+          type: string
+          minLength: 1
+          maxLength: 50
+          pattern: ^[-a-zA-Z0-9_]+$
+        address:
+          type: string
+          nullable: true
+          maxLength: 255
+        description:
+          type: string
+          nullable: true
+        phone_number:
+          type: string
+          nullable: true
+          maxLength: 255
+        currency:
+          type: string
+          minLength: 1
+          maxLength: 255
+        is_active:
+          type: boolean
+      required:
+      - owner
+      - slug
+    Vendor:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          maxLength: 50
+        slug:
+          type: string
+          readOnly: true
+          pattern: ^[-a-zA-Z0-9_]+$
+        phone_number:
+          type: string
+          nullable: true
+          maxLength: 128
+        address:
+          type: string
+          nullable: true
+          maxLength: 50
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - id
+      - name
+      - slug
+      - updated_at
+    VendorRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 50
+        phone_number:
+          type: string
+          nullable: true
+          maxLength: 128
+        address:
+          type: string
+          nullable: true
+          maxLength: 50
+      required:
+      - name
+  securitySchemes:
+    jwtAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

@@ -59,6 +59,7 @@ class Sale(ShopScopedModel):
     has_sav = models.BooleanField(default=False)
 
     class Meta:
+
         verbose_name = "Sale"
         verbose_name_plural = "Sales"
 
@@ -73,17 +74,10 @@ class Sale(ShopScopedModel):
         )
 
 
-class SaleDetail(models.Model):
-    """
-    Represents details of a specific sale, including item and quantity.
-    """
-
-    sale = models.ForeignKey(Sale, on_delete=models.CASCADE, db_column="sale", related_name="saledetail_set")
-    item = models.ForeignKey(Item, on_delete=models.SET_NULL, db_column="item", blank=True, null=True)
-    price = models.DecimalField(
-        max_digits=10,
-        decimal_places=2
-    )
+class SaleDetail(ShopScopedModel):
+    sale = models.ForeignKey(Sale, on_delete=models.CASCADE, related_name="saledetail_set")
+    item = models.ForeignKey(Item, on_delete=models.SET_NULL, blank=True, null=True)
+    price = models.DecimalField(max_digits=10, decimal_places=2)
     quantity = models.PositiveIntegerField()
     total_detail = models.DecimalField(max_digits=10, decimal_places=2)
 
@@ -93,11 +87,4 @@ class SaleDetail(models.Model):
         verbose_name_plural = "Sale Details"
 
     def __str__(self):
-        """
-        Returns a string representation of the SaleDetail instance.
-        """
-        return (
-            f"Detail ID: {self.id} | "
-            f"Sale ID: {self.sale.id} | "
-            f"Quantity: {self.quantity}"
-        )
+        return f"Detail ID: {self.id} | Sale ID: {self.sale.id} | Quantity: {self.quantity}"

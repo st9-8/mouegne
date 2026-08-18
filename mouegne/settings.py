@@ -35,6 +35,8 @@ INSTALLED_APPS = [
     'django_extensions',
     'django_filters',
     'django_tables2',
+    'rest_framework',
+    'drf_spectacular',
 
     'core',
     'accounts',
@@ -111,6 +113,26 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
+
+REST_FRAMEWORK = {
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    ],
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.IsAuthenticated",
+    ],
+}
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": "Mouegne API",
+    "DESCRIPTION": "API de gestion de vente au comptoir multi-boutiques pour AEME Consulting.",
+    "VERSION": "1.0.0",
+    "SERVE_INCLUDE_SCHEMA": False,
+    # Regroupe les endpoints nestés sous leur ressource plutôt que sous "shops"
+    "SCHEMA_PATH_PREFIX": r"/api/shops/\{shop_pk\}",
+    "COMPONENT_SPLIT_REQUEST": True,
+}
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.1/topics/i18n/
