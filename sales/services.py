@@ -7,7 +7,7 @@ from sales.models import Sale, SaleDetail
 
 @transaction.atomic
 def create_sale(*, shop, customer, employee, items_data, payment_data, allow_zero_stock=False):
-    if customer and customer.merchant_id != shop.merchant_id:
+    if customer and customer.merchant_id != shop.owner_id:
         raise ValueError("Ce client n'appartient pas au commerçant de cette boutique.")
 
     # Cohérence des montants — règle métier, donc centralisée ici plutôt qu'en serializer.

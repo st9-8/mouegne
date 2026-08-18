@@ -16,7 +16,7 @@ class IsShopMember(BasePermission):
 
         employee = Employee.objects.filter(
             user=request.user, shop_id=shop_id, is_active=True
-        ).select_related("shop", "shop__merchant").first()
+        ).select_related("shop", "shop__owner").first()
 
         if not employee:
             return False
@@ -24,3 +24,27 @@ class IsShopMember(BasePermission):
         request.employee = employee
         request.shop = employee.shop
         return True
+
+
+class IsShopOwner(BasePermission):
+    """
+        Vérifie que l'utilisateur authentifié est le Merchant propriétaire
+        de CET objet Shop précis (pas seulement qu'il possède un compte Merchant).
+        Réservée aux actions d'écriture sur Shop (update/destroy).
+    """
+
+    def has_permission(self, request, view):
+        return hasattr(request.user, "merchant")
+
+    def has_object_permission(self, request, view, obj):
+        return obj.merchant_id == request.user.merchant.id
+
+
+class IsMerchant(BasePermission):
+    """
+        Vérifie que l'utilisateur authentifié possède un compte Merchant.
+        Utilisée sur les endpoints réservés aux propriétaires (ex: création de boutique).
+    """
+
+    def has_permission(self, request, view):
+        return hasattr(request.user, "merchant")

@@ -9,7 +9,7 @@ def receive_purchase(*, shop, item, vendor, quantity, price, description=''):
     if item.shop_id != shop.id:
         raise ValueError("Cet article n'appartient pas à cette boutique.")
 
-    if vendor and vendor.merchant != shop.merchant:
+    if vendor and vendor.merchant != shop.owner:
         raise ValueError("Ce fournisseur ne fait pas partie des fournisseurs de cette boutique.")
 
     purchase = Purchase(

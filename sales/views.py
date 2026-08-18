@@ -25,10 +25,10 @@ class CustomerViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         if getattr(self, "swagger_fake_view", False):
             return Customer.objects.none()
-        return Customer.objects.filter(merchant=self.request.shop.merchant)
+        return Customer.objects.filter(merchant=self.request.shop.owner)
 
     def perform_create(self, serializer):
-        serializer.save(merchant=self.request.shop.merchant)
+        serializer.save(merchant=self.request.shop.owner)
 
 
 @extend_schema_view(
@@ -64,7 +64,7 @@ class SaleViewSet(viewsets.ModelViewSet):
         customer = None
         if data.get("customer_id"):
             customer = get_object_or_404(
-                Customer, id=data["customer_id"], merchant=request.shop.merchant
+                Customer, id=data["customer_id"], merchant=request.shop.owner
             )
 
         payment_data = {

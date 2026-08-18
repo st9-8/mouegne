@@ -1,5 +1,40 @@
+from django.contrib.auth.password_validation import validate_password
+
 from rest_framework import serializers
-from .models import Shop, Employee
+from rest_framework_simplejwt.tokens import RefreshToken
+
+from tenants.models import Shop, Employee
+from tenants.services import register_merchant
+
+
+class RegisterMerchantSerializer(serializers.Serializer):
+    username = serializers.CharField(max_length=150)
+    password = serializers.CharField(write_only=True)
+    company_name = serializers.CharField(max_length=255)
+    phone_number = serializers.CharField(required=False, allow_blank=True)
+    shop_name = serializers.CharField(max_length=255)
+
+    def validate_password(self, value):
+        validate_password(value)
+        return value
+
+    def create(self, validated_data):
+        try:
+            user, merchant, shop = register_merchant(**validated_data)
+        except ValueError as e:
+            raise serializers.ValidationError(str(e))
+        return {"user": user, "merchant": merchant, "shop": shop}
+
+    def to_representation(self, instance):
+        user = instance["user"]
+        shop = instance["shop"]
+        refresh = RefreshToken.for_user(user)
+        return {
+            "access": str(refresh.access_token),
+            "refresh": str(refresh),
+            "shop_id": str(shop.id),
+            "shop_name": shop.name,
+        }
 
 
 class ShopSerializer(serializers.ModelSerializer):

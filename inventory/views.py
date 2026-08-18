@@ -18,10 +18,10 @@ class VendorViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         if getattr(self, "swagger_fake_view", False):
             return Vendor.objects.none()
-        return Vendor.objects.filter(merchant=self.request.shop.merchant)
+        return Vendor.objects.filter(merchant=self.request.shop.owner)
 
     def perform_create(self, serializer):
-        serializer.save(merchant=self.request.shop.merchant)
+        serializer.save(merchant=self.request.shop.owner)
 
 
 @shop_scoped_schema

@@ -21,9 +21,6 @@ class User(AbstractUser):
         processors=[ResizeToFill(150, 150)],
         options={'quality': 100}
     )
-    telephone = PhoneNumberField(
-        null=True, blank=True, verbose_name='Telephone'
-    )
 
     @property
     def image_url(self):

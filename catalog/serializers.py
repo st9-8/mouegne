@@ -25,6 +25,8 @@ class ItemSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         shop = self.context["request"].shop
+
+        validated_data.pop("shop", None)
         try:
             return create_item(shop=shop, **validated_data)
         except ValueError as e:

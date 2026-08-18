@@ -10,6 +10,7 @@ User = get_user_model()
 class Merchant(BaseModel):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='merchant')
     company_name = models.CharField(max_length=255)
+    phone_number = models.CharField(max_length=255, blank=True, null=True)
 
     def __str__(self):
         return self.company_name
@@ -50,7 +51,10 @@ class Employee(ShopScopedModel):
         return f'{self.user} - {self.shop} ({self.get_role_display()})'
 
 
-class ShopSettings(ShopScopedModel):
+class ShopSettings(BaseModel):
+    shop = models.OneToOneField(
+        'tenants.Shop', on_delete=models.CASCADE, related_name='settings'
+    )
     tax_number = models.CharField(max_length=255)
     logo = models.ImageField(upload_to='logos/')
     allow_zero_stock_sale = models.BooleanField(default=False)

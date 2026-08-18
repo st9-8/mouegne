@@ -15,7 +15,11 @@ class CategoryViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         if getattr(self, "swagger_fake_view", False):
             return Category.objects.none()
-        return Category.objects.filter(merchant=self.request.shop.merchant)
+        return Category.objects.filter(merchant=self.request.shop.owner)
+
+    def perform_create(self, serializer):
+        serializer.save(merchant=self.request.shop.owner
+                        )
 
 
 @shop_scoped_schema
