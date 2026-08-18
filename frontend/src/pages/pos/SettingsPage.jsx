@@ -1,0 +1,128 @@
+import { useEffect, useState } from "react";
+import PageHeader from "../../components/PageHeader";
+import { apiClient, extractErrorMessage } from "../../lib/apiClient";
+import { useShop } from "../../context/ShopContext";
+import { inputStyle, labelStyle, primaryButtonStyle } from "../../styles/formStyles";
+
+export default function SettingsPage() {
+  const { activeShopId, activeShop } = useShop();
+  const [shop, setShop] = useState(null);
+  const [allowZeroStock, setAllowZeroStock] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState(null);
+
+  useEffect(() => {
+    if (!activeShopId) return;
+    apiClient.get(`/shops/${activeShopId}/`).then(({ data }) => setShop(data));
+    // NB: allow_zero_stock_sale vit sur ShopSettings, pas encore exposé par un
+    // endpoint DRF dédié — à ajouter côté API (GET/PATCH /shops/{id}/settings/)
+    // pour rendre ce toggle réellement fonctionnel plutôt que local à l'écran.
+  }, [activeShopId]);
+
+  async function handleSaveShop(e) {
+    e.preventDefault();
+    setSaving(true);
+    setMessage(null);
+    try {
+      await apiClient.patch(`/shops/${activeShopId}/`, {
+        name: shop.name,
+        address: shop.address,
+        email: shop.email,
+        phone_number: shop.phone_number,
+        currency: shop.currency,
+      });
+      setMessage({ type: "success", text: "Boutique mise à jour." });
+    } catch (err) {
+      setMessage({ type: "error", text: extractErrorMessage(err) });
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  if (!shop) return null;
+
+  return (
+    <div>
+      <PageHeader title="Paramètres" subtitle={`Boutique ${activeShop?.shop_name} · règles de vente`} />
+
+      <div style={{ padding: "26px 32px 40px", maxWidth: 780 }}>
+        <form onSubmit={handleSaveShop} style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 14, padding: "26px 28px" }}>
+          <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 20 }}>Boutique</div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18 }}>
+            <label style={labelStyle}>
+              <span>Nom de la boutique</span>
+              <input style={inputStyle} value={shop.name} onChange={(e) => setShop({ ...shop, name: e.target.value })} />
+            </label>
+            <label style={labelStyle}>
+              <span>Adresse</span>
+              <input style={inputStyle} value={shop.address || ""} onChange={(e) => setShop({ ...shop, address: e.target.value })} />
+            </label>
+            <label style={labelStyle}>
+              <span>Adresse email</span>
+              <input style={inputStyle} value={shop.email || ""} onChange={(e) => setShop({ ...shop, email: e.target.value })} />
+            </label>
+            <label style={labelStyle}>
+              <span>Téléphone</span>
+              <input style={inputStyle} value={shop.phone_number || ""} onChange={(e) => setShop({ ...shop, phone_number: e.target.value })} />
+            </label>
+            <label style={labelStyle}>
+              <span>Devise</span>
+              <input style={inputStyle} value={shop.currency} onChange={(e) => setShop({ ...shop, currency: e.target.value })} />
+            </label>
+          </div>
+
+          {message && (
+            <div style={{ marginTop: 16, fontSize: 13.5, color: message.type === "error" ? "var(--color-danger)" : "var(--color-accent)", background: message.type === "error" ? "var(--color-danger-soft)" : "var(--color-accent-soft)", padding: "10px 12px", borderRadius: 10 }}>
+              {message.text}
+            </div>
+          )}
+
+          <button type="submit" disabled={saving} style={{ ...primaryButtonStyle, width: "auto", padding: "0 24px", marginTop: 20 }}>
+            {saving ? "Enregistrement…" : "Enregistrer"}
+          </button>
+        </form>
+
+        <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 14, padding: "26px 28px", marginTop: 14 }}>
+          <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 4 }}>Règles de vente</div>
+          <div style={{ display: "flex", alignItems: "flex-start", gap: 16, padding: "18px 0" }}>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 14.5, fontWeight: 500 }}>Autoriser la vente en stock nul</div>
+              <div style={{ fontSize: 13, color: "var(--color-text-muted)", marginTop: 4, lineHeight: 1.5 }}>
+                Les ventes peuvent inclure des articles épuisés, ce qui peut générer un stock négatif.
+              </div>
+            </div>
+            <button
+              onClick={() => setAllowZeroStock((v) => !v)}
+              style={{
+                width: 44,
+                height: 26,
+                borderRadius: 20,
+                border: "none",
+                background: allowZeroStock ? "var(--color-accent)" : "var(--color-border)",
+                position: "relative",
+                cursor: "pointer",
+              }}
+            >
+              <span
+                style={{
+                  position: "absolute",
+                  top: 3,
+                  left: allowZeroStock ? 21 : 3,
+                  width: 20,
+                  height: 20,
+                  borderRadius: "50%",
+                  background: "#fff",
+                  transition: "left 0.15s ease",
+                }}
+              />
+            </button>
+          </div>
+        </div>
+
+        <div style={{ marginTop: 18, fontSize: 12.5, color: "var(--color-text-ghost)" }}>
+          Mouegne — solution de vente comptoir éditée par AEME Consulting SARL.
+        </div>
+      </div>
+    </div>
+  );
+}
