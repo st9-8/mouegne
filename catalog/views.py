@@ -11,6 +11,9 @@ from catalog.serializers import CategorySerializer, ItemSerializer
 class CategoryViewSet(viewsets.ModelViewSet):
     serializer_class = CategorySerializer
     permission_classes = [IsShopMember]
+    search_fields = ["name"]
+    ordering_fields = ["name", "created_at"]
+    ordering = ["-created_at"]
 
     def get_queryset(self):
         if getattr(self, "swagger_fake_view", False):
@@ -27,7 +30,9 @@ class ItemViewSet(viewsets.ModelViewSet):
     serializer_class = ItemSerializer
     permission_classes = [IsShopMember]
     filterset_fields = ["category", "vendor"]
-    search_fields = ["name"]
+    search_fields = ["name", "description"]
+    ordering_fields = ["name", "price", "quantity", "created_at"]
+    ordering = ["-created_at"]
 
     def get_queryset(self):
         if getattr(self, "swagger_fake_view", False):

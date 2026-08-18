@@ -1,7 +1,10 @@
+from django.utils import timezone
 from django.shortcuts import get_object_or_404
 
 from rest_framework import viewsets, serializers
 from rest_framework.response import Response
+
+from django_filters import rest_framework as filters
 
 from drf_spectacular.utils import extend_schema, extend_schema_view
 
@@ -21,6 +24,9 @@ from sales.services import create_sale
 class CustomerViewSet(viewsets.ModelViewSet):
     serializer_class = CustomerSerializer
     permission_classes = [IsShopMember]
+    search_fields = ["first_name", "last_name", "phone", "email"]
+    ordering_fields = ["first_name", "loyalty_points", "created_at"]
+    ordering = ["-created_at"]
 
     def get_queryset(self):
         if getattr(self, "swagger_fake_view", False):
@@ -42,16 +48,37 @@ class CustomerViewSet(viewsets.ModelViewSet):
     retrieve=extend_schema(responses={200: SaleSerializer}, parameters=[SHOP_PK_PARAMETER]),
 )
 class SaleViewSet(viewsets.ModelViewSet):
+    class SaleFilter(filters.FilterSet):
+        date_after = filters.DateFilter(field_name="created_at", lookup_expr="date__gte")
+        date_before = filters.DateFilter(field_name="created_at", lookup_expr="date__lte")
+
+        class Meta:
+            model = Sale
+            fields = ["customer", "employee", "has_sav", "date_after", "date_before"]
+
     permission_classes = [IsShopMember]
     http_method_names = ["get", "post", "head"]  # pas d'update/delete sur une vente actée
+    filterset_class = SaleFilter
+    search_fields = ["first_name", "last_name", "phone", "email"]
+    ordering_fields = ["first_name", "loyalty_points", "created_at"]
+    ordering = ["-created_at"]
 
     def get_queryset(self):
         if getattr(self, "swagger_fake_view", False):
             return Sale.objects.none()
 
-        return Sale.objects.filter(shop=self.request.shop).select_related(
+        queryset = Sale.objects.filter(shop=self.request.shop).select_related(
             "customer", "employee__user"
         ).prefetch_related("saledetail_set__item")
+
+        # Par défaut : uniquement les ventes du jour, sauf si une plage de dates
+        # est explicitement demandée via date_after/date_before.
+        params = self.request.query_params
+        if self.action == "list" and "date_after" not in params and "date_before" not in params:
+            today = timezone.localdate()
+            queryset = queryset.filter(created_at__date=today)
+
+        return queryset
 
     def get_serializer_class(self):
         return SaleCreateSerializer if self.action == "create" else SaleSerializer

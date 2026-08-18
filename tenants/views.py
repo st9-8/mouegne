@@ -21,6 +21,9 @@ class RegisterMerchantView(CreateAPIView):
 
 class ShopViewSet(viewsets.ModelViewSet):
     serializer_class = ShopSerializer
+    search_fields = ["name"]
+    ordering_fields = ["name", "created_at"]
+    ordering = ["-created_at"]
 
     def get_permissions(self):
         if self.action in ["create", "update", "partial_update", "destroy"]:
@@ -45,6 +48,9 @@ class ShopViewSet(viewsets.ModelViewSet):
 class EmployeeViewSet(viewsets.ModelViewSet):
     serializer_class = EmployeeSerializer
     permission_classes = [IsShopMember]
+    filterset_fields = ["role", "is_active"]
+    ordering_fields = ["created_at"]
+    ordering = ["-created_at"]
 
     def get_queryset(self):
         if getattr(self, "swagger_fake_view", False):
