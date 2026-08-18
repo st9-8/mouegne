@@ -125,6 +125,7 @@ REST_FRAMEWORK = {
         "rest_framework.permissions.IsAuthenticated",
     ],
     "PAGE_SIZE": 100,
+    "DEFAULT_PAGINATION_CLASS": "core.pagination.PaginationWithTotalPage",
     "DEFAULT_FILTER_BACKENDS": [
         "django_filters.rest_framework.DjangoFilterBackend",
         "rest_framework.filters.SearchFilter",

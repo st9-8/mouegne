@@ -18,9 +18,7 @@ export default function EmployeesPage() {
   const { items, count, totalPages, page, setPage, loading, reload } = useShopResource("employees/");
 
   const [modalOpen, setModalOpen] = useState(false);
-  // NB: l'API attend un `user` (id) déjà existant, pas une création d'utilisateur ici.
-  // À terme, un flux d'invitation par email/téléphone créerait le User au premier accès.
-  const [form, setForm] = useState({ user: "", role: "CASHIER" });
+  const [form, setForm] = useState({ username: "", password: "", role: "CASHIER" });
   const [error, setError] = useState(null);
   const [saving, setSaving] = useState(false);
 
@@ -31,7 +29,7 @@ export default function EmployeesPage() {
     try {
       await apiClient.post(`/shops/${activeShopId}/employees/`, form);
       setModalOpen(false);
-      setForm({ user: "", role: "CASHIER" });
+      setForm({ username: "", password: "", role: "CASHIER" });
       reload();
     } catch (err) {
       setError(extractErrorMessage(err));
@@ -84,12 +82,21 @@ export default function EmployeesPage() {
         <Modal title="Ajouter un employé" onClose={() => setModalOpen(false)}>
           <form onSubmit={handleSave} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
             <label style={labelStyle}>
-              <span>Identifiant utilisateur (ID)</span>
-              <input style={inputStyle} value={form.user} onChange={(e) => setForm({ ...form, user: e.target.value })} required />
+              <span>Nom d'utilisateur</span>
+              <input style={inputStyle} value={form.username} onChange={(e) => setForm({ ...form, username: e.target.value })} required />
+            </label>
+            <label style={labelStyle}>
+              <span>Mot de passe initial</span>
+              <input
+                type="password"
+                style={inputStyle}
+                value={form.password}
+                onChange={(e) => setForm({ ...form, password: e.target.value })}
+                required
+              />
             </label>
             <p style={{ fontSize: 12.5, color: "var(--color-text-faint)", margin: 0 }}>
-              L'utilisateur doit déjà avoir un compte Mouegne. Un flux d'invitation par téléphone/email
-              arrivera dans une prochaine version pour créer le compte directement depuis cet écran.
+              Communiquez ce mot de passe à l'employé de vive voix. Il pourra le changer une fois connecté.
             </p>
             <label style={labelStyle}>
               <span>Rôle</span>

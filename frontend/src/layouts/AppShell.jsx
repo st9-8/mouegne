@@ -4,14 +4,16 @@ import { useAuth } from "../context/AuthContext";
 import { useShop } from "../context/ShopContext";
 
 const NAV_ITEMS = [
-  { to: "/pos/vente", icon: "point_of_sale", label: "Vente", roles: null },
-  { to: "/pos/dashboard", icon: "space_dashboard", label: "Tableau de bord", roles: null },
-  { to: "/pos/produits", icon: "inventory_2", label: "Produits", roles: null },
-  { to: "/pos/ventes", icon: "receipt_long", label: "Historique", roles: null },
-  { to: "/pos/clients", icon: "groups", label: "Clients", roles: null },
-  { to: "/pos/achats", icon: "local_shipping", label: "Achats & fournisseurs", roles: null },
-  { to: "/pos/employes", icon: "badge", label: "Employés", roles: ["OWNER", "MANAGER"] },
-  { to: "/pos/parametres", icon: "settings", label: "Paramètres", roles: ["OWNER", "MANAGER"] },
+  { to: "/pos/vente", icon: "point_of_sale", label: "Vente", roles: null, merchantOnly: false },
+  { to: "/pos/dashboard", icon: "space_dashboard", label: "Tableau de bord", roles: null, merchantOnly: false },
+  { to: "/pos/produits", icon: "inventory_2", label: "Produits", roles: null, merchantOnly: false },
+  { to: "/pos/categories", icon: "sell", label: "Catégories", roles: null, merchantOnly: false },
+  { to: "/pos/ventes", icon: "receipt_long", label: "Historique", roles: null, merchantOnly: false },
+  { to: "/pos/clients", icon: "groups", label: "Clients", roles: null, merchantOnly: false },
+  { to: "/pos/achats", icon: "local_shipping", label: "Achats & fournisseurs", roles: null, merchantOnly: false },
+  { to: "/pos/employes", icon: "badge", label: "Employés", roles: ["OWNER", "MANAGER"], merchantOnly: false },
+  { to: "/pos/boutiques", icon: "storefront", label: "Mes boutiques", roles: null, merchantOnly: true },
+  { to: "/pos/parametres", icon: "settings", label: "Paramètres", roles: ["OWNER", "MANAGER"], merchantOnly: false },
 ];
 
 function initials(name) {
@@ -24,7 +26,11 @@ export default function AppShell() {
   const navigate = useNavigate();
   const [shopMenuOpen, setShopMenuOpen] = useState(false);
 
-  const visibleNavItems = NAV_ITEMS.filter((item) => !item.roles || item.roles.includes(role));
+  const visibleNavItems = NAV_ITEMS.filter((item) => {
+    if (item.merchantOnly && !me?.is_merchant) return false;
+    if (item.roles && !item.roles.includes(role)) return false;
+    return true;
+  });
 
   function handleLogout() {
     logout();

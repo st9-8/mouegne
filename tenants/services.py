@@ -1,5 +1,5 @@
 # apps/tenants/services.py
-from django.db import transaction
+from django.db import transaction, IntegrityError
 from django.contrib.auth import get_user_model
 from django.utils.text import slugify
 from .models import Merchant, Shop, Employee, RoleChoices
@@ -33,3 +33,17 @@ def register_merchant(*, username, password, company_name, phone_number=None, sh
     shop = create_shop(merchant=merchant, name=shop_name)
 
     return user, merchant, shop
+
+
+@transaction.atomic
+def add_employee(*, shop, username, password, role):
+    if User.objects.filter(username=username).exists():
+        raise ValueError(f"Le nom d'utilisateur « {username} » est déjà pris.")
+
+    try:
+        user = User.objects.create_user(username=username, password=password)
+    except IntegrityError:
+        # Garde contre une race condition entre le check et la création.
+        raise ValueError(f"Le nom d'utilisateur « {username} » est déjà pris.")
+
+    return Employee.objects.create(user=user, shop=shop, role=role)

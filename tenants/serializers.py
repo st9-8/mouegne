@@ -3,7 +3,8 @@ from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from tenants.models import Shop, Employee
+from tenants.models import RoleChoices
+from tenants.models import Shop, Employee, ShopSettings
 from tenants.services import register_merchant
 
 
@@ -41,10 +42,20 @@ class ShopSerializer(serializers.ModelSerializer):
     class Meta:
         model = Shop
         fields = [
-            "id", "owner", "slug", "address", "description", "phone_number",
+            "id", "owner", "name", "slug", "address", "description", "phone_number",
             "currency", "is_active", "created_at", "updated_at",
         ]
         read_only_fields = ["id", "created_at", "updated_at"]
+
+
+class EmployeeCreateSerializer(serializers.Serializer):
+    username = serializers.CharField(max_length=150)
+    password = serializers.CharField(write_only=True)
+    role = serializers.ChoiceField(choices=RoleChoices.choices)
+
+    def validate_password(self, value):
+        validate_password(value)  # réutilise les validateurs Django (longueur, complexité, etc.)
+        return value
 
 
 class EmployeeSerializer(serializers.ModelSerializer):
@@ -54,3 +65,10 @@ class EmployeeSerializer(serializers.ModelSerializer):
         model = Employee
         fields = ["id", "user", "username", "shop", "role", "is_active", "created_at"]
         read_only_fields = ["id", "shop", "created_at"]
+
+
+class ShopSettingsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ShopSettings
+        fields = ["id", "tax_number", "logo", "allow_zero_stock_sale"]
+        read_only_fields = ["id"]

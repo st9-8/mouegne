@@ -41,7 +41,7 @@ class Item(ShopScopedModel):
     """
     slug = AutoSlugField(unique=True, populate_from='name')
     name = models.CharField(max_length=50)
-    description = models.TextField(max_length=256)
+    description = models.TextField(max_length=256, blank=True, null=True)
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
     quantity = models.IntegerField(default=0)
     price = models.DecimalField(max_digits=10, decimal_places=2, default=0)

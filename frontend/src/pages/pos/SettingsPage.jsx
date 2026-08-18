@@ -7,17 +7,33 @@ import { inputStyle, labelStyle, primaryButtonStyle } from "../../styles/formSty
 export default function SettingsPage() {
   const { activeShopId, activeShop } = useShop();
   const [shop, setShop] = useState(null);
-  const [allowZeroStock, setAllowZeroStock] = useState(false);
+  const [settings, setSettings] = useState(null);
   const [saving, setSaving] = useState(false);
+  const [settingsSaving, setSettingsSaving] = useState(false);
   const [message, setMessage] = useState(null);
 
   useEffect(() => {
     if (!activeShopId) return;
     apiClient.get(`/shops/${activeShopId}/`).then(({ data }) => setShop(data));
-    // NB: allow_zero_stock_sale vit sur ShopSettings, pas encore exposé par un
-    // endpoint DRF dédié — à ajouter côté API (GET/PATCH /shops/{id}/settings/)
-    // pour rendre ce toggle réellement fonctionnel plutôt que local à l'écran.
+    apiClient.get(`/shops/${activeShopId}/settings/`).then(({ data }) => setSettings(data));
   }, [activeShopId]);
+
+  async function handleToggleZeroStock() {
+    const previous = settings.allow_zero_stock_sale;
+    setSettings({ ...settings, allow_zero_stock_sale: !previous }); // optimiste
+    setSettingsSaving(true);
+    try {
+      const { data } = await apiClient.patch(`/shops/${activeShopId}/settings/`, {
+        allow_zero_stock_sale: !previous,
+      });
+      setSettings(data);
+    } catch (err) {
+      setSettings({ ...settings, allow_zero_stock_sale: previous }); // rollback
+      setMessage({ type: "error", text: extractErrorMessage(err) });
+    } finally {
+      setSettingsSaving(false);
+    }
+  }
 
   async function handleSaveShop(e) {
     e.preventDefault();
@@ -92,22 +108,24 @@ export default function SettingsPage() {
               </div>
             </div>
             <button
-              onClick={() => setAllowZeroStock((v) => !v)}
+              onClick={handleToggleZeroStock}
+              disabled={settingsSaving || !settings}
               style={{
                 width: 44,
                 height: 26,
                 borderRadius: 20,
                 border: "none",
-                background: allowZeroStock ? "var(--color-accent)" : "var(--color-border)",
+                background: settings?.allow_zero_stock_sale ? "var(--color-accent)" : "var(--color-border)",
                 position: "relative",
-                cursor: "pointer",
+                cursor: settingsSaving ? "wait" : "pointer",
+                opacity: settingsSaving ? 0.7 : 1,
               }}
             >
               <span
                 style={{
                   position: "absolute",
                   top: 3,
-                  left: allowZeroStock ? 21 : 3,
+                  left: settings?.allow_zero_stock_sale ? 21 : 3,
                   width: 20,
                   height: 20,
                   borderRadius: "50%",

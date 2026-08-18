@@ -1,4 +1,6 @@
+from rest_framework import permissions
 from rest_framework.permissions import BasePermission
+
 from tenants.models import Employee
 
 
@@ -48,3 +50,49 @@ class IsMerchant(BasePermission):
 
     def has_permission(self, request, view):
         return hasattr(request.user, "merchant")
+
+
+class IsShopManager(BasePermission):
+    """
+        Combinée à IsShopMember (qui pose request.employee). Autorise la lecture
+        à tout membre de la boutique, mais restreint l'écriture à OWNER/MANAGER.
+    """
+
+    def has_permission(self, request, view):
+        if request.method in permissions.SAFE_METHODS:
+            return True
+        employee = getattr(request, "employee", None)
+        return bool(employee and employee.role in ("OWNER", "MANAGER"))
+
+
+class ManagerOnlyMixin:
+    """
+    Verrouille TOUTES les actions (lecture ET écriture) à OWNER/MANAGER.
+    À utiliser sur les ressources qu'un CASHIER n'a jamais besoin de consulter
+    (Category, Vendor, Purchase).
+    """
+
+    def get_permissions(self):
+        return [IsShopMember(), IsShopManager()]
+
+
+class ManagerWriteOnlyMixin:
+    """
+    Lecture ouverte à tout membre de la boutique, écriture réservée à
+    OWNER/MANAGER. À utiliser sur les ressources qu'un CASHIER doit pouvoir
+    consulter pendant une vente (Item, Customer) sans pouvoir les modifier.
+    """
+
+    def get_permissions(self):
+        if self.action in ["create", "update", "partial_update", "destroy"]:
+            return [IsShopMember(), IsShopManager()]
+        return [IsShopMember()]
+
+class IsShopManagerStrict(BasePermission):
+    """
+    Contrairement à IsShopManager, ne fait aucune exception pour les
+    méthodes de lecture : OWNER/MANAGER uniquement, sur toute action.
+    """
+    def has_permission(self, request, view):
+        employee = getattr(request, "employee", None)
+        return bool(employee and employee.role in ("OWNER", "MANAGER"))
