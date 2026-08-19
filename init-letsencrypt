@@ -1,0 +1,49 @@
+#!/bin/bash
+set -e
+
+DOMAINS=("mouegne.stephanefedim.com" "api-mouegne.stephanefedim.com")
+EMAIL="stephanefedim@gmail.com"
+STAGING=0  # passer à 1 pour tester sans consommer le quota Let's Encrypt
+RSA_KEY_SIZE=4096
+
+for DOMAIN in "${DOMAINS[@]}"; do
+  if [ -d "./certbot/conf/live/$DOMAIN" ]; then
+    read -p "Des certificats existent déjà pour $DOMAIN. Les remplacer ? (o/N) " decision
+    [ "$decision" != "o" ] && continue
+  fi
+
+  echo "### [$DOMAIN] Certificat factice temporaire ..."
+  mkdir -p "./certbot/conf/live/$DOMAIN"
+  docker compose run --rm --entrypoint "\
+    openssl req -x509 -nodes -newkey rsa:$RSA_KEY_SIZE -days 1 \
+      -keyout '/etc/letsencrypt/live/$DOMAIN/privkey.pem' \
+      -out '/etc/letsencrypt/live/$DOMAIN/fullchain.pem' \
+      -subj '/CN=localhost'" certbot
+done
+
+echo "### Démarrage de Nginx ..."
+docker compose up --force-recreate -d nginx
+
+for DOMAIN in "${DOMAINS[@]}"; do
+  echo "### [$DOMAIN] Suppression du certificat factice ..."
+  docker compose run --rm --entrypoint "\
+    rm -Rf /etc/letsencrypt/live/$DOMAIN && \
+    rm -Rf /etc/letsencrypt/archive/$DOMAIN && \
+    rm -Rf /etc/letsencrypt/renewal/$DOMAIN.conf" certbot
+
+  echo "### [$DOMAIN] Demande du vrai certificat Let's Encrypt ..."
+  staging_arg=""
+  [ "$STAGING" = "1" ] && staging_arg="--staging"
+
+  docker compose run --rm --entrypoint "\
+    certbot certonly --webroot -w /var/www/certbot \
+      $staging_arg \
+      -d $DOMAIN \
+      --email $EMAIL \
+      --rsa-key-size $RSA_KEY_SIZE \
+      --agree-tos \
+      --force-renewal" certbot
+done
+
+echo "### Rechargement de Nginx ..."
+docker compose exec nginx nginx -s reload

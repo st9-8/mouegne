@@ -17,7 +17,7 @@ export const tokenStore = {
 };
 
 export const apiClient = axios.create({
-  baseURL: "/api",
+  baseURL: import.meta.env.VITE_API_BASE_URL || "/api",
 });
 
 apiClient.interceptors.request.use((config) => {

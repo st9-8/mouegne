@@ -2,22 +2,26 @@ import os
 from pathlib import Path
 from datetime import timedelta
 
-from dotenv import dotenv_values
+from dotenv import load_dotenv
+
+import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+load_dotenv()
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
-config = dotenv_values()
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = config.get('SECRET_KEY')
+SECRET_KEY = os.environ['SECRET_KEY']
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = config.get('DEBUG')
+DEBUG = os.environ['DEBUG']
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '192.16.1.158']
+CORS_ALLOWED_ORIGINS = os.environ.get("CORS_ALLOWED_ORIGINS", "").split(",")
+ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS", "").split(",")
 
 # Application definition
 
@@ -40,6 +44,7 @@ INSTALLED_APPS = [
     'drf_spectacular',
     'rest_framework_simplejwt',
     # 'rest_framework_simplejwt.token_blacklist',
+    'corsheaders',
 
     'core',
     'accounts',
@@ -51,6 +56,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    "corsheaders.middleware.CorsMiddleware",
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -84,18 +90,7 @@ WSGI_APPLICATION = 'mouegne.wsgi.application'
 
 
 DATABASES = {
-    'postgres': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': config.get('POSTGRES_DB'),
-        'USER': config.get('POSTGRES_USER'),
-        'PASSWORD': config.get('POSTGRES_PASSWORD'),
-        'HOST': config.get('DB_HOST'),
-        'PORT': int(config.get('DB_PORT'))
-    },
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    "default": dj_database_url.config(default=os.environ["DATABASE_URL"])
 }
 
 # Password validation
@@ -184,3 +179,5 @@ CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
 CRISPY_TEMPLATE_PACK = "bootstrap5"
 
 AUTH_USER_MODEL = 'accounts.User'
+
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
