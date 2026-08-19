@@ -1,6 +1,6 @@
 from rest_framework import viewsets
 
-from core.permissions import IsShopMember
+from core.permissions import IsShopMember, ManagerOnlyMixin
 from core.schema import shop_scoped_schema
 
 from catalog.models import Category, Item
@@ -8,7 +8,7 @@ from catalog.serializers import CategorySerializer, ItemSerializer
 
 
 @shop_scoped_schema
-class CategoryViewSet(viewsets.ModelViewSet):
+class CategoryViewSet(ManagerOnlyMixin, viewsets.ModelViewSet):
     serializer_class = CategorySerializer
     permission_classes = [IsShopMember]
     search_fields = ["name"]
@@ -26,7 +26,7 @@ class CategoryViewSet(viewsets.ModelViewSet):
 
 
 @shop_scoped_schema
-class ItemViewSet(viewsets.ModelViewSet):
+class ItemViewSet(ManagerOnlyMixin, viewsets.ModelViewSet):
     serializer_class = ItemSerializer
     permission_classes = [IsShopMember]
     filterset_fields = ["category", "vendor"]

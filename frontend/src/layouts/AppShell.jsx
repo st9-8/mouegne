@@ -5,12 +5,12 @@ import { useShop } from "../context/ShopContext";
 
 const NAV_ITEMS = [
   { to: "/pos/vente", icon: "point_of_sale", label: "Vente", roles: null, merchantOnly: false },
-  { to: "/pos/dashboard", icon: "space_dashboard", label: "Tableau de bord", roles: null, merchantOnly: false },
-  { to: "/pos/produits", icon: "inventory_2", label: "Produits", roles: null, merchantOnly: false },
-  { to: "/pos/categories", icon: "sell", label: "Catégories", roles: null, merchantOnly: false },
+  { to: "/pos/dashboard", icon: "space_dashboard", label: "Tableau de bord", roles: ["OWNER", "MANAGER"], merchantOnly: false },
+  { to: "/pos/produits", icon: "inventory_2", label: "Produits", roles: ["OWNER", "MANAGER"], merchantOnly: false },
+  { to: "/pos/categories", icon: "sell", label: "Catégories", roles: ["OWNER", "MANAGER"], merchantOnly: false },
   { to: "/pos/ventes", icon: "receipt_long", label: "Historique", roles: null, merchantOnly: false },
-  { to: "/pos/clients", icon: "groups", label: "Clients", roles: null, merchantOnly: false },
-  { to: "/pos/achats", icon: "local_shipping", label: "Achats & fournisseurs", roles: null, merchantOnly: false },
+  { to: "/pos/clients", icon: "groups", label: "Clients", roles: ["OWNER", "MANAGER"], merchantOnly: false },
+  { to: "/pos/achats", icon: "local_shipping", label: "Achats & fournisseurs", roles: ["OWNER", "MANAGER"], merchantOnly: false },
   { to: "/pos/employes", icon: "badge", label: "Employés", roles: ["OWNER", "MANAGER"], merchantOnly: false },
   { to: "/pos/boutiques", icon: "storefront", label: "Mes boutiques", roles: null, merchantOnly: true },
   { to: "/pos/parametres", icon: "settings", label: "Paramètres", roles: ["OWNER", "MANAGER"], merchantOnly: false },

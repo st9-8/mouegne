@@ -48,21 +48,21 @@ export default function App() {
               <Route path="/pos" element={<AppShell />}>
                 <Route index element={<Navigate to="vente" replace />} />
                 <Route path="vente" element={<SalePage />} />
-                <Route path="dashboard" element={<DashboardPage />} />
-                <Route path="produits" element={<ProductsPage />} />
-                <Route path="categories" element={<CategoriesPage />} />
                 <Route path="ventes" element={<SalesHistoryPage />} />
-                <Route path="clients" element={<CustomersPage />} />
-                <Route path="achats" element={<PurchasesPage />} />
-                <Route path="boutiques/nouvelle" element={<NewShopPage />} />
-
-                <Route element={<RequireMerchant />}>
-                  <Route path="boutiques" element={<ShopsPage />} />
-                </Route>
 
                 <Route element={<RequireRole roles={["OWNER", "MANAGER"]} />}>
+                  <Route path="dashboard" element={<DashboardPage />} />
+                  <Route path="produits" element={<ProductsPage />} />
+                  <Route path="categories" element={<CategoriesPage />} />
+                  <Route path="clients" element={<CustomersPage />} />
+                  <Route path="achats" element={<PurchasesPage />} />
                   <Route path="employes" element={<EmployeesPage />} />
                   <Route path="parametres" element={<SettingsPage />} />
+
+                  <Route element={<RequireMerchant />}>
+                    <Route path="boutiques" element={<ShopsPage />} />
+                    <Route path="boutiques/nouvelle" element={<NewShopPage />} />
+                  </Route>
                 </Route>
               </Route>
             </Route>

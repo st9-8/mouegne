@@ -2,7 +2,7 @@ from rest_framework import viewsets
 
 from django_filters import rest_framework as filters
 
-from core.permissions import IsShopMember
+from core.permissions import IsShopMember, ManagerOnlyMixin
 from core.schema import shop_scoped_schema
 
 from inventory.models import Vendor, Purchase
@@ -13,7 +13,7 @@ from inventory.services import reverse_purchase
 
 
 @shop_scoped_schema
-class VendorViewSet(viewsets.ModelViewSet):
+class VendorViewSet(ManagerOnlyMixin, viewsets.ModelViewSet):
     serializer_class = VendorSerializer
     permission_classes = [IsShopMember]
     search_fields = ["name", "address"]
@@ -30,7 +30,7 @@ class VendorViewSet(viewsets.ModelViewSet):
 
 
 @shop_scoped_schema
-class PurchaseViewSet(viewsets.ModelViewSet):
+class PurchaseViewSet(ManagerOnlyMixin, viewsets.ModelViewSet):
     class PurchaseFilter(filters.FilterSet):
         date_after = filters.DateFilter(field_name="created_at", lookup_expr="date__gte")
         date_before = filters.DateFilter(field_name="created_at", lookup_expr="date__lte")

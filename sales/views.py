@@ -8,7 +8,7 @@ from django_filters import rest_framework as filters
 
 from drf_spectacular.utils import extend_schema, extend_schema_view
 
-from core.permissions import IsShopMember
+from core.permissions import IsShopMember, ManagerWriteOnlyMixin
 
 from core.schema import SHOP_PK_PARAMETER
 from core.schema import shop_scoped_schema
@@ -21,7 +21,7 @@ from sales.services import create_sale
 
 
 @shop_scoped_schema
-class CustomerViewSet(viewsets.ModelViewSet):
+class CustomerViewSet(ManagerWriteOnlyMixin, viewsets.ModelViewSet):
     serializer_class = CustomerSerializer
     permission_classes = [IsShopMember]
     search_fields = ["first_name", "last_name", "phone", "email"]

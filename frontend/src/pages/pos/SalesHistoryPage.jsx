@@ -1,7 +1,9 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import PageHeader from "../../components/PageHeader";
 import Pagination from "../../components/Pagination";
 import { useShopResource } from "../../lib/useShopResource";
+import { apiClient, asList } from "../../lib/apiClient";
+import { useShop } from "../../context/ShopContext";
 import { inputStyle } from "../../styles/formStyles";
 
 function formatFcfa(amount) {
@@ -13,6 +15,7 @@ function formatTime(iso) {
 }
 
 export default function SalesHistoryPage() {
+  const { activeShopId } = useShop();
   const [dateAfter, setDateAfter] = useState("");
   const [dateBefore, setDateBefore] = useState("");
   const params = {};
@@ -20,6 +23,27 @@ export default function SalesHistoryPage() {
   if (dateBefore) params.date_before = dateBefore;
 
   const { items, count, totalPages, page, setPage, loading } = useShopResource("sales/", params);
+
+  // Synthèse calculée sur TOUTES les ventes de la période (pas seulement la page
+  // affichée) — nécessite un second appel avec une taille de page large, distinct
+  // du tableau paginé ci-dessous.
+  const [totals, setTotals] = useState({ grandTotal: 0, mobileMoney: 0 });
+  const [totalsLoading, setTotalsLoading] = useState(true);
+
+  useEffect(() => {
+    if (!activeShopId) return;
+    setTotalsLoading(true);
+    apiClient
+      .get(`/shops/${activeShopId}/sales/`, { params: { ...params, page_size: 1000 } })
+      .then(({ data }) => {
+        const sales = asList(data);
+        const grandTotal = sales.reduce((sum, s) => sum + Number(s.grand_total), 0);
+        const mobileMoney = sales.reduce((sum, s) => sum + Number(s.total_mobile_money), 0);
+        setTotals({ grandTotal, mobileMoney });
+      })
+      .finally(() => setTotalsLoading(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeShopId, dateAfter, dateBefore]);
 
   return (
     <div>
@@ -39,6 +63,28 @@ export default function SalesHistoryPage() {
               Revenir à aujourd'hui
             </button>
           )}
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 14, marginBottom: 16 }}>
+          <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 14, padding: 20 }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <span style={{ fontSize: 13, color: "var(--color-text-muted)" }}>Montant total</span>
+              <span className="icon" style={{ fontSize: 20, color: "var(--color-accent)" }}>payments</span>
+            </div>
+            <div className="mono" style={{ fontSize: 25, fontWeight: 700, letterSpacing: "-0.035em", marginTop: 14 }}>
+              {totalsLoading ? "…" : formatFcfa(totals.grandTotal)}
+            </div>
+          </div>
+
+          <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 14, padding: 20 }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <span style={{ fontSize: 13, color: "var(--color-text-muted)" }}>Montant total Mobile Money</span>
+              <span className="icon" style={{ fontSize: 20, color: "var(--color-accent)" }}>smartphone</span>
+            </div>
+            <div className="mono" style={{ fontSize: 25, fontWeight: 700, letterSpacing: "-0.035em", marginTop: 14 }}>
+              {totalsLoading ? "…" : formatFcfa(totals.mobileMoney)}
+            </div>
+          </div>
         </div>
 
         <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 14, overflow: "hidden" }}>
