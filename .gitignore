@@ -173,7 +173,7 @@ cython_debug/
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
 
-0*_*.py
+#0*_*.py
 
 
 *firebase-adminsdk*.json
