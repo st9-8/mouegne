@@ -1,0 +1,185 @@
+{% load receipt_filters %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Reçu</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Helvetica', 'Arial', sans-serif;
+            color: #101613;
+        }
+
+        @page {
+            size: 2.8in 11in;
+            margin: 0;
+        }
+
+        .head-ticket {
+            width: 100%;
+            text-align: center;
+        }
+
+        .logo {
+            width: 60%;
+            margin: 4px auto;
+            display: block;
+        }
+
+        .shop-name {
+            font-size: 14px;
+            font-weight: bold;
+            color: #0E6B45;
+            text-transform: uppercase;
+            letter-spacing: 0.02em;
+        }
+
+        .bold { font-weight: bold; }
+
+        .meta { text-align: left; font-size: 10px; }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        thead tr th {
+            font-size: 10px;
+            text-transform: uppercase;
+            border-top: 1px solid #101613;
+            border-bottom: 1px solid #101613;
+            padding: 4px 2px;
+        }
+        thead tr th:first-child { width: 47%; text-align: left; }
+        thead tr th:nth-child(2) { width: 15%; text-align: center; }
+        thead tr th:nth-child(3) { width: 19%; text-align: right; }
+        thead tr th:nth-child(4) { width: 19%; text-align: right; }
+        td {
+            font-size: 10px;
+            text-align: right;
+            padding: 3px 2px;
+        }
+        td:first-child { text-align: left; }
+        td:nth-child(2) { text-align: center; }
+
+        .hr {
+            border-top: 1px dashed #101613;
+            margin: 6px 0;
+        }
+
+        .col2 {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            padding: 2px 0;
+        }
+        .col2.total {
+            font-size: 13px;
+            font-weight: bold;
+            border-top: 1px solid #101613;
+            margin-top: 4px;
+            padding-top: 5px;
+        }
+
+        p { padding: 1px; margin: 0; }
+
+        .footer-ticket {
+            font-size: 11px;
+            text-align: center;
+            margin-top: 10px;
+        }
+        .footer-sav {
+            font-size: 9px;
+            text-align: justify;
+            margin-top: 10px;
+        }
+        .powered-by {
+            font-size: 8px;
+            text-align: center;
+            color: #6e7b74;
+            margin-top: 12px;
+        }
+    </style>
+</head>
+<body>
+<section class="receipt">
+    <div class="head-ticket">
+        {% if shop_settings.logo %}
+        <div class="logo">
+            <img src="{{ shop_settings.logo.url }}" alt="Logo" style="max-height: 70px; max-width: 100%;">
+        </div>
+        {% endif %}
+        <p class="shop-name">{{ shop.name }}</p>
+        {% if shop.address %}<p>{{ shop.address }}</p>{% endif %}
+        {% if shop.phone_number %}<p>Tel: {{ shop.phone_number }}</p>{% endif %}
+        {% if shop_settings.tax_number %}<p>NIU: {{ shop_settings.tax_number }}</p>{% endif %}
+        <br/>
+        <div class="meta">
+            <p>Date: {{ sale.created_at|date:"Y/m/d H:i:s" }}</p>
+            <p>Ticket: {{ sale.id }}</p>
+        </div>
+    </div>
+
+    <table>
+        <thead>
+        <tr>
+            <th>Article</th>
+            <th>Qté</th>
+            <th>Prix</th>
+            <th>Total</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for detail in sale.saledetail_set.all %}
+        <tr>
+            <td>{{ detail.item.name }}</td>
+            <td>{{ detail.quantity }}</td>
+            <td>{{ detail.price|currency_format:False }}</td>
+            <td>{{ detail.total_detail|currency_format:False }}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="hr"></div>
+
+    <div class="col2"><span>Sous-total</span><span>{{ sale.sub_total|currency_format }}</span></div>
+    {% if sale.tax_amount %}
+    <div class="col2"><span>Taxes</span><span>{{ sale.tax_amount|currency_format }}</span></div>
+    {% endif %}
+    <div class="col2 total"><span>Total</span><span>{{ sale.grand_total|currency_format }}</span></div>
+    <div class="col2"><span>Montant payé</span><span>{{ sale.amount_paid|currency_format }}</span></div>
+    {% if sale.total_mobile_money %}
+    <div class="col2"><span>Mobile Money</span><span>{{ sale.total_mobile_money|currency_format }}</span></div>
+    {% endif %}
+    {% if sale.cash_payment_amount %}
+    <div class="col2"><span>Espèces</span><span>{{ sale.cash_payment_amount|currency_format }}</span></div>
+    {% endif %}
+    {% if sale.amount_change %}
+    <div class="col2"><span>Monnaie rendue</span><span>{{ sale.amount_change|currency_format }}</span></div>
+    {% endif %}
+
+    <div class="hr"></div>
+    <p style="text-align: center;" class="bold">
+        Client: {% if sale.customer %}{{ sale.customer.first_name }} {{ sale.customer.last_name }}{% else %}Client de
+        passage{% endif %}
+    </p>
+    <div class="hr"></div>
+
+    {% if sale.has_sav %}
+    <div class="footer-sav">
+        <p><strong>NB:</strong> Le service après-vente s'applique conformément aux conditions communiquées en boutique.
+        </p>
+        {% if shop.phone_number %}<p><strong>Contact boutique:</strong> {{ shop.phone_number }}</p>{% endif %}
+    </div>
+    <div class="hr"></div>
+    {% endif %}
+
+    <div class="footer-ticket">
+        <p>Votre satisfaction, notre priorité</p>
+    </div>
+
+    <div class="powered-by">Powered by Mouegne</div>
+</section>
+</body>
+</html>

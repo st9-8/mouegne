@@ -1,8 +1,13 @@
 from django.utils import timezone
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
+from django.template.loader import render_to_string
 
-from rest_framework import viewsets, serializers
+from weasyprint import HTML
+
+from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework import viewsets, serializers
 
 from django_filters import rest_framework as filters
 
@@ -115,3 +120,16 @@ class SaleViewSet(viewsets.ModelViewSet):
             raise serializers.ValidationError(str(e))
 
         return Response(SaleSerializer(sale).data, status=201)
+
+    @action(detail=True, methods=["get"], url_path="receipt")
+    def receipt(self, request, *args, **kwargs):
+        sale = self.get_object()
+        html_string = render_to_string("sales/receipt.html", {
+            "sale": sale,
+            "shop": sale.shop,
+            "shop_settings": sale.shop.settings,
+        })
+        pdf_bytes = HTML(string=html_string).write_pdf()
+        response = HttpResponse(pdf_bytes, content_type="application/pdf")
+        response["Content-Disposition"] = f'inline; filename="recu-{sale.id}.pdf"'
+        return response

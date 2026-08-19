@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import PageHeader from "../../components/PageHeader";
 import Pagination from "../../components/Pagination";
 import { useShopResource } from "../../lib/useShopResource";
-import { apiClient, asList } from "../../lib/apiClient";
+import { apiClient, asList, openSaleReceipt } from "../../lib/apiClient";
 import { useShop } from "../../context/ShopContext";
 import { inputStyle } from "../../styles/formStyles";
 

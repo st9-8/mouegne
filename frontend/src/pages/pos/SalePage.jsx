@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { apiClient, extractErrorMessage } from "../../lib/apiClient";
+import { apiClient, extractErrorMessage, openSaleReceipt, printSaleReceipt } from "../../lib/apiClient";
 import { useShop } from "../../context/ShopContext";
 import Modal from "../../components/Modal";
 import { inputStyle, labelStyle, primaryButtonStyle } from "../../styles/formStyles";
@@ -149,6 +149,11 @@ export default function SalePage() {
         })),
       });
       setReceipt(data);
+
+      printSaleReceipt(activeShopId, data.id).catch(() => {
+        // Échec silencieux (ex. navigateur bloquant l'impression automatique) —
+        // le bouton "Reçu PDF" de la modale de confirmation reste disponible.
+      });
     } catch (err) {
       setError(extractErrorMessage(err));
     } finally {

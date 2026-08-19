@@ -96,6 +96,40 @@ export function asList(data) {
   return data?.results || [];
 }
 
+export async function printSaleReceipt(shopId, saleId) {
+  const response = await apiClient.get(`/shops/${shopId}/sales/${saleId}/receipt/`, {
+    responseType: "blob",
+  });
+  const blobUrl = URL.createObjectURL(new Blob([response.data], { type: "application/pdf" }));
+
+  const iframe = document.createElement("iframe");
+  iframe.style.display = "none";
+  iframe.src = blobUrl;
+  document.body.appendChild(iframe);
+
+  iframe.onload = () => {
+    try {
+      iframe.contentWindow.focus();
+      iframe.contentWindow.print();
+    } catch {
+      // Certains navigateurs bloquent l'impression déclenchée automatiquement —
+      // le bouton "Reçu PDF" de la modale reste le filet de sécurité.
+    }
+    setTimeout(() => {
+      document.body.removeChild(iframe);
+      URL.revokeObjectURL(blobUrl);
+    }, 60000);
+  };
+}
+
+export async function openSaleReceipt(shopId, saleId) {
+  const response = await apiClient.get(`/shops/${shopId}/sales/${saleId}/receipt/`, {
+    responseType: "blob",
+  });
+  const blobUrl = URL.createObjectURL(new Blob([response.data], { type: "application/pdf" }));
+  window.open(blobUrl, "_blank");
+}
+
 /** Extrait un message d'erreur lisible depuis une réponse DRF standard. */
 export function extractErrorMessage(error) {
   const data = error?.response?.data;
