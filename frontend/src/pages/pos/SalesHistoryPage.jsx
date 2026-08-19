@@ -97,7 +97,7 @@ export default function SalesHistoryPage() {
 
           {items.map((s) => (
             <div key={s.id} style={{ display: "grid", gridTemplateColumns: "1.6fr 1.4fr 1fr 1fr 0.6fr", gap: 16, alignItems: "center", padding: "15px 24px", borderBottom: "1px solid var(--color-divider)" }}>
-              <span style={{ fontSize: 14 }}>{s.customer_name || "Client de passage"}</span>
+              <span style={{ fontSize: 14 }}>{s.customer_name || "Client comptoir"}</span>
               <span style={{ fontSize: 13.5, color: "var(--color-text-muted)" }}>{formatTime(s.created_at)}</span>
               <span style={{ fontSize: 13, color: "var(--color-text-muted)" }}>
                 {s.mobile_money_covers_total ? "Mobile Money" : Number(s.total_mobile_money) > 0 ? "Mixte" : "Espèces"}

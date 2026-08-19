@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { apiClient, extractErrorMessage } from "../../lib/apiClient";
 import { useShop } from "../../context/ShopContext";
-
+import Modal from "../../components/Modal";
+import { inputStyle, labelStyle, primaryButtonStyle } from "../../styles/formStyles";
 function formatFcfa(amount) {
   return new Intl.NumberFormat("fr-FR").format(Math.round(amount || 0)) + " FCFA";
 }
@@ -27,6 +28,11 @@ export default function SalePage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
   const [receipt, setReceipt] = useState(null); // vente validée, pour la modale de confirmation
+
+  const [quickCreateOpen, setQuickCreateOpen] = useState(false);
+  const [quickCreateForm, setQuickCreateForm] = useState({ name: "", price: "", quantity: 1 });
+  const [quickCreateError, setQuickCreateError] = useState(null);
+  const [quickCreateSaving, setQuickCreateSaving] = useState(false);
 
   // Recherche d'articles avec debounce simple
   useEffect(() => {
@@ -69,6 +75,28 @@ export default function SalePage() {
 
   function updateLine(itemId, patch) {
     setLines((prev) => prev.map((l) => (l.itemId === itemId ? { ...l, ...patch } : l)));
+  }
+
+  function openQuickCreate() {
+    setQuickCreateForm({ name: query, price: "", quantity: 1 });
+    setQuickCreateError(null);
+    setShowSuggest(false);
+    setQuickCreateOpen(true);
+  }
+
+  async function handleQuickCreateSubmit(e) {
+    e.preventDefault();
+    setQuickCreateSaving(true);
+    setQuickCreateError(null);
+    try {
+      const { data } = await apiClient.post(`/shops/${activeShopId}/items/quick-create/`, quickCreateForm);
+      addToCart(data);
+      setQuickCreateOpen(false);
+    } catch (err) {
+      setQuickCreateError(extractErrorMessage(err));
+    } finally {
+      setQuickCreateSaving(false);
+    }
   }
 
   function removeLine(itemId) {
@@ -235,6 +263,26 @@ export default function SalePage() {
                     </span>
                   </button>
                 ))}
+                <button
+                  onClick={openQuickCreate}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 10,
+                    width: "100%",
+                    padding: "13px 18px",
+                    border: "none",
+                    background: "var(--color-accent-soft)",
+                    cursor: "pointer",
+                    textAlign: "left",
+                    color: "var(--color-accent)",
+                    fontSize: 14,
+                    fontWeight: 500,
+                  }}
+                >
+                  <span className="icon" style={{ fontSize: 19 }}>add_circle</span>
+                  Créer « {query} » comme nouvel article
+                </button>
               </div>
             )}
           </div>
@@ -320,7 +368,7 @@ export default function SalePage() {
                 onChange={(e) => setCustomerId(e.target.value)}
                 style={{ height: 46, border: "1px solid var(--color-border)", borderRadius: 11, background: "var(--color-surface-alt)", padding: "0 12px", fontSize: 14.5 }}
               >
-                <option value="">Client de passage</option>
+                <option value="">Client comptoir</option>
                 {customers.map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.first_name} {c.last_name}
@@ -462,7 +510,58 @@ export default function SalePage() {
           </div>
         </aside>
       </div>
+             {quickCreateOpen && (
+        <Modal title="Nouvel article" onClose={() => setQuickCreateOpen(false)} width={400}>
+          <form onSubmit={handleQuickCreateSubmit} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+            <label style={labelStyle}>
+              <span>Nom</span>
+              <input
+                style={inputStyle}
+                value={quickCreateForm.name}
+                onChange={(e) => setQuickCreateForm({ ...quickCreateForm, name: e.target.value })}
+                required
+                autoFocus
+              />
+            </label>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+              <label style={labelStyle}>
+                <span>Prix de vente</span>
+                <input
+                  type="number"
+                  style={inputStyle}
+                  value={quickCreateForm.price}
+                  onChange={(e) => setQuickCreateForm({ ...quickCreateForm, price: e.target.value })}
+                  required
+                />
+              </label>
+              <label style={labelStyle}>
+                <span>Quantité</span>
+                <input
+                  type="number"
+                  min="0"
+                  style={inputStyle}
+                  value={quickCreateForm.quantity}
+                  onChange={(e) => setQuickCreateForm({ ...quickCreateForm, quantity: e.target.value })}
+                  required
+                />
+              </label>
+            </div>
+            <p style={{ fontSize: 12.5, color: "var(--color-text-faint)", margin: 0 }}>
+              L'article sera classé dans la catégorie « Divers ». Vous pourrez le reclasser plus tard depuis Produits.
+            </p>
 
+            {quickCreateError && (
+              <div style={{ fontSize: 13.5, color: "var(--color-danger)", background: "var(--color-danger-soft)", padding: "10px 12px", borderRadius: 10 }}>
+                {quickCreateError}
+              </div>
+            )}
+
+            <button type="submit" disabled={quickCreateSaving} style={primaryButtonStyle}>
+              {quickCreateSaving ? "Création…" : "Créer et ajouter au ticket"}
+            </button>
+          </form>
+        </Modal>
+      )}
       {receipt && (
         <div
           style={{

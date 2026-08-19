@@ -31,3 +31,9 @@ class ItemSerializer(serializers.ModelSerializer):
             return create_item(shop=shop, **validated_data)
         except ValueError as e:
             raise serializers.ValidationError(str(e))
+
+
+class QuickItemCreateSerializer(serializers.Serializer):
+    name = serializers.CharField(max_length=50)
+    price = serializers.DecimalField(max_digits=10, decimal_places=2)
+    quantity = serializers.IntegerField(min_value=0, default=1)
