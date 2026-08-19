@@ -18,46 +18,16 @@ services:
     env_file: .env
     depends_on:
       - db
-    volumes:
-      - static_files:/app/staticfiles
-      - media_files:/app/media
-    networks:
-      - internal
-    # Pas de "ports:" — accessible uniquement via Nginx sur le réseau interne.
-
-  nginx:
-    build:
-      context: .
-      dockerfile: nginx/Dockerfile
-    restart: unless-stopped
-    depends_on:
-      - backend
     ports:
-      - "80:80"
-      - "443:443"
+      - "127.0.0.1:8001:8000"   # accessible uniquement depuis le VPS lui-même
     volumes:
-      - ./nginx/conf.d:/etc/nginx/conf.d:ro
-      - static_files:/static:ro
-      - media_files:/media:ro
-      - ./certbot/conf:/etc/letsencrypt:ro
-      - ./certbot/www:/var/www/certbot:ro
-    networks:
-      - internal
-
-  certbot:
-    image: certbot/certbot:latest
-    volumes:
-      - ./certbot/conf:/etc/letsencrypt
-      - ./certbot/www:/var/www/certbot
-    entrypoint: >
-      sh -c "trap exit TERM; while :; do certbot renew --webroot -w /var/www/certbot --quiet; sleep 12h & wait $${!}; done;"
+      - ./data/static:/app/staticfiles
+      - ./data/media:/app/media
     networks:
       - internal
 
 volumes:
   postgres_data:
-  static_files:
-  media_files:
 
 networks:
   internal:
