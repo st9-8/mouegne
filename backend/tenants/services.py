@@ -9,16 +9,21 @@ User = get_user_model()
 
 @transaction.atomic
 def create_shop(*, merchant, name, address=None, email=None, phone_number=None, currency="XAF"):
+    base_slug = slugify(name)
+    slug = base_slug
+    counter = 1
+    while Shop.objects.filter(slug=slug).exists():
+        counter += 1
+        slug = f"{base_slug}-{counter}"
+
     shop = Shop.objects.create(
         owner=merchant,
         name=name,
-        slug=slugify(name),
+        slug=slug,
         address=address,
         phone_number=phone_number,
         currency=currency,
     )
-    # Le commerçant devient automatiquement OWNER de sa propre boutique,
-    # sinon IsShopMember lui refuse l'accès à ses propres ressources.
     Employee.objects.create(user=merchant.user, shop=shop, role=RoleChoices.OWNER)
     return shop
 
