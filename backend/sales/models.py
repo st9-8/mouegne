@@ -2,7 +2,7 @@ from django.db import models
 
 from phonenumber_field.modelfields import PhoneNumberField
 
-from core.models import ShopScopedModel
+from core.models import ShopScopedModel, BaseModel
 from core.models import MerchantScopedModel
 
 from catalog.models import Item
@@ -44,6 +44,7 @@ class Sale(ShopScopedModel):
         Represents a sale transaction involving a customer.
     """
 
+    reference_number = models.PositiveIntegerField(editable=False, blank=True, null=True)
     customer = models.ForeignKey(Customer, on_delete=models.SET_NULL, blank=True, null=True)
     employee = models.ForeignKey(Employee, on_delete=models.SET_NULL, blank=True, null=True, related_name="sales")
 
@@ -59,9 +60,15 @@ class Sale(ShopScopedModel):
     has_sav = models.BooleanField(default=False)
 
     class Meta:
-
         verbose_name = "Sale"
         verbose_name_plural = "Sales"
+        constraints = [
+            models.UniqueConstraint(fields=["shop", "reference_number"], name="unique_sale_reference_per_shop")
+        ]
+
+    @property
+    def reference(self):
+        return f"{self.shop.code}-{self.reference_number:010d}"
 
     def sum_products(self):
         return sum(d.quantity for d in self.saledetail_set.all())

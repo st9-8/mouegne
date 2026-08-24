@@ -116,7 +116,7 @@
         <br/>
         <div class="meta">
             <p>Date: {{ sale.created_at|date:"Y/m/d H:i:s" }}</p>
-            <p>Ticket: {{ sale.id }}</p>
+            <p style="text-align: left;">Ticket: {{ sale.reference }}</p>
         </div>
     </div>
 
@@ -161,8 +161,7 @@
 
     <div class="hr"></div>
     <p style="text-align: center;" class="bold">
-        Client: {% if sale.customer %}{{ sale.customer.first_name }} {{ sale.customer.last_name }}{% else %}Client de
-        passage{% endif %}
+        Client: {% if sale.customer %}{{ sale.customer.first_name }} {{ sale.customer.last_name }}{% else %}Client comptoir{% endif %}
     </p>
     <div class="hr"></div>
 

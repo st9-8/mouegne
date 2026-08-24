@@ -23,6 +23,7 @@ class Shop(BaseModel):
     address = models.CharField(max_length=255, blank=True, null=True)
     phone_number = models.CharField(max_length=255, blank=True, null=True)
     slug = models.SlugField(unique=True)
+    code = models.CharField(max_length=255, null=True, blank=True)
     is_active = models.BooleanField(default=True)
     currency = models.CharField(max_length=255, default='XAF')
 

@@ -42,7 +42,7 @@ class ShopSerializer(serializers.ModelSerializer):
     class Meta:
         model = Shop
         fields = [
-            "id", "name", "slug", "address", "description", "phone_number",
+            "id", "name", "slug", "code", "address", "description", "phone_number",
             "currency", "is_active", "created_at", "updated_at",
         ]
         read_only_fields = ["id", "slug", "created_at", "updated_at"]

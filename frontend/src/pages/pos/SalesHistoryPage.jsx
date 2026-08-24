@@ -88,23 +88,30 @@ export default function SalesHistoryPage() {
         </div>
 
         <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 14, overflow: "hidden" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "1.6fr 1.4fr 1fr 1fr 0.6fr", gap: 16, padding: "14px 24px", background: "var(--color-surface-alt)", borderBottom: "1px solid var(--color-border)", fontSize: 11.5, textTransform: "uppercase", color: "var(--color-text-faint)", fontWeight: 600 }}>
-            <span>Client</span><span>Heure</span><span>Paiement</span><span style={{ textAlign: "right" }}>Montant</span><span></span>
+          <div style={{ display: "grid", gridTemplateColumns: "0.7fr 1.6fr 1.4fr 1fr 1fr 0.6fr", gap: 16, padding: "14px 24px", background: "var(--color-surface-alt)", borderBottom: "1px solid var(--color-border)", fontSize: 11.5, textTransform: "uppercase", color: "var(--color-text-faint)", fontWeight: 600 }}>
+            <span>Ticket</span><span>Client</span><span>Heure</span><span>Paiement</span><span style={{ textAlign: "right" }}>Montant</span><span></span>
           </div>
 
           {loading && <div style={{ padding: 40, textAlign: "center", color: "var(--color-text-faint)" }}>Chargement…</div>}
           {!loading && items.length === 0 && <div style={{ padding: 40, textAlign: "center", color: "var(--color-text-faint)" }}>Aucune vente sur cette période.</div>}
 
           {items.map((s) => (
-            <div key={s.id} style={{ display: "grid", gridTemplateColumns: "1.6fr 1.4fr 1fr 1fr 0.6fr", gap: 16, alignItems: "center", padding: "15px 24px", borderBottom: "1px solid var(--color-divider)" }}>
-              <span style={{ fontSize: 14 }}>{s.customer_name || "Client comptoir"}</span>
+            <div key={s.id} style={{ display: "grid", gridTemplateColumns: "0.7fr 1.6fr 1.4fr 1fr 1fr 0.6fr", gap: 16, alignItems: "center", padding: "15px 24px", borderBottom: "1px solid var(--color-divider)" }}>
+              <span className="mono" style={{ fontSize: 13, color: "var(--color-text-faint)" }}>#{s.reference}</span>
+              <span style={{ fontSize: 14 }}>{s.customer_name || "Client de passage"}</span>
               <span style={{ fontSize: 13.5, color: "var(--color-text-muted)" }}>{formatTime(s.created_at)}</span>
               <span style={{ fontSize: 13, color: "var(--color-text-muted)" }}>
                 {s.mobile_money_covers_total ? "Mobile Money" : Number(s.total_mobile_money) > 0 ? "Mixte" : "Espèces"}
               </span>
               <span className="mono" style={{ fontSize: 14, textAlign: "right", fontWeight: 600 }}>{formatFcfa(s.grand_total)}</span>
               <span style={{ display: "flex", justifyContent: "flex-end" }}>
-                <span className="icon" style={{ fontSize: 18, color: "var(--color-text-faint)" }}>receipt_long</span>
+                <button
+                  onClick={() => openSaleReceipt(activeShopId, s.id)}
+                  title="Voir le reçu PDF"
+                  style={{ width: 32, height: 32, border: "1px solid var(--color-border)", background: "var(--color-surface)", borderRadius: 8, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--color-text-faint)" }}
+                >
+                  <span className="icon" style={{ fontSize: 18 }}>receipt_long</span>
+                </button>
               </span>
             </div>
           ))}

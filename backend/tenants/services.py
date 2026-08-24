@@ -1,11 +1,40 @@
-# apps/tenants/services.py
+import re
+
+from django.utils.text import slugify
 from django.db import transaction, IntegrityError
 from django.contrib.auth import get_user_model
-from django.utils.text import slugify
-from .models import Merchant, Shop, Employee, RoleChoices
+
+from tenants.models import Merchant, Shop, Employee, RoleChoices
 
 User = get_user_model()
 
+LEGAL_SUFFIXES = {"SARL", "SA", "SAS", "SASU", "EURL", "LTD", "LLC", "INC", "PLC", "GMBH", "CORP"}
+
+
+def generate_shop_code(name, exclude_shop_id=None):
+    words = [w for w in name.split() if w.upper() not in LEGAL_SUFFIXES]
+
+    if len(words) >= 2:
+        base = (words[0][0] + words[1][0]).upper()
+    elif words:
+        word = words[0]
+        capitals = re.findall(r"[A-Z]", word)
+        base = "".join(capitals[:2]).upper() if len(capitals) >= 2 else word[:2].upper()
+    else:
+        base = "SH"
+
+    def is_taken(code):
+        qs = Shop.objects.filter(code=code)
+        if exclude_shop_id:
+            qs = qs.exclude(pk=exclude_shop_id)
+        return qs.exists()
+
+    code = base
+    suffix = 1
+    while is_taken(code):
+        suffix += 1
+        code = f"{base}{suffix}"
+    return code
 
 @transaction.atomic
 def create_shop(*, merchant, name, address=None, email=None, phone_number=None, currency="XAF"):
@@ -20,7 +49,9 @@ def create_shop(*, merchant, name, address=None, email=None, phone_number=None, 
         owner=merchant,
         name=name,
         slug=slug,
+        code=generate_shop_code(name),
         address=address,
+        email=email,
         phone_number=phone_number,
         currency=currency,
     )

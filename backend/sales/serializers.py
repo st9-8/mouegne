@@ -47,6 +47,7 @@ class SaleDetailOutputSerializer(serializers.ModelSerializer):
 
 class SaleSerializer(serializers.ModelSerializer):
     """Serializer de sortie (list/retrieve), lecture seule."""
+    reference = serializers.CharField(read_only=True)
     items = SaleDetailOutputSerializer(source="saledetail_set", many=True, read_only=True)
     customer_name = serializers.CharField(source="customer.get_full_name", read_only=True, default=None)
     employee_username = serializers.CharField(source="employee.user.username", read_only=True, default=None)
@@ -54,7 +55,7 @@ class SaleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Sale
         fields = [
-            "id", "created_at", "customer", "customer_name", "employee", "employee_username",
+            "id", "reference", "created_at", "customer", "customer_name", "employee", "employee_username",
             "sub_total", "grand_total", "tax_amount", "tax_percentage", "amount_paid",
             "amount_change", "total_mobile_money", "cash_payment_amount",
             "mobile_money_covers_total", "has_sav", "items",
