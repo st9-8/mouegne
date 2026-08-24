@@ -21,6 +21,7 @@ export default function SalePage() {
   const [tvaPct, setTvaPct] = useState(0);
   const [otherTaxes, setOtherTaxes] = useState(0);
   const [paymentMethod, setPaymentMethod] = useState("especes"); // especes | momo | mixte
+  const [receivedAmount, setReceivedAmount] = useState(""); // saisie manuelle pour especes/momo
   const [cashAmount, setCashAmount] = useState("");
   const [momoAmount, setMomoAmount] = useState("");
   const [hasSav, setHasSav] = useState(false);
@@ -108,10 +109,16 @@ export default function SalePage() {
   const total = useMemo(() => subtotal + tvaAmount + (Number(otherTaxes) || 0), [subtotal, tvaAmount, otherTaxes]);
 
   const { cash, momo } = useMemo(() => {
-    if (paymentMethod === "especes") return { cash: total, momo: 0 };
-    if (paymentMethod === "momo") return { cash: 0, momo: total };
+    if (paymentMethod === "especes") {
+      const received = receivedAmount === "" ? total : Number(receivedAmount) || 0;
+      return { cash: received, momo: 0 };
+    }
+    if (paymentMethod === "momo") {
+      const received = receivedAmount === "" ? total : Number(receivedAmount) || 0;
+      return { cash: 0, momo: received };
+    }
     return { cash: Number(cashAmount) || 0, momo: Number(momoAmount) || 0 };
-  }, [paymentMethod, total, cashAmount, momoAmount]);
+  }, [paymentMethod, total, receivedAmount, cashAmount, momoAmount]);
 
   const amountPaid = cash + momo;
   const change = Math.max(0, amountPaid - total);
@@ -170,6 +177,7 @@ export default function SalePage() {
     setMomoAmount("");
     setHasSav(false);
     setReceipt(null);
+    setReceivedAmount("");
   }
 
   return (
@@ -428,7 +436,7 @@ export default function SalePage() {
                 ].map((m) => (
                   <button
                     key={m.key}
-                    onClick={() => setPaymentMethod(m.key)}
+                    onClick={() => { setPaymentMethod(m.key); setReceivedAmount(""); }}
                     style={{
                       flex: 1,
                       height: 60,
@@ -470,11 +478,28 @@ export default function SalePage() {
                 </div>
               )}
 
-              {paymentMethod !== "mixte" && (
-                <div style={{ marginTop: 10, fontSize: 12.5, color: "var(--color-text-muted)" }}>
-                  Montant reçu : <span className="mono">{formatFcfa(total)}</span>
+                            {paymentMethod !== "mixte" && (
+                <div style={{ marginTop: 10 }}>
+                  <label style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                    <span style={{ fontSize: 12.5, color: "var(--color-text-muted)" }}>Montant reçu</span>
+                    <input
+                      className="mono"
+                      type="number"
+                      placeholder={String(total)}
+                      value={receivedAmount}
+                      onChange={(e) => setReceivedAmount(e.target.value)}
+                      style={{ height: 42, border: "1px solid var(--color-border)", borderRadius: 10, padding: "0 12px", fontSize: 14 }}
+                    />
+                  </label>
                 </div>
               )}
+
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginTop: 12, paddingTop: 12, borderTop: "1px solid var(--color-divider)" }}>
+                <span style={{ fontSize: 13.5, color: "var(--color-text-muted)" }}>Monnaie à rendre</span>
+                <span className="mono" style={{ fontSize: 17, fontWeight: 700, color: change > 0 ? "var(--color-accent)" : "var(--color-text-secondary)" }}>
+                  {formatFcfa(change)}
+                </span>
+              </div>
             </div>
 
             <button
