@@ -90,11 +90,11 @@ WSGI_APPLICATION = 'mouegne.wsgi.application'
 
 
 DATABASES = {
-    "default": {
+    "local": {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
     },
-    "prod": dj_database_url.config(default=os.environ["DATABASE_URL"])
+    "default": dj_database_url.config(default=os.environ["DATABASE_URL"])
 }
 
 # Password validation
