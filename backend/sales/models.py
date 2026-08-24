@@ -44,7 +44,7 @@ class Sale(ShopScopedModel):
         Represents a sale transaction involving a customer.
     """
 
-    reference_number = models.PositiveIntegerField(editable=False, blank=True, null=True)
+    reference_number = models.PositiveIntegerField(editable=False)
     customer = models.ForeignKey(Customer, on_delete=models.SET_NULL, blank=True, null=True)
     employee = models.ForeignKey(Employee, on_delete=models.SET_NULL, blank=True, null=True, related_name="sales")
 
