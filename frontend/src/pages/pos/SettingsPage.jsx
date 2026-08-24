@@ -65,6 +65,23 @@ export default function SettingsPage() {
     }
   }
 
+  async function handleSaveTaxNumber(e) {
+    e.preventDefault();
+    setSettingsSaving(true);
+    setMessage(null);
+    try {
+      const { data } = await apiClient.patch(`/shops/${activeShopId}/settings/`, {
+        tax_number: settings.tax_number,
+      });
+      setSettings(data);
+      setMessage({ type: "success", text: "Informations fiscales mises à jour." });
+    } catch (err) {
+      setMessage({ type: "error", text: extractErrorMessage(err) });
+    } finally {
+      setSettingsSaving(false);
+    }
+  }
+
   async function handleSaveShop(e) {
     e.preventDefault();
     setSaving(true);
@@ -196,6 +213,27 @@ export default function SettingsPage() {
             </div>
           </div>
         </div>
+
+        <form onSubmit={handleSaveTaxNumber} style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 14, padding: "26px 28px", marginTop: 14 }}>
+          <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 4 }}>Informations fiscales</div>
+          <div style={{ fontSize: 13, color: "var(--color-text-muted)", marginBottom: 18 }}>
+            Affiché en en-tête du reçu PDF de vos ventes.
+          </div>
+
+          <label style={{ ...labelStyle, maxWidth: 320 }}>
+            <span>Numéro d'identifiant unique (NIU)</span>
+            <input
+              style={inputStyle}
+              value={settings?.tax_number || ""}
+              onChange={(e) => setSettings({ ...settings, tax_number: e.target.value })}
+              placeholder="ex: M012345678901A"
+            />
+          </label>
+
+          <button type="submit" disabled={settingsSaving || !settings} style={{ ...primaryButtonStyle, width: "auto", padding: "0 24px", marginTop: 18 }}>
+            {settingsSaving ? "Enregistrement…" : "Enregistrer"}
+          </button>
+        </form>
 
         <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 14, padding: "26px 28px", marginTop: 14 }}>
           <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 4 }}>Règles de vente</div>
