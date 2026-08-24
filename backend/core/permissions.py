@@ -39,7 +39,7 @@ class IsShopOwner(BasePermission):
         return hasattr(request.user, "merchant")
 
     def has_object_permission(self, request, view, obj):
-        return obj.merchant_id == request.user.merchant.id
+        return obj.owner_id == request.user.merchant.id
 
 
 class IsMerchant(BasePermission):

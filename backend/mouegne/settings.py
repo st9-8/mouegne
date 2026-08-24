@@ -90,7 +90,11 @@ WSGI_APPLICATION = 'mouegne.wsgi.application'
 
 
 DATABASES = {
-    "default": dj_database_url.config(default=os.environ["DATABASE_URL"])
+    "default": {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    },
+    "prod": dj_database_url.config(default=os.environ["DATABASE_URL"])
 }
 
 # Password validation
@@ -168,8 +172,8 @@ STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')
                     ]
-MEDIA_ROOT = os.path.join(BASE_DIR, 'static/images')
-MEDIA_URL = '/images/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_URL = '/media/'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field

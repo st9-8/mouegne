@@ -128,8 +128,12 @@ class SaleViewSet(viewsets.ModelViewSet):
             "sale": sale,
             "shop": sale.shop,
             "shop_settings": sale.shop.settings,
+            "request": request,
         })
-        pdf_bytes = HTML(string=html_string).write_pdf()
+        pdf_bytes = HTML(string=html_string, base_url=request.build_absolute_uri("/")).write_pdf(
+            stylesheets=[],
+            presentational_hints=True,
+        )
         response = HttpResponse(pdf_bytes, content_type="application/pdf")
         response["Content-Disposition"] = f'inline; filename="recu-{sale.id}.pdf"'
         return response

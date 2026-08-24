@@ -10,6 +10,7 @@ export default function SettingsPage() {
   const [settings, setSettings] = useState(null);
   const [saving, setSaving] = useState(false);
   const [settingsSaving, setSettingsSaving] = useState(false);
+  const [logoUploading, setLogoUploading] = useState(false);
   const [message, setMessage] = useState(null);
 
   useEffect(() => {
@@ -32,6 +33,35 @@ export default function SettingsPage() {
       setMessage({ type: "error", text: extractErrorMessage(err) });
     } finally {
       setSettingsSaving(false);
+    }
+  }
+
+  async function handleLogoUpload(file) {
+    if (!file) return;
+    setLogoUploading(true);
+    setMessage(null);
+    const formData = new FormData();
+    formData.append("logo", file);
+    try {
+      const { data } = await apiClient.patch(`/shops/${activeShopId}/settings/`, formData);
+      setSettings(data);
+    } catch (err) {
+      setMessage({ type: "error", text: extractErrorMessage(err) });
+    } finally {
+      setLogoUploading(false);
+    }
+  }
+
+  async function handleLogoRemove() {
+    setLogoUploading(true);
+    setMessage(null);
+    try {
+      const { data } = await apiClient.patch(`/shops/${activeShopId}/settings/`, { logo: null });
+      setSettings(data);
+    } catch (err) {
+      setMessage({ type: "error", text: extractErrorMessage(err) });
+    } finally {
+      setLogoUploading(false);
     }
   }
 
@@ -97,6 +127,75 @@ export default function SettingsPage() {
             {saving ? "Enregistrement…" : "Enregistrer"}
           </button>
         </form>
+
+        <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 14, padding: "26px 28px", marginTop: 14 }}>
+          <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 4 }}>Logo</div>
+          <div style={{ fontSize: 13, color: "var(--color-text-muted)", marginBottom: 18 }}>
+            Affiché en en-tête du reçu PDF de vos ventes.
+          </div>
+
+          <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
+            <div
+              style={{
+                width: 84,
+                height: 84,
+                borderRadius: 12,
+                border: "1px solid var(--color-border)",
+                background: "var(--color-surface-alt)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                overflow: "hidden",
+                flexShrink: 0,
+              }}
+            >
+              {settings?.logo ? (
+                <img src={settings.logo} alt="Logo de la boutique" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+              ) : (
+                <span className="icon" style={{ fontSize: 32, color: "var(--color-text-ghost)" }}>storefront</span>
+              )}
+            </div>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              <label
+                style={{
+                  height: 38,
+                  padding: "0 16px",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 8,
+                  border: "1px solid var(--color-border)",
+                  background: "var(--color-surface)",
+                  borderRadius: 9,
+                  fontSize: 13.5,
+                  cursor: logoUploading ? "wait" : "pointer",
+                  opacity: logoUploading ? 0.6 : 1,
+                  width: "fit-content",
+                }}
+              >
+                <span className="icon" style={{ fontSize: 18 }}>upload</span>
+                {logoUploading ? "Envoi…" : settings?.logo ? "Changer le logo" : "Ajouter un logo"}
+                <input
+                  type="file"
+                  accept="image/*"
+                  disabled={logoUploading}
+                  onChange={(e) => handleLogoUpload(e.target.files?.[0])}
+                  style={{ display: "none" }}
+                />
+              </label>
+
+              {settings?.logo && (
+                <button
+                  onClick={handleLogoRemove}
+                  disabled={logoUploading}
+                  style={{ border: "none", background: "transparent", color: "var(--color-danger)", fontSize: 12.5, cursor: "pointer", textAlign: "left", padding: 0 }}
+                >
+                  Supprimer le logo
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
 
         <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 14, padding: "26px 28px", marginTop: 14 }}>
           <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 4 }}>Règles de vente</div>
