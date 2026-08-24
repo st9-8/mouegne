@@ -22,19 +22,42 @@ export default function PurchasesPage() {
   const { items: purchases, count: purchaseCount, totalPages: purchaseTotalPages, page: purchasePage, setPage: setPurchasePage, loading: purchasesLoading, reload: reloadPurchases } = useShopResource("purchases/");
   const { items: vendors, count: vendorCount, totalPages: vendorTotalPages, page: vendorPage, setPage: setVendorPage, loading: vendorsLoading, reload: reloadVendors } = useShopResource("vendors/");
 
-  const [items, setItems] = useState([]);
-
   const [purchaseModalOpen, setPurchaseModalOpen] = useState(false);
   const [purchaseForm, setPurchaseForm] = useState({ item: "", vendor: "", quantity: 1, price: "", description: "" });
+  const [itemQuery, setItemQuery] = useState("");
+  const [itemSuggestions, setItemSuggestions] = useState([]);
+  const [showItemSuggest, setShowItemSuggest] = useState(false);
+  const [selectedItemLabel, setSelectedItemLabel] = useState("");
   const [vendorModalOpen, setVendorModalOpen] = useState(false);
   const [vendorForm, setVendorForm] = useState({ name: "", phone_number: "", address: "" });
   const [error, setError] = useState(null);
   const [saving, setSaving] = useState(false);
 
+  // Recherche d'articles avec debounce, même pattern que l'écran de vente
   useEffect(() => {
-    if (!activeShopId) return;
-    apiClient.get(`/shops/${activeShopId}/items/`, { params: { page_size: 200 } }).then(({ data }) => setItems(asList(data)));
-  }, [activeShopId]);
+    if (!activeShopId || itemQuery.trim().length === 0) {
+      setItemSuggestions([]);
+      return;
+    }
+    const handle = setTimeout(async () => {
+      try {
+        const { data } = await apiClient.get(`/shops/${activeShopId}/items/`, {
+          params: { search: itemQuery, page_size: 8 },
+        });
+        setItemSuggestions(asList(data));
+      } catch {
+        setItemSuggestions([]);
+      }
+    }, 250);
+    return () => clearTimeout(handle);
+  }, [itemQuery, activeShopId]);
+
+  function selectItem(item) {
+    setPurchaseForm({ ...purchaseForm, item: item.id });
+    setSelectedItemLabel(item.name);
+    setItemQuery("");
+    setShowItemSuggest(false);
+  }
 
   async function handleCreatePurchase(e) {
     e.preventDefault();
@@ -44,6 +67,8 @@ export default function PurchasesPage() {
       await apiClient.post(`/shops/${activeShopId}/purchases/`, purchaseForm);
       setPurchaseModalOpen(false);
       setPurchaseForm({ item: "", vendor: "", quantity: 1, price: "", description: "" });
+      setSelectedItemLabel("");
+      setItemQuery("");
       reloadPurchases();
     } catch (err) {
       setError(extractErrorMessage(err));
@@ -148,14 +173,81 @@ export default function PurchasesPage() {
       </div>
 
       {purchaseModalOpen && (
-        <Modal title="Réceptionner un achat" onClose={() => setPurchaseModalOpen(false)}>
+        <Modal
+          title="Réceptionner un achat"
+          onClose={() => {
+            setPurchaseModalOpen(false);
+            setItemQuery("");
+            setSelectedItemLabel("");
+          }}
+          width={560}
+        >
           <form onSubmit={handleCreatePurchase} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
             <label style={labelStyle}>
               <span>Article</span>
-              <select style={inputStyle} value={purchaseForm.item} onChange={(e) => setPurchaseForm({ ...purchaseForm, item: e.target.value })} required>
-                <option value="" disabled>Choisir…</option>
-                {items.map((it) => <option key={it.id} value={it.id}>{it.name}</option>)}
-              </select>
+                <div style={{ position: "relative", width: "100%" }}>
+                <input
+                  style={{ ...inputStyle, width: "100%", boxSizing: "border-box" }}
+                  value={purchaseForm.item ? selectedItemLabel : itemQuery}
+                  onChange={(e) => {
+                    setItemQuery(e.target.value);
+                    setPurchaseForm({ ...purchaseForm, item: "" });
+                    setSelectedItemLabel("");
+                    setShowItemSuggest(true);
+                  }}
+                  onFocus={() => setShowItemSuggest(true)}
+                  placeholder="Rechercher un article par nom…"
+                  autoComplete="off"
+                  required
+                />
+                {showItemSuggest && itemQuery && !purchaseForm.item && (
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: 52,
+                      left: 0,
+                      right: 0,
+                      zIndex: 20,
+                      background: "var(--color-surface)",
+                      border: "1px solid var(--color-border)",
+                      borderRadius: 13,
+                      boxShadow: "var(--shadow-dropdown)",
+                      overflow: "hidden",
+                      maxHeight: 280,
+                      overflowY: "auto",
+                    }}
+                  >
+                    {itemSuggestions.length === 0 && (
+                      <div style={{ padding: "18px", textAlign: "center", color: "var(--color-text-faint)", fontSize: 13.5 }}>
+                        Aucun article ne correspond à « {itemQuery} »
+                      </div>
+                    )}
+                    {itemSuggestions.map((it) => (
+                      <button
+                        key={it.id}
+                        type="button"
+                        onClick={() => selectItem(it)}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          gap: 12,
+                          width: "100%",
+                          padding: "12px 16px",
+                          border: "none",
+                          borderBottom: "1px solid var(--color-divider)",
+                          background: "var(--color-surface)",
+                          cursor: "pointer",
+                          textAlign: "left",
+                        }}
+                      >
+                        <span style={{ fontSize: 14, fontWeight: 500 }}>{it.name}</span>
+                        <span style={{ fontSize: 12, color: "var(--color-text-faint)" }}>Stock {it.quantity}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             </label>
             <label style={labelStyle}>
               <span>Fournisseur (optionnel)</span>

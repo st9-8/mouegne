@@ -12,12 +12,13 @@ def receive_purchase(*, shop, item, vendor, quantity, price, description=''):
     if vendor and vendor.merchant != shop.owner:
         raise ValueError("Ce fournisseur ne fait pas partie des fournisseurs de cette boutique.")
 
-    purchase = Purchase(
+    purchase = Purchase.objects.create(
         shop=shop,
         item=item,
         vendor=vendor,
         quantity=quantity,
         price=price,
+        total_value=price * quantity,
         description=description,
     )
 
