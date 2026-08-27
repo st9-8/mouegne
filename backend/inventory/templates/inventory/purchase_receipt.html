@@ -1,0 +1,72 @@
+{% load receipt_filters %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Bon de réception</title>
+    <style>
+        body { margin: 0; padding: 0; font-family: 'PT Sans', sans-serif; }
+        @page { size: 2.8in 11in; margin: 0; }
+        .head-ticket { width: 100%; text-align: center; }
+        .logo { width: 60%; margin: 2px auto; display: block; }
+        .x-bold { text-align: center; font-weight: bold; }
+        .bold { font-weight: bold; }
+        table { width: 100%; border-collapse: collapse; }
+        thead tr th { font-size: 12.5px; text-transform: uppercase; border-top: 1px solid black; border-bottom: 1px solid black; padding: 4px 2px; }
+        thead tr th:first-child { width: 47%; text-align: left; }
+        td { font-size: 8.5px; text-align: right; padding: 2px 4px; }
+        .text-center { text-align: center; }
+        .hr { border-top: 1px solid black !important; margin: 4px 0; }
+        .col2 { display: flex; justify-content: space-between; font-size: 12px; padding: 2px 0; }
+        p { padding: 1px; margin: 0; }
+        .footer-ticket { font-size: 12px; text-align: center; margin-top: 8px; }
+        .powered-by { font-size: 8px; text-align: center; color: #888; margin-top: 10px; }
+        .vendor-line { font-size: 7px; color: #555; }
+    </style>
+</head>
+<body>
+<div class="receipt-container">
+    <section class="receipt">
+        <div class="head-ticket">
+            {% if logo_path %}
+            <div class="logo"><img src="{{ logo_path }}" alt="Logo" style="max-height: 70px; max-width: 100%;"></div>
+            {% endif %}
+            <p class="x-bold">{{ shop.name }}</p>
+            <p class="bold">{{ shop.address }}</p>
+            <p class="bold">Tel: {{ shop.phone_number }}</p>
+            <br/>
+            <p class="x-bold">BON DE RÉCEPTION</p>
+            <p style="text-align: left;">Date: {{ batch.created_at|date:"Y/m/d H:i:s" }}</p>
+            <p style="text-align: left;">Référence: {{ batch.reference }}</p>
+            {% if batch.description %}<p style="text-align: left;">Note: {{ batch.description }}</p>{% endif %}
+            <br/>
+        </div>
+
+        <table>
+            <thead><tr><th>Article</th><th class="text-center">Qté</th><th>Prix</th><th>Total</th></tr></thead>
+            <tbody>
+            {% for p in batch.purchases.all %}
+            <tr>
+                <td style="text-align:left;">
+                    {{ p.item.name }}
+                    {% if p.vendor %}<br/><span class="vendor-line">{{ p.vendor.name }}</span>{% endif %}
+                </td>
+                <td class="text-center">{{ p.quantity }}</td>
+                <td>{{ p.price|currency_format:False }}</td>
+                <td>{{ p.total_value|currency_format:False }}</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="hr"></div>
+        <div class="col2"><span>Valeur totale</span><span class="bold">{{ batch.total_value|currency_format }}</span></div>
+        <div class="hr"></div>
+
+        <div class="footer-ticket">
+            <p>Réceptionné par {{ batch.employee.user.username|default:"—" }}</p>
+        </div>
+        <div class="powered-by">Powered by Mouegne</div>
+    </section>
+</div>
+</body>
+</html>

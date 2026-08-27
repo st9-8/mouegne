@@ -15,6 +15,7 @@ import CategoriesPage from "./pages/pos/CategoriesPage";
 import SalesHistoryPage from "./pages/pos/SalesHistoryPage";
 import CustomersPage from "./pages/pos/CustomersPage";
 import PurchasesPage from "./pages/pos/PurchasesPage";
+import ReceivePage from "./pages/pos/ReceivePage";
 import EmployeesPage from "./pages/pos/EmployeesPage";
 import ShopsPage from "./pages/pos/ShopsPage";
 import SettingsPage from "./pages/pos/SettingsPage";
@@ -56,6 +57,7 @@ export default function App() {
                   <Route path="categories" element={<CategoriesPage />} />
                   <Route path="clients" element={<CustomersPage />} />
                   <Route path="achats" element={<PurchasesPage />} />
+                  <Route path="achats/nouvelle" element={<ReceivePage />} />
                   <Route path="employes" element={<EmployeesPage />} />
                   <Route path="parametres" element={<SettingsPage />} />
 
