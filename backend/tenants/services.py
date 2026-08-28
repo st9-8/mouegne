@@ -51,7 +51,6 @@ def create_shop(*, merchant, name, address=None, email=None, phone_number=None, 
         slug=slug,
         code=generate_shop_code(name),
         address=address,
-        email=email,
         phone_number=phone_number,
         currency=currency,
     )
