@@ -160,8 +160,8 @@
     {% endif %}
 
     <div class="hr"></div>
-    <p style="text-align: center;" class="bold">
-        Client: {% if sale.customer %}{{ sale.customer.first_name }} {{ sale.customer.last_name }}{% else %}Client comptoir{% endif %}
+    <p class="text-center bold">
+        Client: {% if sale.customer %}{{ sale.customer.first_name }} {{ sale.customer.last_name }}{% elif sale.customer_name_override %}{{ sale.customer_name_override }}{% else %}Client de passage{% endif %}
     </p>
     <div class="hr"></div>
 

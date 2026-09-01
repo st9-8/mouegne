@@ -16,6 +16,9 @@ def create_sale(*, shop, customer, employee, items_data, payment_data, allow_zer
     if customer and customer.merchant_id != shop.owner_id:
         raise ValueError("Ce client n'appartient pas au commerçant de cette boutique.")
 
+    if customer:
+        payment_data = {**payment_data, "customer_name_override": ""}
+
     total_mobile_money = payment_data.get("total_mobile_money", 0)
     cash_payment_amount = payment_data.get("cash_payment_amount", 0)
     amount_paid = payment_data["amount_paid"]

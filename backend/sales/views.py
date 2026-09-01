@@ -104,6 +104,7 @@ class SaleViewSet(viewsets.ModelViewSet):
                 "sub_total", "grand_total", "tax_amount", "tax_percentage",
                 "amount_paid", "amount_change", "total_mobile_money",
                 "cash_payment_amount", "mobile_money_covers_total", "has_sav",
+                "customer_name_override",
             ]
         }
 

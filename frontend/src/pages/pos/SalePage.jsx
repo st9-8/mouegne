@@ -17,6 +17,7 @@ export default function SalePage() {
 
   const [customers, setCustomers] = useState([]);
   const [customerId, setCustomerId] = useState("");
+  const [customerNameOverride, setCustomerNameOverride] = useState("");
 
   const [tvaPct, setTvaPct] = useState(0);
   const [otherTaxes, setOtherTaxes] = useState(0);
@@ -138,6 +139,7 @@ export default function SalePage() {
     try {
       const { data } = await apiClient.post(`/shops/${activeShopId}/sales/`, {
         customer_id: customerId || null,
+        customer_name_override: customerId ? "" : customerNameOverride,
         sub_total: subtotal.toFixed(2),
         grand_total: total.toFixed(2),
         tax_amount: tvaAmount.toFixed(2),
@@ -156,7 +158,6 @@ export default function SalePage() {
         })),
       });
       setReceipt(data);
-
       printSaleReceipt(activeShopId, data.id).catch(() => {
         // Échec silencieux (ex. navigateur bloquant l'impression automatique) —
         // le bouton "Reçu PDF" de la modale de confirmation reste disponible.
@@ -171,13 +172,15 @@ export default function SalePage() {
   function resetSale() {
     setLines([]);
     setCustomerId("");
+    setCustomerNameOverride("");
     setTvaPct(0);
     setOtherTaxes(0);
+    setPaymentMethod("especes");
+    setReceivedAmount("");
     setCashAmount("");
     setMomoAmount("");
     setHasSav(false);
     setReceipt(null);
-    setReceivedAmount("");
   }
 
   return (
@@ -378,10 +381,13 @@ export default function SalePage() {
               <span style={{ fontSize: 12.5, color: "var(--color-text-muted)" }}>Client (optionnel)</span>
               <select
                 value={customerId}
-                onChange={(e) => setCustomerId(e.target.value)}
+                onChange={(e) => {
+                  setCustomerId(e.target.value);
+                  if (e.target.value) setCustomerNameOverride("");
+                }}
                 style={{ height: 46, border: "1px solid var(--color-border)", borderRadius: 11, background: "var(--color-surface-alt)", padding: "0 12px", fontSize: 14.5 }}
               >
-                <option value="">Client comptoir</option>
+                <option value="">Client de passage</option>
                 {customers.map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.first_name} {c.last_name}
@@ -389,6 +395,18 @@ export default function SalePage() {
                 ))}
               </select>
             </label>
+
+            {!customerId && (
+              <label style={{ display: "flex", flexDirection: "column", gap: 7 }}>
+                <span style={{ fontSize: 12.5, color: "var(--color-text-muted)" }}>Nom sur le reçu (optionnel)</span>
+                <input
+                  value={customerNameOverride}
+                  onChange={(e) => setCustomerNameOverride(e.target.value)}
+                  placeholder="Client de passage"
+                  style={{ height: 42, border: "1px solid var(--color-border)", borderRadius: 11, background: "var(--color-surface-alt)", padding: "0 12px", fontSize: 14 }}
+                />
+              </label>
+            )}
 
             <div style={{ display: "flex", flexDirection: "column", gap: 12, padding: 16, background: "var(--color-surface-alt)", border: "1px solid var(--color-divider)", borderRadius: 12 }}>
               <div style={{ display: "flex", justifyContent: "space-between" }}>
@@ -478,7 +496,7 @@ export default function SalePage() {
                 </div>
               )}
 
-                            {paymentMethod !== "mixte" && (
+              {paymentMethod !== "mixte" && (
                 <div style={{ marginTop: 10 }}>
                   <label style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                     <span style={{ fontSize: 12.5, color: "var(--color-text-muted)" }}>Montant reçu</span>
@@ -609,6 +627,9 @@ export default function SalePage() {
               <span className="icon" style={{ fontSize: 30 }}>check</span>
             </div>
             <div style={{ fontSize: 19, fontWeight: 600, marginTop: 18 }}>Vente enregistrée</div>
+            <div className="mono" style={{ fontSize: 12.5, color: "var(--color-text-faint)", marginTop: 4 }}>
+              Ticket #{receipt.reference}
+            </div>
             <div className="mono" style={{ fontSize: 13, color: "var(--color-text-muted)", marginTop: 6 }}>
               {formatFcfa(receipt.grand_total)}
             </div>
@@ -619,8 +640,15 @@ export default function SalePage() {
             )}
             <div style={{ display: "flex", gap: 10, marginTop: 24 }}>
               <button
+                onClick={() => openSaleReceipt(activeShopId, receipt.id)}
+                style={{ flex: 1, height: 48, border: "1px solid var(--color-border)", background: "var(--color-surface)", borderRadius: 12, fontSize: 14.5, fontWeight: 500, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}
+              >
+                <span className="icon" style={{ fontSize: 19 }}>receipt_long</span>
+                Reçu PDF
+              </button>
+              <button
                 onClick={resetSale}
-                style={{ flex: 1, height: 48, border: "1px solid var(--color-border)", background: "var(--color-surface)", borderRadius: 12, fontSize: 14.5, fontWeight: 500, cursor: "pointer" }}
+                style={{ flex: 1, height: 48, border: "none", background: "var(--color-accent)", color: "#fff", borderRadius: 12, fontSize: 14.5, fontWeight: 600, cursor: "pointer" }}
               >
                 Nouvelle vente
               </button>

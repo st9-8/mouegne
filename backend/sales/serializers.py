@@ -24,6 +24,7 @@ class SaleCreateSerializer(serializers.Serializer):
         sont dans le service.
     """
     customer_id = serializers.UUIDField(required=False, allow_null=True)
+    customer_name_override = serializers.CharField(required=False, allow_blank=True, default="")
     sub_total = serializers.DecimalField(max_digits=10, decimal_places=2)
     grand_total = serializers.DecimalField(max_digits=10, decimal_places=2)
     tax_amount = serializers.DecimalField(max_digits=10, decimal_places=2, default=0)
@@ -55,8 +56,8 @@ class SaleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Sale
         fields = [
-            "id", "reference", "created_at", "customer", "customer_name", "employee", "employee_username",
-            "sub_total", "grand_total", "tax_amount", "tax_percentage", "amount_paid",
+            "id", "reference", "created_at", "customer", "customer_name", "customer_name_override", "employee",
+            "employee_username", "sub_total", "grand_total", "tax_amount", "tax_percentage", "amount_paid",
             "amount_change", "total_mobile_money", "cash_payment_amount",
             "mobile_money_covers_total", "has_sav", "items",
         ]

@@ -46,6 +46,7 @@ class Sale(ShopScopedModel):
 
     reference_number = models.PositiveIntegerField(editable=False)
     customer = models.ForeignKey(Customer, on_delete=models.SET_NULL, blank=True, null=True)
+    customer_name_override = models.CharField(max_length=255, blank=True, null=True)
     employee = models.ForeignKey(Employee, on_delete=models.SET_NULL, blank=True, null=True, related_name="sales")
 
     sub_total = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
