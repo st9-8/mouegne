@@ -16,7 +16,51 @@ const EMPTY_FORM = { name: "", description: "", category: "", price: "", purchas
 export default function ProductsPage() {
   const { activeShopId } = useShop();
   const [search, setSearch] = useState("");
-  const { items, count, totalPages, page, setPage, loading, reload } = useShopResource("items/", { search });
+  const [sortField, setSortField] = useState(null); // "name" | "quantity" | "price" | null
+  const [sortDir, setSortDir] = useState("asc"); // "asc" | "desc"
+
+  const ordering = sortField ? (sortDir === "desc" ? `-${sortField}` : sortField) : undefined;
+  const { items, count, totalPages, page, setPage, loading, reload } = useShopResource("items/", { search, ordering });
+
+  function toggleSort(field) {
+    if (sortField === field) {
+      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    } else {
+      setSortField(field);
+      setSortDir("asc");
+    }
+    setPage(1);
+  }
+
+  function SortableHeader({ field, label, align }) {
+    const active = sortField === field;
+    return (
+      <button
+        onClick={() => toggleSort(field)}
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 3,
+          justifyContent: align === "right" ? "flex-end" : "flex-start",
+          border: "none",
+          background: "transparent",
+          padding: 0,
+          font: "inherit",
+          fontSize: 11.5,
+          textTransform: "uppercase",
+          fontWeight: 600,
+          color: active ? "var(--color-accent)" : "var(--color-text-faint)",
+          cursor: "pointer",
+          width: "100%",
+        }}
+      >
+        {label}
+        <span className="icon" style={{ fontSize: 15, opacity: active ? 1 : 0.35 }}>
+          {active && sortDir === "desc" ? "arrow_downward" : "arrow_upward"}
+        </span>
+      </button>
+    );
+  }
 
   const [categories, setCategories] = useState([]);
   const [modalOpen, setModalOpen] = useState(false);
@@ -100,8 +144,12 @@ export default function ProductsPage() {
         />
 
         <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 14, overflow: "hidden" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "2.4fr 1.1fr 0.9fr 1.1fr 0.7fr", gap: 16, padding: "14px 24px", background: "var(--color-surface-alt)", borderBottom: "1px solid var(--color-border)", fontSize: 11.5, textTransform: "uppercase", color: "var(--color-text-faint)", fontWeight: 600 }}>
-            <span>Article</span><span>Catégorie</span><span>Stock</span><span style={{ textAlign: "right" }}>Prix</span><span></span>
+          <div style={{ display: "grid", gridTemplateColumns: "2.4fr 1.1fr 0.9fr 1.1fr 0.7fr", gap: 16, padding: "14px 24px", background: "var(--color-surface-alt)", borderBottom: "1px solid var(--color-border)" }}>
+            <SortableHeader field="name" label="Article" />
+            <span style={{ fontSize: 11.5, textTransform: "uppercase", color: "var(--color-text-faint)", fontWeight: 600 }}>Catégorie</span>
+            <SortableHeader field="quantity" label="Stock" />
+            <SortableHeader field="price" label="Prix" align="right" />
+            <span></span>
           </div>
 
           {loading && <div style={{ padding: 40, textAlign: "center", color: "var(--color-text-faint)" }}>Chargement…</div>}

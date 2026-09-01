@@ -44,7 +44,8 @@ def create_sale(*, shop, customer, employee, items_data, payment_data, allow_zer
 
         SaleDetail.objects.create(
             shop=shop, sale=sale, item=item,
-            price=entry["price"], quantity=entry["quantity"], total_detail=entry["total_item"],
+            price=entry["price"], cost_price=item.purchase_price, quantity=entry["quantity"],
+            total_detail=entry["total_item"],
         )
         item.quantity = models.F("quantity") - entry["quantity"]
         item.save(update_fields=["quantity"])

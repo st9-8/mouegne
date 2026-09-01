@@ -15,7 +15,7 @@ function formatTime(iso) {
 }
 
 export default function SalesHistoryPage() {
-  const { activeShopId } = useShop();
+  const { activeShopId, role } = useShop();
   const [dateAfter, setDateAfter] = useState("");
   const [dateBefore, setDateBefore] = useState("");
   const params = {};
@@ -27,7 +27,7 @@ export default function SalesHistoryPage() {
   // Synthèse calculée sur TOUTES les ventes de la période (pas seulement la page
   // affichée) — nécessite un second appel avec une taille de page large, distinct
   // du tableau paginé ci-dessous.
-  const [totals, setTotals] = useState({ grandTotal: 0, mobileMoney: 0 });
+  const [totals, setTotals] = useState({ grandTotal: 0, mobileMoney: 0, profit: 0 });
   const [totalsLoading, setTotalsLoading] = useState(true);
 
   useEffect(() => {
@@ -39,7 +39,8 @@ export default function SalesHistoryPage() {
         const sales = asList(data);
         const grandTotal = sales.reduce((sum, s) => sum + Number(s.grand_total), 0);
         const mobileMoney = sales.reduce((sum, s) => sum + Number(s.total_mobile_money), 0);
-        setTotals({ grandTotal, mobileMoney });
+        const profit = sales.reduce((sum, s) => sum + Number(s.profit || 0), 0);
+        setTotals({ grandTotal, mobileMoney, profit });
       })
       .finally(() => setTotalsLoading(false));
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -85,6 +86,18 @@ export default function SalesHistoryPage() {
               {totalsLoading ? "…" : formatFcfa(totals.mobileMoney)}
             </div>
           </div>
+
+          {(role === "OWNER" || role === "MANAGER") && (
+            <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 14, padding: 20 }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                <span style={{ fontSize: 13, color: "var(--color-text-muted)" }}>Bénéfice</span>
+                <span className="icon" style={{ fontSize: 20, color: "var(--color-accent)" }}>trending_up</span>
+              </div>
+              <div className="mono" style={{ fontSize: 25, fontWeight: 700, letterSpacing: "-0.035em", marginTop: 14 }}>
+                {totalsLoading ? "…" : formatFcfa(totals.profit)}
+              </div>
+            </div>
+          )}
         </div>
 
         <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 14, overflow: "hidden" }}>

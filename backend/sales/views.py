@@ -1,7 +1,10 @@
+from datetime import timedelta
 from django.utils import timezone
 from django.http import HttpResponse
+from django.db.models import Sum, F
 from django.shortcuts import get_object_or_404
 from django.template.loader import render_to_string
+from rest_framework.views import APIView
 
 from weasyprint import HTML
 
@@ -13,12 +16,12 @@ from django_filters import rest_framework as filters
 
 from drf_spectacular.utils import extend_schema, extend_schema_view
 
-from core.permissions import IsShopMember, ManagerWriteOnlyMixin
+from core.permissions import IsShopMember, ManagerWriteOnlyMixin, IsShopManagerStrict
 
 from core.schema import SHOP_PK_PARAMETER
 from core.schema import shop_scoped_schema
 
-from sales.models import Customer, Sale
+from sales.models import Customer, Sale, SaleDetail
 
 from sales.serializers import CustomerSerializer, SaleCreateSerializer, SaleSerializer
 
@@ -138,3 +141,43 @@ class SaleViewSet(viewsets.ModelViewSet):
         response = HttpResponse(pdf_bytes, content_type="application/pdf")
         response["Content-Disposition"] = f'inline; filename="recu-{sale.id}.pdf"'
         return response
+
+
+class DashboardStatsView(APIView):
+    permission_classes = [IsShopMember, IsShopManagerStrict]
+
+    def get(self, request, shop_pk):
+        shop = request.shop
+        today = timezone.localdate()
+
+        date_after = request.query_params.get("date_after") or (today - timedelta(days=30)).isoformat()
+        date_before = request.query_params.get("date_before") or today.isoformat()
+
+        sales = Sale.objects.filter(shop=shop, created_at__date__gte=date_after, created_at__date__lte=date_before)
+        details = SaleDetail.objects.filter(sale__in=sales)
+
+        revenue = sales.aggregate(total=Sum("grand_total"))["total"] or 0
+        profit = details.aggregate(
+            total=Sum(F("price") * F("quantity") - F("cost_price") * F("quantity"))
+        )["total"] or 0
+
+        top_items = (
+            details.values("item__id", "item__name")
+            .annotate(total_qty=Sum("quantity"))
+            .order_by("-total_qty")[:10]
+        )
+        least_items = (
+            details.values("item__id", "item__name")
+            .annotate(total_qty=Sum("quantity"))
+            .order_by("total_qty")[:5]
+        )
+
+        return Response({
+            "revenue": revenue,
+            "profit": profit,
+            "sales_count": sales.count(),
+            "top_items": [{"item_id": str(i["item__id"]), "name": i["item__name"], "quantity": i["total_qty"]} for i in
+                          top_items if i["item__id"]],
+            "least_items": [{"item_id": str(i["item__id"]), "name": i["item__name"], "quantity": i["total_qty"]} for i
+                            in least_items if i["item__id"]],
+        })

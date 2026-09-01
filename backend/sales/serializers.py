@@ -40,15 +40,31 @@ class SaleCreateSerializer(serializers.Serializer):
 
 class SaleDetailOutputSerializer(serializers.ModelSerializer):
     item_name = serializers.CharField(source="item.name", read_only=True, default=None)
+    profit = serializers.SerializerMethodField()
 
     class Meta:
         model = SaleDetail
-        fields = ["id", "item", "item_name", "price", "quantity", "total_detail"]
+        fields = ["id", "item", "item_name", "price", "quantity", "profit", "total_detail"]
+
+    def get_profit(self, obj):
+        return (obj.price - obj.cost_price) * obj.quantity
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        request = self.context.get('request')
+        employee = getattr(request, 'employee', None) if request else None
+
+        if not employee or employee.role not in ('OWNER', 'MANAGER'):
+            data.pop('cost_price', None)
+            data.pop('profit', None)
+
+        return data
 
 
 class SaleSerializer(serializers.ModelSerializer):
     """Serializer de sortie (list/retrieve), lecture seule."""
     reference = serializers.CharField(read_only=True)
+    profit = serializers.SerializerMethodField()
     items = SaleDetailOutputSerializer(source="saledetail_set", many=True, read_only=True)
     customer_name = serializers.CharField(source="customer.get_full_name", read_only=True, default=None)
     employee_username = serializers.CharField(source="employee.user.username", read_only=True, default=None)
@@ -59,5 +75,16 @@ class SaleSerializer(serializers.ModelSerializer):
             "id", "reference", "created_at", "customer", "customer_name", "customer_name_override", "employee",
             "employee_username", "sub_total", "grand_total", "tax_amount", "tax_percentage", "amount_paid",
             "amount_change", "total_mobile_money", "cash_payment_amount",
-            "mobile_money_covers_total", "has_sav", "items",
+            "mobile_money_covers_total", "has_sav", "profit", "items",
         ]
+
+    def get_profit(self, obj):
+        return sum((d.price - d.cost_price) * d.quantity for d in obj.saledetail_set.all())
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        request = self.context.get("request")
+        employee = getattr(request, "employee", None) if request else None
+        if not employee or employee.role not in ("OWNER", "MANAGER"):
+            data.pop("profit", None)
+        return data

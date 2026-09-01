@@ -86,6 +86,8 @@ class SaleDetail(ShopScopedModel):
     sale = models.ForeignKey(Sale, on_delete=models.CASCADE, related_name="saledetail_set")
     item = models.ForeignKey(Item, on_delete=models.SET_NULL, blank=True, null=True)
     price = models.DecimalField(max_digits=10, decimal_places=2)
+    cost_price = models.DecimalField(max_digits=10, decimal_places=2, default=0,
+                                     help_text="Cost price at the time of sale")  # The idea of this field is to avoid error in benefit calculation in case of purchase price changes
     quantity = models.PositiveIntegerField()
     total_detail = models.DecimalField(max_digits=10, decimal_places=2)
 
