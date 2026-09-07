@@ -35,6 +35,7 @@ class ItemViewSet(viewsets.ModelViewSet):
     serializer_class = ItemSerializer
     filterset_fields = ["category", "vendor"]
     search_fields = ["name"]
+    ordering_fields = ["name", "price", "quantity", "created_at", "category__name"]
 
     def get_permissions(self):
         # Modifier/supprimer un article reste réservé à OWNER/MANAGER.

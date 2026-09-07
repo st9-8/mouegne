@@ -16,11 +16,16 @@ const EMPTY_FORM = { name: "", description: "", category: "", price: "", purchas
 export default function ProductsPage() {
   const { activeShopId } = useShop();
   const [search, setSearch] = useState("");
-  const [sortField, setSortField] = useState(null); // "name" | "quantity" | "price" | null
+  const [categoryFilter, setCategoryFilter] = useState("");
+  const [sortField, setSortField] = useState(null); // "name" | "quantity" | "price" | "category__name" | null
   const [sortDir, setSortDir] = useState("asc"); // "asc" | "desc"
 
   const ordering = sortField ? (sortDir === "desc" ? `-${sortField}` : sortField) : undefined;
-  const { items, count, totalPages, page, setPage, loading, reload } = useShopResource("items/", { search, ordering });
+  const { items, count, totalPages, page, setPage, loading, reload } = useShopResource("items/", {
+    search,
+    ordering,
+    category: categoryFilter || undefined,
+  });
 
   function toggleSort(field) {
     if (sortField === field) {
@@ -133,20 +138,35 @@ export default function ProductsPage() {
       />
 
       <div style={{ padding: "22px 32px 40px" }}>
-        <input
-          value={search}
-          onChange={(e) => {
-            setSearch(e.target.value);
-            setPage(1);
-          }}
-          placeholder="Rechercher un produit…"
-          style={{ ...inputStyle, width: 320, marginBottom: 16 }}
-        />
+        <div style={{ display: "flex", gap: 12, marginBottom: 16 }}>
+          <input
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(1);
+            }}
+            placeholder="Rechercher un produit…"
+            style={{ ...inputStyle, width: 320 }}
+          />
+          <select
+            value={categoryFilter}
+            onChange={(e) => {
+              setCategoryFilter(e.target.value);
+              setPage(1);
+            }}
+            style={{ ...inputStyle, width: 220 }}
+          >
+            <option value="">Toutes les catégories</option>
+            {categories.map((c) => (
+              <option key={c.id} value={c.id}>{c.name}</option>
+            ))}
+          </select>
+        </div>
 
         <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 14, overflow: "hidden" }}>
           <div style={{ display: "grid", gridTemplateColumns: "2.4fr 1.1fr 0.9fr 1.1fr 0.7fr", gap: 16, padding: "14px 24px", background: "var(--color-surface-alt)", borderBottom: "1px solid var(--color-border)" }}>
             <SortableHeader field="name" label="Article" />
-            <span style={{ fontSize: 11.5, textTransform: "uppercase", color: "var(--color-text-faint)", fontWeight: 600 }}>Catégorie</span>
+            <SortableHeader field="category__name" label="Catégorie" />
             <SortableHeader field="quantity" label="Stock" />
             <SortableHeader field="price" label="Prix" align="right" />
             <span></span>
