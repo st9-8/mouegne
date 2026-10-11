@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import PageHeader from "../../components/PageHeader";
+import ItemThumb from "../../components/ItemThumb";
 import { apiClient, asList } from "../../lib/apiClient";
 import { useShop } from "../../context/ShopContext";
 import { inputStyle } from "../../styles/formStyles";
@@ -104,6 +105,7 @@ export default function DashboardPage() {
                 {stats && stats.top_items.map((it, idx) => (
                   <div key={it.item_id} style={{ display: "flex", alignItems: "center", gap: 12, padding: "11px 24px", borderTop: "1px solid var(--color-divider)" }}>
                     <span className="mono" style={{ fontSize: 12, color: "var(--color-text-ghost)", width: 18 }}>{idx + 1}</span>
+                    <ItemThumb src={it.thumbnail_url} name={it.name} size={40} />
                     <span style={{ flex: 1, fontSize: 14 }}>{it.name}</span>
                     <span className="mono" style={{ fontSize: 12.5, fontWeight: 600, background: "var(--color-accent-soft)", color: "var(--color-accent)", padding: "3px 10px", borderRadius: 20 }}>
                       {it.quantity} vendu(s)
@@ -122,6 +124,7 @@ export default function DashboardPage() {
                 )}
                 {stats && stats.least_items.map((it) => (
                   <div key={it.item_id} style={{ display: "flex", alignItems: "center", gap: 12, padding: "11px 24px", borderTop: "1px solid var(--color-divider)" }}>
+                    <ItemThumb src={it.thumbnail_url} name={it.name} size={40} />
                     <span style={{ flex: 1, fontSize: 14 }}>{it.name}</span>
                     <span className="mono" style={{ fontSize: 12.5, color: "var(--color-text-muted)" }}>{it.quantity} vendu(s)</span>
                   </div>
@@ -142,6 +145,7 @@ export default function DashboardPage() {
               )}
               {lowStock.map((a) => (
                 <div key={a.id} style={{ display: "flex", alignItems: "center", gap: 16, padding: "13px 24px", borderTop: "1px solid var(--color-divider)" }}>
+                  <ItemThumb src={a.thumbnail_url} name={a.name} size={40} />
                   <span style={{ flex: 1, fontSize: 14 }}>{a.name}</span>
                   <span style={{ fontSize: 13, color: "var(--color-text-faint)" }}>{a.category_name}</span>
                   <span className="mono" style={{ fontSize: 12.5, fontWeight: 600, background: "var(--color-warning-soft)", color: "var(--color-warning)", padding: "3px 10px", borderRadius: 20 }}>

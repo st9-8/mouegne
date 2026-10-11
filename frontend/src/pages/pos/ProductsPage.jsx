@@ -2,8 +2,10 @@ import { useEffect, useState } from "react";
 import PageHeader from "../../components/PageHeader";
 import Pagination from "../../components/Pagination";
 import Modal from "../../components/Modal";
+import ItemThumb from "../../components/ItemThumb";
+import ItemPhotosEditor from "../../components/ItemPhotosEditor";
 import { useShopResource } from "../../lib/useShopResource";
-import { apiClient, asList, extractErrorMessage } from "../../lib/apiClient";
+import { apiClient, asList, extractErrorMessage, uploadItemImage } from "../../lib/apiClient";
 import { useShop } from "../../context/ShopContext";
 import { inputStyle, labelStyle, primaryButtonStyle } from "../../styles/formStyles";
 
@@ -73,17 +75,33 @@ export default function ProductsPage() {
   const [form, setForm] = useState(EMPTY_FORM);
   const [error, setError] = useState(null);
   const [saving, setSaving] = useState(false);
+  const [photos, setPhotos] = useState([]); // photos serveur de l'article en cours d'édition
+  const [pending, setPending] = useState([]); // fichiers choisis à la création, envoyés après la création de l'article
+  const [notice, setNotice] = useState(null);
 
   useEffect(() => {
     if (!activeShopId) return;
     apiClient.get(`/shops/${activeShopId}/categories/`, { params: { page_size: 100 } }).then(({ data }) => setCategories(asList(data)));
   }, [activeShopId]);
 
+  function clearPending() {
+    pending.forEach((p) => URL.revokeObjectURL(p.previewUrl));
+    setPending([]);
+  }
+
   function openCreate() {
     setEditing(null);
     setForm(EMPTY_FORM);
+    setPhotos([]);
+    clearPending();
     setError(null);
     setModalOpen(true);
+  }
+
+  function closeModal() {
+    clearPending();
+    setModalOpen(false);
+    if (editing) reload(); // les photos sont enregistrées à la volée : on rafraîchit les miniatures de la liste
   }
 
   function openEdit(item) {
@@ -96,6 +114,8 @@ export default function ProductsPage() {
       purchase_price: item.purchase_price,
       quantity: item.quantity,
     });
+    setPhotos(item.images || []);
+    clearPending();
     setError(null);
     setModalOpen(true);
   }
@@ -108,8 +128,21 @@ export default function ProductsPage() {
       if (editing) {
         await apiClient.patch(`/shops/${activeShopId}/items/${editing.id}/`, form);
       } else {
-        await apiClient.post(`/shops/${activeShopId}/items/`, form);
+        const { data: created } = await apiClient.post(`/shops/${activeShopId}/items/`, form);
+        // Un par un : l'ordre d'envoi définit les positions (la première photo = aperçu).
+        const failures = [];
+        for (const p of pending) {
+          try {
+            await uploadItemImage(activeShopId, created.id, p.file);
+          } catch (err) {
+            failures.push(`« ${p.file.name} » : ${extractErrorMessage(err)}`);
+          }
+        }
+        if (failures.length) {
+          setNotice(`Article créé, mais ${failures.length} photo(s) n'ont pas pu être envoyées (${failures.join(" ; ")}). Ajoutez-les en modifiant l'article.`);
+        }
       }
+      clearPending();
       setModalOpen(false);
       reload();
     } catch (err) {
@@ -138,6 +171,14 @@ export default function ProductsPage() {
       />
 
       <div style={{ padding: "22px 32px 40px" }}>
+        {notice && (
+          <div style={{ display: "flex", alignItems: "flex-start", gap: 12, marginBottom: 16, fontSize: 13.5, color: "var(--color-warning)", background: "var(--color-warning-soft)", padding: "12px 14px", borderRadius: 12 }}>
+            <span style={{ flex: 1 }}>{notice}</span>
+            <button onClick={() => setNotice(null)} aria-label="Fermer" style={{ border: "none", background: "transparent", color: "inherit", cursor: "pointer", padding: 0 }}>
+              <span className="icon" style={{ fontSize: 18 }}>close</span>
+            </button>
+          </div>
+        )}
         <div style={{ display: "flex", gap: 12, marginBottom: 16 }}>
           <input
             value={search}
@@ -177,7 +218,10 @@ export default function ProductsPage() {
 
           {items.map((p) => (
             <div key={p.id} style={{ display: "grid", gridTemplateColumns: "2.4fr 1.1fr 0.9fr 1.1fr 0.7fr", gap: 16, alignItems: "center", padding: "15px 24px", borderBottom: "1px solid var(--color-divider)" }}>
-              <span style={{ fontSize: 14.5, fontWeight: 500 }}>{p.name}</span>
+              <div style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 0 }}>
+                <ItemThumb src={p.thumbnail_url} name={p.name} />
+                <span style={{ fontSize: 14.5, fontWeight: 500, minWidth: 0 }}>{p.name}</span>
+              </div>
               <span style={{ fontSize: 13.5, color: "var(--color-text-muted)" }}>{p.category_name}</span>
               <span style={{ fontSize: 13, color: p.quantity <= 5 ? "var(--color-warning)" : "var(--color-text-secondary)" }}>{p.quantity}</span>
               <span className="mono" style={{ fontSize: 14, textAlign: "right", fontWeight: 500 }}>{formatFcfa(p.price)}</span>
@@ -197,7 +241,7 @@ export default function ProductsPage() {
       </div>
 
       {modalOpen && (
-        <Modal title={editing ? "Modifier le produit" : "Nouveau produit"} onClose={() => setModalOpen(false)}>
+        <Modal title={editing ? "Modifier le produit" : "Nouveau produit"} onClose={closeModal} width={560}>
           <form onSubmit={handleSave} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
             <label style={labelStyle}>
               <span>Nom</span>
@@ -228,6 +272,15 @@ export default function ProductsPage() {
                 <input type="number" style={inputStyle} value={form.quantity} onChange={(e) => setForm({ ...form, quantity: e.target.value })} />
               </label>
             )}
+            <ItemPhotosEditor
+              shopId={activeShopId}
+              itemId={editing?.id}
+              photos={photos}
+              onPhotosChange={setPhotos}
+              pending={pending}
+              onPendingChange={setPending}
+            />
+
             <label style={labelStyle}>
               <span>Description</span>
               <textarea style={{ ...inputStyle, height: 80, padding: 12 }} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />

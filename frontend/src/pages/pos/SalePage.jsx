@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { apiClient, extractErrorMessage, openSaleReceipt, printSaleReceipt } from "../../lib/apiClient";
 import { useShop } from "../../context/ShopContext";
 import Modal from "../../components/Modal";
+import ItemThumb from "../../components/ItemThumb";
 import { inputStyle, labelStyle, primaryButtonStyle } from "../../styles/formStyles";
 function formatFcfa(amount) {
   return new Intl.NumberFormat("fr-FR").format(Math.round(amount || 0)) + " FCFA";
@@ -265,6 +266,7 @@ export default function SalePage() {
                       textAlign: "left",
                     }}
                   >
+                    <ItemThumb src={p.thumbnail_url} name={p.name} size={44} />
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: 14.5, fontWeight: 500 }}>{p.name}</div>
                       <div className="mono" style={{ fontSize: 12, color: "var(--color-text-faint)", marginTop: 3 }}>

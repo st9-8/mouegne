@@ -1,6 +1,11 @@
 from rest_framework import serializers
-from .models import Category, Item
-from .services import create_item
+
+from catalog.models import MAX_IMAGES_PER_ITEM
+from catalog.models import Category, Item, ItemImage
+
+from catalog.services import create_item
+
+MAX_UPLOAD_BYTES = 5 * 1024 * 1024
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -10,9 +15,43 @@ class CategorySerializer(serializers.ModelSerializer):
         read_only_fields = ["id", "slug", "created_at", "updated_at"]
 
 
+class ItemImageSerializer(serializers.ModelSerializer):
+    url = serializers.SerializerMethodField()
+    thumbnail_url = serializers.SerializerMethodField()
+
+    class Meta:
+        model = ItemImage
+        fields = ["id", "position", "url", "thumbnail_url"]
+
+    def _absolute(self, path):
+        request = self.context.get("request")
+        return request.build_absolute_uri(path) if request else path
+
+    def get_url(self, obj):
+        return self._absolute(obj.image.url)
+
+    def get_thumbnail_url(self, obj):
+        return self._absolute(obj.thumbnail.url)
+
+
+class ItemImageUploadSerializer(serializers.Serializer):
+    image = serializers.ImageField()  # passe par Pillow : refuse un faux .jpg
+
+    def validate_image(self, f):
+        if f.size > MAX_UPLOAD_BYTES:
+            raise serializers.ValidationError("L'image ne doit pas dépasser 5 Mo.")
+        return f
+
+
+class ItemImageOrderSerializer(serializers.Serializer):
+    order = serializers.ListField(child=serializers.UUIDField(), allow_empty=False, max_length=MAX_IMAGES_PER_ITEM)
+
+
 class ItemSerializer(serializers.ModelSerializer):
     category_name = serializers.CharField(source="category.name", read_only=True)
     vendor_name = serializers.CharField(source="vendor.name", read_only=True, default=None)
+    images = ItemImageSerializer(many=True, read_only=True)
+    thumbnail_url = serializers.SerializerMethodField()
 
     class Meta:
         model = Item
@@ -31,6 +70,15 @@ class ItemSerializer(serializers.ModelSerializer):
             return create_item(shop=shop, **validated_data)
         except ValueError as e:
             raise serializers.ValidationError(str(e))
+
+    def get_thumbnail_url(self, obj):
+        # .all() est préfetché (aucune requête) et Meta.ordering place la position 1 en premier.
+        first = next(iter(obj.images.all()), None)
+        if first is None:
+            return None
+        request = self.context.get("request")
+        url = first.thumbnail.url
+        return request.build_absolute_uri(url) if request else url
 
 
 class QuickItemCreateSerializer(serializers.Serializer):

@@ -144,3 +144,21 @@ export function extractErrorMessage(error) {
   }
   return "Une erreur est survenue.";
 }
+
+// Chaque appel renvoie la liste complète et à jour des photos de l'article, triée par position.
+export async function uploadItemImage(shopId, itemId, file) {
+  const formData = new FormData();
+  formData.append("image", file);
+  const { data } = await apiClient.post(`/shops/${shopId}/items/${itemId}/images/`, formData);
+  return data;
+}
+
+export async function reorderItemImages(shopId, itemId, orderedImageIds) {
+  const { data } = await apiClient.put(`/shops/${shopId}/items/${itemId}/images/order/`, { order: orderedImageIds });
+  return data;
+}
+
+export async function deleteItemImage(shopId, itemId, imageId) {
+  const { data } = await apiClient.delete(`/shops/${shopId}/items/${itemId}/images/${imageId}/`);
+  return data;
+}

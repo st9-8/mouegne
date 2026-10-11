@@ -27,6 +27,8 @@ from sales.serializers import CustomerSerializer, SaleCreateSerializer, SaleSeri
 
 from sales.services import create_sale
 
+from catalog.services import thumbnail_urls_for_items
+
 
 @shop_scoped_schema
 class CustomerViewSet(ManagerWriteOnlyMixin, viewsets.ModelViewSet):
@@ -172,12 +174,20 @@ class DashboardStatsView(APIView):
             .order_by("total_qty")[:5]
         )
 
+        top_items = list(
+            details.values("item__id", "item__name").annotate(total_qty=Sum("quantity")).order_by("-total_qty")[:10])
+        least_items = list(
+            details.values("item__id", "item__name").annotate(total_qty=Sum("quantity")).order_by("total_qty")[:5])
+        thumbs = thumbnail_urls_for_items({i["item__id"] for i in top_items + least_items if i["item__id"]}, request)
+
         return Response({
             "revenue": revenue,
             "profit": profit,
             "sales_count": sales.count(),
-            "top_items": [{"item_id": str(i["item__id"]), "name": i["item__name"], "quantity": i["total_qty"]} for i in
+            "top_items": [{"item_id": str(i["item__id"]), "name": i["item__name"], "quantity": i["total_qty"],
+                           "thumbnail_url": thumbs.get(str(i["item__id"]))} for i in
                           top_items if i["item__id"]],
-            "least_items": [{"item_id": str(i["item__id"]), "name": i["item__name"], "quantity": i["total_qty"]} for i
+            "least_items": [{"item_id": str(i["item__id"]), "name": i["item__name"], "quantity": i["total_qty"],
+                             "thumbnail_url": thumbs.get(str(i["item__id"]))} for i
                             in least_items if i["item__id"]],
         })

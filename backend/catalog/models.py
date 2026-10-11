@@ -1,4 +1,10 @@
+import uuid
 from core.models import MerchantScopedModel, ShopScopedModel
+from imagekit.models import ImageSpecField, ProcessedImageField
+from django.core.validators import MaxValueValidator, MinValueValidator
+from imagekit.processors import ResizeToFill, ResizeToFit, Transpose
+
+MAX_IMAGES_PER_ITEM = 5
 
 """
 Module: models.py
@@ -76,3 +82,36 @@ class Item(ShopScopedModel):
     class Meta:
         ordering = ['name']
         verbose_name_plural = 'Items'
+
+
+def item_image_path(instance, filename):
+    # Nom aléatoire : pas de collision ni d'énumération. Extension .webp car on convertit à l'upload.
+    return f"items/{instance.shop_id}/{uuid.uuid4().hex}.webp"
+
+
+class ItemImage(ShopScopedModel):
+    item = models.ForeignKey("catalog.Item", on_delete=models.CASCADE, related_name="images")
+    image = ProcessedImageField(
+        upload_to=item_image_path,
+        # Transpose() applique l'orientation EXIF : sans lui, les photos de téléphone s'affichent couchées.
+        processors=[Transpose(), ResizeToFit(1200, 1200)],
+        format="WEBP",
+        options={"quality": 82},
+    )
+    thumbnail = ImageSpecField(
+        source="image",
+        processors=[ResizeToFill(96, 96)],
+        format="WEBP",
+        options={"quality": 75},
+    )
+    position = models.PositiveSmallIntegerField(
+        validators=[MinValueValidator(1), MaxValueValidator(MAX_IMAGES_PER_ITEM)],
+        help_text="1 = photo d'aperçu (miniature).",
+    )
+
+    class Meta:
+        db_table = "item_images"
+        ordering = ["position"]
+        constraints = [
+            models.UniqueConstraint(fields=["item", "position"], name="unique_image_position_per_item"),
+        ]
