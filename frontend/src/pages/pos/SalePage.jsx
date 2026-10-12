@@ -8,6 +8,10 @@ function formatFcfa(amount) {
   return new Intl.NumberFormat("fr-FR").format(Math.round(amount || 0)) + " FCFA";
 }
 
+// Taille de la miniature dans les suggestions de recherche (était 44 : +64 %).
+// La hauteur de chaque ligne suit automatiquement.
+const SUGGESTION_THUMB_SIZE = 150;
+
 export default function SalePage() {
   const { activeShopId, activeShop } = useShop();
 
@@ -242,8 +246,12 @@ export default function SalePage() {
                   borderRadius: 13,
                   boxShadow: "var(--shadow-dropdown)",
                   overflow: "hidden",
+                  display: "flex",
+                  flexDirection: "column",
+                  maxHeight: "min(65vh, 560px)", // des lignes plus hautes ne doivent pas sortir de l'écran
                 }}
               >
+                <div style={{ overflowY: "auto", minHeight: 0 }}>
                 {suggestions.length === 0 && (
                   <div style={{ padding: "26px 18px", textAlign: "center", color: "var(--color-text-faint)", fontSize: 14 }}>
                     Aucun article ne correspond à « {query} »
@@ -266,7 +274,7 @@ export default function SalePage() {
                       textAlign: "left",
                     }}
                   >
-                    <ItemThumb src={p.thumbnail_url} name={p.name} size={44} />
+                    <ItemThumb src={p.thumbnail_url} name={p.name} size={SUGGESTION_THUMB_SIZE} />
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: 14.5, fontWeight: 500 }}>{p.name}</div>
                       <div className="mono" style={{ fontSize: 12, color: "var(--color-text-faint)", marginTop: 3 }}>
@@ -281,9 +289,11 @@ export default function SalePage() {
                     </span>
                   </button>
                 ))}
+                </div>
                 <button
                   onClick={openQuickCreate}
                   style={{
+                    flexShrink: 0, // reste visible en bas du menu même quand la liste défile
                     display: "flex",
                     alignItems: "center",
                     gap: 10,
