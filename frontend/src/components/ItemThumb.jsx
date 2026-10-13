@@ -1,20 +1,22 @@
 import { useState } from "react";
 
 /**
- * Miniature d'un article (photo en position 1). Sans photo, ou si le chargement
- * échoue, affiche un carré neutre avec les initiales — jamais d'icône d'image cassée.
+ * Image d'un article. Essaie `src`, puis `fallbackSrc` si le premier échoue (ex. format pas encore
+ * généré côté serveur), puis affiche un carré neutre avec les initiales — jamais d'icône d'image cassée.
  */
-export default function ItemThumb({ src, name, size = 44 }) {
-  const [failedSrc, setFailedSrc] = useState(null);
+export default function ItemThumb({ src, fallbackSrc, name, size = 44, radius }) {
+  const [failed, setFailed] = useState([]); // sources dont le chargement a échoué
 
   const box = {
     width: size,
     height: size,
-    borderRadius: Math.round(size * 0.22),
+    borderRadius: radius ?? Math.round(size * 0.22),
     flexShrink: 0,
   };
 
-  if (!src || failedSrc === src) {
+  const current = [src, fallbackSrc].find((url) => url && !failed.includes(url));
+
+  if (!current) {
     return (
       <div
         aria-hidden="true"
@@ -36,10 +38,10 @@ export default function ItemThumb({ src, name, size = 44 }) {
 
   return (
     <img
-      src={src}
+      src={current}
       alt=""
       loading="lazy"
-      onError={() => setFailedSrc(src)}
+      onError={() => setFailed((list) => [...list, current])}
       style={{ ...box, objectFit: "cover", background: "var(--color-surface-alt)", border: "1px solid var(--color-border)" }}
     />
   );

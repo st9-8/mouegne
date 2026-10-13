@@ -9,7 +9,7 @@ def delete_item_image_files(sender, instance, **kwargs):
     if not instance.image:
         return
     storage = instance.image.storage
-    names = [instance.image.name, instance.thumbnail.name]
+    names = [instance.image.name, instance.thumbnail.name, instance.card.name]
 
     def _purge():
         for name in names:

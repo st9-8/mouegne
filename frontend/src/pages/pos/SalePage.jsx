@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { apiClient, extractErrorMessage, openSaleReceipt, printSaleReceipt } from "../../lib/apiClient";
 import { useShop } from "../../context/ShopContext";
 import Modal from "../../components/Modal";
@@ -8,9 +8,10 @@ function formatFcfa(amount) {
   return new Intl.NumberFormat("fr-FR").format(Math.round(amount || 0)) + " FCFA";
 }
 
-// Taille de la miniature dans les suggestions de recherche (était 44 : +64 %).
-// La hauteur de chaque ligne suit automatiquement.
-const SUGGESTION_THUMB_SIZE = 150;
+// Résultats de recherche : bande de cards à défilement horizontal.
+const CARD_WIDTH = 150; // largeur d'une card
+const CARD_IMAGE_SIZE = 130; // image carrée (CARD_WIDTH - 2 × 10 de padding)
+const SUGGESTION_LIMIT = 12; // résultats chargés (défiler est peu coûteux, contrairement à une liste verticale)
 
 export default function SalePage() {
   const { activeShopId, activeShop } = useShop();
@@ -50,7 +51,7 @@ export default function SalePage() {
     const handle = setTimeout(async () => {
       try {
         const { data } = await apiClient.get(`/shops/${activeShopId}/items/`, {
-          params: { search: query, page_size: 6 },
+          params: { search: query, page_size: SUGGESTION_LIMIT },
         });
         setSuggestions(Array.isArray(data) ? data : data?.results || []);
       } catch {
@@ -59,6 +60,86 @@ export default function SalePage() {
     }, 250);
     return () => clearTimeout(handle);
   }, [query, activeShopId]);
+
+  // --- Bande de cards des résultats : défilement horizontal ---
+  const stripRef = useRef(null);
+  const [canScroll, setCanScroll] = useState({ left: false, right: false });
+  const hasCards = showSuggest && Boolean(query) && suggestions.length > 0;
+
+  const updateScrollState = useCallback(() => {
+    const el = stripRef.current;
+    if (!el) return;
+    const left = el.scrollLeft > 4;
+    const right = el.scrollLeft + el.clientWidth < el.scrollWidth - 4;
+    setCanScroll((prev) => (prev.left === left && prev.right === right ? prev : { left, right }));
+  }, []);
+
+  // Nouveaux résultats : on repart du début de la bande.
+  useEffect(() => {
+    const el = stripRef.current;
+    if (!el) return;
+    el.scrollLeft = 0;
+    updateScrollState();
+  }, [suggestions, hasCards, updateScrollState]);
+
+  // La molette verticale fait défiler la bande : une souris classique n'a pas de défilement horizontal.
+  // Écouteur natif NON passif : React enregistre onWheel en passif, et preventDefault y serait ignoré.
+  useEffect(() => {
+    const el = stripRef.current;
+    if (!el) return;
+    function onWheel(e) {
+      if (Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return; // geste déjà horizontal (trackpad)
+      const max = el.scrollWidth - el.clientWidth;
+      if (max <= 0) return;
+      const atStart = el.scrollLeft <= 0 && e.deltaY < 0;
+      const atEnd = el.scrollLeft >= max - 1 && e.deltaY > 0;
+      if (atStart || atEnd) return; // en butée : on laisse la page défiler
+      e.preventDefault();
+      // deltaMode : 0 = pixels, 1 = lignes (Firefox sous Windows), 2 = pages
+      const delta = e.deltaMode === 1 ? e.deltaY * 16 : e.deltaMode === 2 ? e.deltaY * el.clientWidth : e.deltaY;
+      el.scrollLeft += delta;
+    }
+    el.addEventListener("wheel", onWheel, { passive: false });
+    window.addEventListener("resize", updateScrollState);
+    return () => {
+      el.removeEventListener("wheel", onWheel);
+      window.removeEventListener("resize", updateScrollState);
+    };
+  }, [hasCards, updateScrollState]);
+
+  function scrollStrip(direction) {
+    const el = stripRef.current;
+    if (el) el.scrollBy({ left: direction * el.clientWidth * 0.8, behavior: "smooth" });
+  }
+
+  function renderArrow(direction) {
+    return (
+      <button
+        type="button"
+        onClick={() => scrollStrip(direction)}
+        aria-label={direction < 0 ? "Résultats précédents" : "Résultats suivants"}
+        style={{
+          position: "absolute",
+          top: "50%",
+          transform: "translateY(-50%)",
+          [direction < 0 ? "left" : "right"]: 8,
+          zIndex: 2,
+          width: 38,
+          height: 38,
+          borderRadius: "50%",
+          border: "1px solid var(--color-border)",
+          background: "var(--color-surface)",
+          boxShadow: "var(--shadow-dropdown)",
+          cursor: "pointer",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <span className="icon" style={{ fontSize: 22 }}>{direction < 0 ? "chevron_left" : "chevron_right"}</span>
+      </button>
+    );
+  }
 
   useEffect(() => {
     if (!activeShopId) return;
@@ -246,60 +327,97 @@ export default function SalePage() {
                   borderRadius: 13,
                   boxShadow: "var(--shadow-dropdown)",
                   overflow: "hidden",
-                  display: "flex",
-                  flexDirection: "column",
-                  maxHeight: "min(65vh, 560px)", // des lignes plus hautes ne doivent pas sortir de l'écran
                 }}
               >
-                <div style={{ overflowY: "auto", minHeight: 0 }}>
                 {suggestions.length === 0 && (
                   <div style={{ padding: "26px 18px", textAlign: "center", color: "var(--color-text-faint)", fontSize: 14 }}>
                     Aucun article ne correspond à « {query} »
                   </div>
                 )}
-                {suggestions.map((p) => (
-                  <button
-                    key={p.id}
-                    onClick={() => addToCart(p)}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 14,
-                      width: "100%",
-                      padding: "13px 18px",
-                      border: "none",
-                      borderBottom: "1px solid var(--color-divider)",
-                      background: "var(--color-surface)",
-                      cursor: "pointer",
-                      textAlign: "left",
-                    }}
-                  >
-                    <ItemThumb src={p.thumbnail_url} name={p.name} size={SUGGESTION_THUMB_SIZE} />
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 14.5, fontWeight: 500 }}>{p.name}</div>
-                      <div className="mono" style={{ fontSize: 12, color: "var(--color-text-faint)", marginTop: 3 }}>
-                        {p.category_name}
-                      </div>
+
+                {suggestions.length > 0 && (
+                  <div style={{ position: "relative" }}>
+                    {canScroll.left && renderArrow(-1)}
+                    <div
+                      ref={stripRef}
+                      onScroll={updateScrollState}
+                      style={{ display: "flex", gap: 12, overflowX: "auto", padding: "14px 18px", scrollbarWidth: "thin" }}
+                    >
+                      {suggestions.map((p) => (
+                        <button
+                          key={p.id}
+                          type="button"
+                          onClick={() => addToCart(p)}
+                          title={p.name}
+                          style={{
+                            flex: `0 0 ${CARD_WIDTH}px`,
+                            display: "flex",
+                            flexDirection: "column",
+                            alignItems: "stretch",
+                            gap: 8,
+                            padding: 10,
+                            border: "1px solid var(--color-border)",
+                            borderRadius: 12,
+                            background: "var(--color-surface)",
+                            cursor: "pointer",
+                            textAlign: "left",
+                          }}
+                        >
+                          <div style={{ position: "relative" }}>
+                            <ItemThumb src={p.card_url} fallbackSrc={p.thumbnail_url} name={p.name} size={CARD_IMAGE_SIZE} radius={8} />
+                            <span
+                              style={{
+                                position: "absolute",
+                                top: 6,
+                                left: 6,
+                                fontSize: 11.5,
+                                fontWeight: 600,
+                                padding: "2px 8px",
+                                borderRadius: 20,
+                                background: p.quantity > 0 ? "rgba(255,255,255,0.94)" : "var(--color-danger)",
+                                color: p.quantity > 0 ? "var(--color-accent)" : "#fff",
+                                boxShadow: "0 1px 3px rgba(16,22,19,0.18)",
+                              }}
+                            >
+                              Stock {p.quantity}
+                            </span>
+                          </div>
+                          <div
+                            style={{
+                              fontSize: 14,
+                              fontWeight: 500,
+                              lineHeight: "18px",
+                              minHeight: 36, // 2 lignes réservées : toutes les cards ont la même hauteur
+                              display: "-webkit-box",
+                              WebkitLineClamp: 2,
+                              WebkitBoxOrient: "vertical",
+                              overflow: "hidden",
+                            }}
+                          >
+                            {p.name}
+                          </div>
+                          <div className="mono" style={{ fontSize: 11.5, color: "var(--color-text-faint)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                            {p.category_name}
+                          </div>
+                          <div className="mono" style={{ fontSize: 14, fontWeight: 700 }}>{formatFcfa(p.price)}</div>
+                        </button>
+                      ))}
                     </div>
-                    <span style={{ fontSize: 12.5, color: p.quantity > 0 ? "var(--color-accent)" : "var(--color-danger)" }}>
-                      Stock {p.quantity}
-                    </span>
-                    <span className="mono" style={{ fontSize: 14.5, fontWeight: 600, minWidth: 108, textAlign: "right" }}>
-                      {formatFcfa(p.price)}
-                    </span>
-                  </button>
-                ))}
-                </div>
+                    {canScroll.right && renderArrow(1)}
+                  </div>
+                )}
+
                 <button
+                  type="button"
                   onClick={openQuickCreate}
                   style={{
-                    flexShrink: 0, // reste visible en bas du menu même quand la liste défile
                     display: "flex",
                     alignItems: "center",
                     gap: 10,
                     width: "100%",
                     padding: "13px 18px",
                     border: "none",
+                    borderTop: "1px solid var(--color-divider)",
                     background: "var(--color-accent-soft)",
                     cursor: "pointer",
                     textAlign: "left",

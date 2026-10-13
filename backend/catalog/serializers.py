@@ -52,12 +52,13 @@ class ItemSerializer(serializers.ModelSerializer):
     vendor_name = serializers.CharField(source="vendor.name", read_only=True, default=None)
     images = ItemImageSerializer(many=True, read_only=True)
     thumbnail_url = serializers.SerializerMethodField()
+    card_url = serializers.SerializerMethodField()
 
     class Meta:
         model = Item
         fields = [
             "id", "name", "slug", "description", "category", "category_name",
-            "vendor", "vendor_name", "images", "quantity", "price", "purchase_price", "thumbnail_url",
+            "vendor", "vendor_name", "images", "quantity", "price", "purchase_price", "thumbnail_url", "card_url",
             "expiring_date", "created_at", "updated_at",
         ]
         read_only_fields = ["id", "slug", "created_at", "updated_at"]
@@ -71,14 +72,19 @@ class ItemSerializer(serializers.ModelSerializer):
         except ValueError as e:
             raise serializers.ValidationError(str(e))
 
-    def get_thumbnail_url(self, obj):
-        # .all() est préfetché (aucune requête) et Meta.ordering place la position 1 en premier.
-        first = next(iter(obj.images.all()), None)
+    def _first_image_url(self, obj, spec_name):
+        first = next(iter(obj.images.all()), None)  # préfetché : aucune requête
         if first is None:
             return None
         request = self.context.get("request")
-        url = first.thumbnail.url
+        url = getattr(first, spec_name).url
         return request.build_absolute_uri(url) if request else url
+
+    def get_thumbnail_url(self, obj):
+        return self._first_image_url(obj, "thumbnail")
+
+    def get_card_url(self, obj):
+        return self._first_image_url(obj, "card")
 
 
 class QuickItemCreateSerializer(serializers.Serializer):

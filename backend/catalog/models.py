@@ -104,6 +104,13 @@ class ItemImage(ShopScopedModel):
         format="WEBP",
         options={"quality": 75},
     )
+    card = ImageSpecField(
+        source="image",
+        processors=[ResizeToFill(260, 260)],  # affiché à 130 px : 2× pour les écrans haute densité
+        format="WEBP",
+        options={"quality": 78},
+    )
+
     position = models.PositiveSmallIntegerField(
         validators=[MinValueValidator(1), MaxValueValidator(MAX_IMAGES_PER_ITEM)],
         help_text="1 = photo d'aperçu (miniature).",
