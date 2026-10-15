@@ -363,6 +363,9 @@ export default function SalePage() {
                             textAlign: "left",
                           }}
                         >
+                          <div style={{ position: "relative" }}>
+                            <ItemThumb src={p.card_url} fallbackSrc={p.thumbnail_url} name={p.name} size={CARD_IMAGE_SIZE} radius={8} />
+                          </div>
                           <div
                             style={{
                               fontSize: 14,
