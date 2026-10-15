@@ -363,25 +363,6 @@ export default function SalePage() {
                             textAlign: "left",
                           }}
                         >
-                          <div style={{ position: "relative" }}>
-                            <ItemThumb src={p.card_url} fallbackSrc={p.thumbnail_url} name={p.name} size={CARD_IMAGE_SIZE} radius={8} />
-                            <span
-                              style={{
-                                position: "absolute",
-                                top: 6,
-                                left: 6,
-                                fontSize: 11.5,
-                                fontWeight: 600,
-                                padding: "2px 8px",
-                                borderRadius: 20,
-                                background: p.quantity > 0 ? "rgba(255,255,255,0.94)" : "var(--color-danger)",
-                                color: p.quantity > 0 ? "var(--color-accent)" : "#fff",
-                                boxShadow: "0 1px 3px rgba(16,22,19,0.18)",
-                              }}
-                            >
-                              Stock {p.quantity}
-                            </span>
-                          </div>
                           <div
                             style={{
                               fontSize: 14,
