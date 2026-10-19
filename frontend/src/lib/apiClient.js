@@ -130,6 +130,18 @@ export async function openSaleReceipt(shopId, saleId) {
   window.open(blobUrl, "_blank");
 }
 
+export async function fetchStockMovements(shopId, itemId, page = 1, pageSize = 20) {
+  const { data } = await apiClient.get(`/shops/${shopId}/items/${itemId}/stock-movements/`, {
+    params: { page, page_size: pageSize },
+  });
+  return Array.isArray(data) ? { results: data, next: null } : data;
+}
+
+export async function adjustItemStock(shopId, itemId, { direction, quantity, note }) {
+  const { data } = await apiClient.post(`/shops/${shopId}/items/${itemId}/stock-adjustments/`, { direction, quantity, note });
+  return data;
+}
+
 /** Extrait un message d'erreur lisible depuis une réponse DRF standard. */
 export function extractErrorMessage(error) {
   const data = error?.response?.data;

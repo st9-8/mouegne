@@ -7,12 +7,12 @@ from rest_framework.response import Response
 from core.permissions import IsShopMember, ManagerOnlyMixin
 from core.schema import shop_scoped_schema
 
-from core.permissions import IsShopManager
+from core.permissions import IsShopManager, IsShopManagerStrict
 
-from catalog.models import Category, Item, ItemImage
-from catalog.services import quick_create_item, add_item_image, delete_item_image, reorder_item_images
+from catalog.models import Category, Item, ItemImage, StockMovement
+from catalog.services import quick_create_item, add_item_image, delete_item_image, reorder_item_images, adjust_stock
 from catalog.serializers import CategorySerializer, ItemSerializer, ItemImageSerializer, ItemImageUploadSerializer, \
-    ItemImageOrderSerializer, QuickItemCreateSerializer
+    ItemImageOrderSerializer, QuickItemCreateSerializer, StockMovementSerializer, StockAdjustmentInputSerializer
 
 
 @shop_scoped_schema
@@ -46,7 +46,10 @@ class ItemViewSet(viewsets.ModelViewSet):
 
     # dans la classe :
     def get_permissions(self):
-        if self.action in ["update", "partial_update", "destroy", "add_image", "reorder_images", "delete_image"]:
+        if self.action == "stock_movements":  # lecture : l'historique révèle ventes et réceptions → OWNER/MANAGER seulement
+            return [IsShopMember(), IsShopManagerStrict()]
+        if self.action in ["update", "partial_update", "destroy", "add_image", "reorder_images",
+                           "delete_image", "adjust_item_stock"]:
             return [IsShopMember(), IsShopManager()]
         return [IsShopMember()]
 
@@ -97,5 +100,23 @@ class ItemViewSet(viewsets.ModelViewSet):
     def quick_create(self, request, *args, **kwargs):
         serializer = QuickItemCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        item = quick_create_item(shop=request.shop, **serializer.validated_data)
+        item = quick_create_item(shop=request.shop, employee=request.employee, **serializer.validated_data)
         return Response(ItemSerializer(item).data, status=201)
+
+    @action(detail=True, methods=["post"], url_path="stock-adjustments")
+    def adjust_item_stock(self, request, *args, **kwargs):
+        item = self.get_object()
+        payload = StockAdjustmentInputSerializer(data=request.data)
+        payload.is_valid(raise_exception=True)
+        try:
+            movement = adjust_stock(item=item, employee=request.employee, **payload.validated_data)
+        except ValueError as e:
+            raise serializers.ValidationError(str(e))
+        return Response(StockMovementSerializer(movement).data, status=status.HTTP_201_CREATED)
+
+    @action(detail=True, methods=["get"], url_path="stock-movements")
+    def stock_movements(self, request, *args, **kwargs):
+        item = self.get_object()
+        queryset = StockMovement.objects.filter(item=item).select_related("employee__user")
+        page = self.paginate_queryset(queryset)
+        return self.get_paginated_response(StockMovementSerializer(page, many=True).data)

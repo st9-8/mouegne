@@ -2,6 +2,10 @@ from django.db import transaction, models
 
 from catalog.models import Item
 
+from catalog.models import StockMovement
+
+from catalog.services import change_stock
+
 from sales.models import Sale, SaleDetail
 
 from tenants.models import Shop
@@ -47,7 +51,7 @@ def create_sale(*, shop, customer, employee, items_data, payment_data, allow_zer
             price=entry["price"], cost_price=item.purchase_price, quantity=entry["quantity"],
             total_detail=entry["total_item"],
         )
-        item.quantity = models.F("quantity") - entry["quantity"]
-        item.save(update_fields=["quantity"])
+        change_stock(item=item, delta=-entry["quantity"], kind=StockMovement.Kind.SALE, employee=employee,
+                     source_ref=sale.reference, source_id=sale.id)
 
     return sale

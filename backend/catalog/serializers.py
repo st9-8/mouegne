@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from catalog.models import MAX_IMAGES_PER_ITEM
-from catalog.models import Category, Item, ItemImage
+from catalog.models import Category, Item, ItemImage, StockMovement
 
 from catalog.services import create_item
 
@@ -62,15 +62,24 @@ class ItemSerializer(serializers.ModelSerializer):
             "expiring_date", "created_at", "updated_at",
         ]
         read_only_fields = ["id", "slug", "created_at", "updated_at"]
+        extra_kwargs = {"quantity": {"min_value": 0}}
 
     def create(self, validated_data):
-        shop = self.context["request"].shop
+        request = self.context['request']
+        shop = request.shop
 
         validated_data.pop("shop", None)
         try:
-            return create_item(shop=shop, **validated_data)
+            return create_item(shop=shop, employee=request.employee, **validated_data)
         except ValueError as e:
             raise serializers.ValidationError(str(e))
+
+    def update(self, instance, validated_data):
+        if "quantity" in validated_data and validated_data["quantity"] != instance.quantity:
+            raise serializers.ValidationError(
+                {"quantity": "Le stock se modifie avec « Modifier le stock » (ou par une vente / une réception)."})
+        validated_data.pop("quantity", None)
+        return super().update(instance, validated_data)
 
     def _first_image_url(self, obj, spec_name):
         first = next(iter(obj.images.all()), None)  # préfetché : aucune requête
@@ -91,3 +100,19 @@ class QuickItemCreateSerializer(serializers.Serializer):
     name = serializers.CharField(max_length=50)
     price = serializers.DecimalField(max_digits=10, decimal_places=2)
     quantity = serializers.IntegerField(min_value=0, default=1)
+
+
+class StockAdjustmentInputSerializer(serializers.Serializer):
+    direction = serializers.ChoiceField(choices=["add", "remove"])
+    quantity = serializers.IntegerField(min_value=1, max_value=1_000_000)
+    note = serializers.CharField(required=False, allow_blank=True, max_length=300, default="")
+
+
+class StockMovementSerializer(serializers.ModelSerializer):
+    kind_label = serializers.CharField(source="get_kind_display", read_only=True)
+    employee_username = serializers.CharField(source="employee.user.username", read_only=True, default=None)
+
+    class Meta:
+        model = StockMovement
+        fields = ["id", "kind", "kind_label", "delta", "quantity_before", "quantity_after",
+                  "note", "source_ref", "employee_username", "created_at"]

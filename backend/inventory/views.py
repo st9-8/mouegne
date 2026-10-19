@@ -61,7 +61,7 @@ class PurchaseViewSet(ManagerOnlyMixin, viewsets.ModelViewSet):
         return Purchase.objects.filter(shop=self.request.shop).select_related("item", "vendor")
 
     def perform_destroy(self, instance):
-        reverse_purchase(instance)
+        reverse_purchase(instance, employee=self.request.employee)
 
 
 class PurchaseBatchViewSet(ManagerOnlyMixin, viewsets.ModelViewSet):

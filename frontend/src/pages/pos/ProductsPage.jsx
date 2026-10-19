@@ -4,6 +4,7 @@ import Pagination from "../../components/Pagination";
 import Modal from "../../components/Modal";
 import ItemThumb from "../../components/ItemThumb";
 import ItemPhotosEditor from "../../components/ItemPhotosEditor";
+import ItemStockPanel from "../../components/ItemStockPanel";
 import { useShopResource } from "../../lib/useShopResource";
 import { apiClient, asList, extractErrorMessage, uploadItemImage } from "../../lib/apiClient";
 import { useShop } from "../../context/ShopContext";
@@ -126,7 +127,11 @@ export default function ProductsPage() {
     setError(null);
     try {
       if (editing) {
-        await apiClient.patch(`/shops/${activeShopId}/items/${editing.id}/`, form);
+        // Le stock n'est PAS envoyé : il ne se modifie que par les ventes, les réceptions et « Modifier le stock ».
+        // L'envoyer écraserait les ventes survenues pendant que la fenêtre est ouverte.
+        const fields = { ...form };
+        delete fields.quantity;
+        await apiClient.patch(`/shops/${activeShopId}/items/${editing.id}/`, fields);
       } else {
         const { data: created } = await apiClient.post(`/shops/${activeShopId}/items/`, form);
         // Un par un : l'ordre d'envoi définit les positions (la première photo = aperçu).
@@ -272,6 +277,8 @@ export default function ProductsPage() {
                 <input type="number" style={inputStyle} value={form.quantity} onChange={(e) => setForm({ ...form, quantity: e.target.value })} />
               </label>
             )}
+            {editing && <ItemStockPanel shopId={activeShopId} itemId={editing.id} />}
+
             <ItemPhotosEditor
               shopId={activeShopId}
               itemId={editing?.id}

@@ -4,6 +4,10 @@ from django.db import transaction
 
 from tenants.models import Shop
 
+from catalog.models import StockMovement
+
+from catalog.services import change_stock
+
 from inventory.models import Purchase, PurchaseBatch, Vendor
 
 from catalog.models import Item
@@ -51,8 +55,8 @@ def receive_purchase_batch(*, shop, employee, description, items_data):
             quantity=quantity, price=price, total_value=price * quantity,
         )
 
-        item.quantity = models.F("quantity") + quantity
-        item.save(update_fields=["quantity"])
+        change_stock(item=item, delta=quantity, kind=StockMovement.Kind.PURCHASE, employee=employee,
+                     source_ref=batch.reference, source_id=batch.id)
 
     return batch
 
@@ -74,17 +78,16 @@ def receive_purchase(*, shop, item, vendor, quantity, price, description=''):
         total_value=price * quantity,
         description=description,
     )
-
-    item.quantity = models.F('quantity') + quantity
-    item.save(update_fields=['quantity'])
+    change_stock(item, quantity, kind=StockMovement.Kind.PURCHASE, employee=shop.owner)
     item.refresh_from_db(fields=['quantity'])
 
     return purchase
 
 
 @transaction.atomic
-def reverse_purchase(purchase: Purchase):
+def reverse_purchase(purchase: Purchase, employee=None):
     item = purchase.item
-    item.quantity = models.F('quantity') - purchase.quantity
-    item.save(update_fields=['quantity'])
+    change_stock(item=purchase.item, delta=-purchase.quantity, kind=StockMovement.Kind.PURCHASE_CANCELLED,
+                 employee=employee, source_ref=purchase.batch.reference if purchase.batch_id else "",
+                 source_id=purchase.batch_id or purchase.id)
     purchase.delete()

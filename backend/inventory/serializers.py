@@ -40,7 +40,7 @@ class PurchaseSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         shop = self.context["request"].shop
         try:
-            return receive_purchase(shop=shop, **validated_data)
+            return receive_purchase(shop=shop, employee=self.context['request'].employee, **validated_data)
         except ValueError as e:
             raise serializers.ValidationError(str(e))
 

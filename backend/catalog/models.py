@@ -122,3 +122,28 @@ class ItemImage(ShopScopedModel):
         constraints = [
             models.UniqueConstraint(fields=["item", "position"], name="unique_image_position_per_item"),
         ]
+
+
+class StockMovement(ShopScopedModel):
+    class Kind(models.TextChoices):
+        INITIAL = "INITIAL", "Stock initial"
+        SALE = "SALE", "Vente"
+        PURCHASE = "PURCHASE", "Réception"
+        PURCHASE_CANCELLED = "PURCHASE_CANCELLED", "Réception annulée"
+        ADJUSTMENT = "ADJUSTMENT", "Ajustement manuel"
+
+    item = models.ForeignKey(Item, on_delete=models.CASCADE, related_name="stock_movements")
+    kind = models.CharField(max_length=20, choices=Kind.choices)
+    delta = models.IntegerField(help_text="Variation signée : + ajout, - réduction.")
+    quantity_before = models.IntegerField()
+    quantity_after = models.IntegerField()
+    employee = models.ForeignKey("tenants.Employee", on_delete=models.SET_NULL, null=True, blank=True,
+                                 related_name="stock_movements")
+    note = models.CharField(max_length=300, blank=True)
+    source_ref = models.CharField(max_length=40, blank=True)  # "VS-0000000012", "VS-R00000003"
+    source_id = models.UUIDField(null=True, blank=True)
+
+    class Meta:
+        db_table = "stock_movements"
+        ordering = ["-created_at"]
+        indexes = [models.Index(fields=["item", "-created_at"])]
