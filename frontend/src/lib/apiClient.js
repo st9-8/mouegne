@@ -36,7 +36,10 @@ async function refreshAccessToken() {
   const refresh = tokenStore.getRefresh();
   if (!refresh) throw new Error("Aucun refresh token disponible.");
 
-  const { data } = await axios.post("/api/auth/token/refresh/", { refresh });
+  // Même base que apiClient. Une URL relative « /api/... » ignorerait VITE_API_BASE_URL : avec une API sur un autre
+  // domaine, le renouvellement viserait le frontend, échouerait, et l'utilisateur serait déconnecté à l'expiration du token.
+  const base = (apiClient.defaults.baseURL || "").replace(/\/+$/, "");
+  const { data } = await axios.post(`${base}/auth/token/refresh/`, { refresh });
   tokenStore.set(data.access, data.refresh);
   return data.access;
 }
@@ -96,6 +99,24 @@ export function asList(data) {
   return data?.results || [];
 }
 
+/** Extrait un message d'erreur lisible depuis une réponse DRF standard. */
+export function extractErrorMessage(error) {
+  const data = error?.response?.data;
+  if (!data) return "Une erreur réseau est survenue. Réessayez.";
+  if (typeof data === "string") return data;
+  if (data.detail) return data.detail;
+  if (Array.isArray(data.non_field_errors)) return data.non_field_errors.join(" ");
+  const firstKey = Object.keys(data)[0];
+  if (firstKey) {
+    const value = data[firstKey];
+    return Array.isArray(value) ? value[0] : String(value);
+  }
+  return "Une erreur est survenue.";
+}
+
+/**
+ * Reçu PDF d'une vente : impression automatique (iframe invisible) ou ouverture dans un nouvel onglet.
+ */
 export async function printSaleReceipt(shopId, saleId) {
   const response = await apiClient.get(`/shops/${shopId}/sales/${saleId}/receipt/`, {
     responseType: "blob",
@@ -130,34 +151,11 @@ export async function openSaleReceipt(shopId, saleId) {
   window.open(blobUrl, "_blank");
 }
 
-export async function fetchStockMovements(shopId, itemId, page = 1, pageSize = 20) {
-  const { data } = await apiClient.get(`/shops/${shopId}/items/${itemId}/stock-movements/`, {
-    params: { page, page_size: pageSize },
-  });
-  return Array.isArray(data) ? { results: data, next: null } : data;
-}
-
-export async function adjustItemStock(shopId, itemId, { direction, quantity, note }) {
-  const { data } = await apiClient.post(`/shops/${shopId}/items/${itemId}/stock-adjustments/`, { direction, quantity, note });
-  return data;
-}
-
-/** Extrait un message d'erreur lisible depuis une réponse DRF standard. */
-export function extractErrorMessage(error) {
-  const data = error?.response?.data;
-  if (!data) return "Une erreur réseau est survenue. Réessayez.";
-  if (typeof data === "string") return data;
-  if (data.detail) return data.detail;
-  if (Array.isArray(data.non_field_errors)) return data.non_field_errors.join(" ");
-  const firstKey = Object.keys(data)[0];
-  if (firstKey) {
-    const value = data[firstKey];
-    return Array.isArray(value) ? value[0] : String(value);
-  }
-  return "Une erreur est survenue.";
-}
-
-// Chaque appel renvoie la liste complète et à jour des photos de l'article, triée par position.
+/**
+ * Photos d'un article. Chaque appel renvoie la liste COMPLÈTE et à jour des photos
+ * de l'article : [{ id, position, url, thumbnail_url }], triées par position
+ * (la position 1 est la photo d'aperçu).
+ */
 export async function uploadItemImage(shopId, itemId, file) {
   const formData = new FormData();
   formData.append("image", file);
@@ -172,5 +170,22 @@ export async function reorderItemImages(shopId, itemId, orderedImageIds) {
 
 export async function deleteItemImage(shopId, itemId, imageId) {
   const { data } = await apiClient.delete(`/shops/${shopId}/items/${itemId}/images/${imageId}/`);
+  return data;
+}
+
+/**
+ * Historique du stock d'un article (tous les mouvements : ventes, réceptions, annulations, ajustements).
+ * Renvoie { results, next, ... } trié du plus récent au plus ancien.
+ */
+export async function fetchStockMovements(shopId, itemId, page = 1, pageSize = 20) {
+  const { data } = await apiClient.get(`/shops/${shopId}/items/${itemId}/stock-movements/`, {
+    params: { page, page_size: pageSize },
+  });
+  return Array.isArray(data) ? { results: data, next: null } : data;
+}
+
+/** Ajoute ou retire une quantité. direction : "add" | "remove". Renvoie le mouvement créé. */
+export async function adjustItemStock(shopId, itemId, { direction, quantity, note }) {
+  const { data } = await apiClient.post(`/shops/${shopId}/items/${itemId}/stock-adjustments/`, { direction, quantity, note });
   return data;
 }

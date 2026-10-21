@@ -1,10 +1,11 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { AuthProvider, useAuth } from "./context/AuthContext";
+import { AuthProvider } from "./context/AuthContext";
 import { ShopProvider } from "./context/ShopContext";
 import ProtectedRoute from "./routes/ProtectedRoute";
 import RequireRole from "./routes/RequireRole";
 import RequireMerchant from "./routes/RequireMerchant";
 import AppShell from "./layouts/AppShell";
+import RootRoute from "./routes/RootRoute";
 
 import LoginPage from "./pages/auth/LoginPage";
 import SignupPage from "./pages/auth/SignupPage";
@@ -21,27 +22,13 @@ import ShopsPage from "./pages/pos/ShopsPage";
 import SettingsPage from "./pages/pos/SettingsPage";
 import NewShopPage from "./pages/pos/NewShopPage";
 
-function GlobalLoader() {
-  return (
-    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100vh", color: "var(--color-text-faint)" }}>
-      Chargement…
-    </div>
-  );
-}
-
-function RootRedirect() {
-  const { status } = useAuth();
-  if (status === "loading") return <GlobalLoader />;
-  return <Navigate to={status === "authenticated" ? "/pos/vente" : "/login"} replace />;
-}
-
 export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
         <ShopProvider>
           <Routes>
-            <Route path="/" element={<RootRedirect />} />
+            <Route path="/" element={<RootRoute />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/signup" element={<SignupPage />} />
 
