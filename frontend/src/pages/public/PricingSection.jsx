@@ -1,7 +1,8 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { PLANS, PRICES_INCLUDE_VAT, PRICING, QUOTE_NOTE, whatsappLink } from "../../content/landing";
 import {
-  EMPLOYEES_PER_SHOP, annualSavingsPerShop, formatFcfa, monthlyPerShop, pricePerShop, tierFor, totalPrice,
+  EMPLOYEES_PER_SHOP, PERIODS, formatFcfa, monthlyPerShop, periodSavingsPct, pricePerShop, tierFor, totalPrice,
 } from "../../lib/pricing";
 
 /** « 1 boutique », « 2 à 3 boutiques », « 4 à 10 boutiques » — dérivé des bornes du palier. */
@@ -17,13 +18,28 @@ function accountsLabel({ min, max }) {
   return `${lo} à ${hi} comptes employés, partagés entre vos boutiques`;
 }
 
+/** Phrase d'économie adaptée à la durée choisie (pourcentages calculés, jamais écrits en dur). */
+function savingsSentence(periodKey) {
+  const sem = periodSavingsPct("semestriel", "trimestriel");
+  const yearVsSem = periodSavingsPct("annuel", "semestriel");
+  const yearVsQuarters = periodSavingsPct("annuel", "trimestriel");
+  if (periodKey === "annuel") {
+    return `l'année revient ${yearVsSem} % moins cher que deux semestres et ${yearVsQuarters} % moins cher que quatre trimestres.`;
+  }
+  if (periodKey === "semestriel") {
+    return `le semestre revient ${sem} % moins cher que deux trimestres, et l'année ${yearVsSem} % moins cher que deux semestres.`;
+  }
+  return `le semestre revient ${sem} % moins cher que deux trimestres, et l'année ${yearVsQuarters} % moins cher que quatre trimestres.`;
+}
+
 /**
- * Trois cartes comme dans la maquette : une par palier de boutiques.
+ * Trois cartes (une par palier de boutiques) et un sélecteur de durée : les prix affichés suivent la durée choisie.
  * Tous les montants viennent de lib/pricing.js (aucun prix écrit en dur ici).
  */
 export default function PricingSection() {
+  const [periodKey, setPeriodKey] = useState(PRICING.defaultPeriod);
+  const period = PERIODS.find((p) => p.key === periodKey);
   const taxLabel = PRICES_INCLUDE_VAT ? " TTC" : "";
-  const savingsPct = Math.round((annualSavingsPerShop(1) / (2 * pricePerShop("semestriel", 1))) * 100);
 
   return (
     <section id="tarifs" className="lp-section" aria-labelledby="tarifs-title">
@@ -33,18 +49,27 @@ export default function PricingSection() {
         <p className="lp-sub">{PRICING.subtitle}</p>
       </div>
 
+      <div className="lp-center" style={{ marginTop: 28 }}>
+        <div className="lp-toggle" role="group" aria-label="Durée de paiement">
+          {PERIODS.map((p) => (
+            <button key={p.key} type="button" aria-pressed={periodKey === p.key} onClick={() => setPeriodKey(p.key)}>
+              {p.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
       <div className="lp-plans">
         {PLANS.map((plan, i) => {
           const highlight = i === 1;
-          const annual = pricePerShop("annuel", plan.shops);
-          const semester = pricePerShop("semestriel", plan.shops);
-          const quarter = pricePerShop("trimestriel", plan.shops);
           const tier = tierFor(plan.shops);
           const discount = tier.discountPct;
+          const price = pricePerShop(periodKey, plan.shops);
+          const monthly = monthlyPerShop(periodKey, plan.shops);
+          const example = plan.shops > 1
+            ? `Exemple : ${plan.shops} boutiques = ${formatFcfa(totalPrice(periodKey, plan.shops))} FCFA / ${period.unit}`
+            : null;
           const accounts = accountsLabel(tier);
-          const hint = plan.shops === 1
-            ? `soit ${formatFcfa(monthlyPerShop("annuel", plan.shops))} FCFA par mois`
-            : `Exemple : ${plan.shops} boutiques = ${formatFcfa(totalPrice("annuel", plan.shops))} FCFA / an`;
 
           return (
             <div key={plan.name} className={`lp-plan${highlight ? " lp-plan--hl" : ""}`} data-testid="plan">
@@ -54,11 +79,11 @@ export default function PricingSection() {
               </div>
               <div className="lp-plan-for">{shopsLabel(tier)}</div>
               <div className="lp-plan-price">
-                <span className="lp-plan-amount mono" data-testid="plan-annual">{formatFcfa(annual)}</span>
-                <span className="lp-plan-unit">FCFA{taxLabel} / an</span>
+                <span className="lp-plan-amount mono" data-testid="plan-price">{formatFcfa(price)}</span>
+                <span className="lp-plan-unit" data-testid="plan-unit">FCFA{taxLabel} / {period.unit} / boutique</span>
               </div>
-              <div className="lp-plan-sub" data-testid="plan-semester">par boutique · ou {formatFcfa(semester)} FCFA par semestre · ou {formatFcfa(quarter)} FCFA par trimestre</div>
-              <div className="lp-plan-sub" data-testid="plan-hint">{hint}</div>
+              <div className="lp-plan-sub" data-testid="plan-sub">soit {formatFcfa(monthly)} FCFA par mois</div>
+              {example && <div className="lp-plan-sub" data-testid="plan-hint">{example}</div>}
               <Link to="/signup" className="lp-plan-btn">Commencer</Link>
               <ul className="lp-plan-items">
                 {plan.items.map((item) => {
@@ -76,9 +101,9 @@ export default function PricingSection() {
         })}
       </div>
 
-      <p className="lp-plans-note">
+      <p className="lp-plans-note" data-testid="plans-note">
         {PRICES_INCLUDE_VAT ? "Prix TTC, TVA 19,25 % incluse. " : ""}
-        Payé d'avance : l'annuel revient {savingsPct} % moins cher que deux semestres.
+        Payé d'avance : {savingsSentence(periodKey)}
       </p>
       <p className="lp-plans-note" data-testid="quote-note">
         {QUOTE_NOTE.text}{" "}

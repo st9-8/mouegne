@@ -125,6 +125,13 @@
 .lp-points .icon { font-size: 20px; color: var(--color-accent); }
 
 /* ---------- tarifs : trois cartes (maquette) ---------- */
+.lp-toggle { display: inline-flex; padding: 4px; gap: 4px; border-radius: 12px; background: #eef2f0; }
+.lp-toggle button {
+  display: inline-flex; align-items: center; justify-content: center; min-width: 104px; height: 40px; padding: 0 18px; border: none;
+  border-radius: 9px; background: transparent; font-size: 14.5px; font-weight: 500; color: var(--color-text-secondary); cursor: pointer;
+}
+.lp-toggle button:hover { color: var(--color-text); }
+.lp-toggle button[aria-pressed="true"] { background: #fff; color: var(--color-accent); font-weight: 600; box-shadow: 0 1px 3px rgba(16, 22, 19, 0.12); }
 .lp-plans { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-top: 42px; align-items: start; }
 .lp-plan { background: #fff; border: 1px solid var(--color-border); border-radius: 18px; padding: 28px; }
 .lp-plan--hl { border: 1.5px solid var(--color-accent); box-shadow: 0 18px 44px rgba(16, 22, 19, 0.08); }
@@ -134,7 +141,7 @@
 .lp-plan-for { font-size: 14px; color: var(--color-text-muted); margin-top: 6px; }
 .lp-plan-price { display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px; margin-top: 22px; }
 .lp-plan-amount { font-size: 34px; font-weight: 700; letter-spacing: -0.04em; }
-.lp-plan-unit { font-size: 14px; color: var(--color-text-faint); }
+.lp-plan-unit { font-size: 14px; color: var(--color-text-faint); white-space: nowrap; } /* l'unité passe à la ligne d'un bloc, jamais coupée en deux */
 .lp-plan-sub { margin-top: 6px; font-size: 13.5px; color: var(--color-text-muted); line-height: 1.5; }
 .lp-plan-btn {
   display: flex; align-items: center; justify-content: center; width: 100%; height: 48px; margin-top: 22px;
@@ -187,6 +194,8 @@
   .lp-lead { font-size: 16.5px; }
   .lp-grid-3 { grid-template-columns: 1fr; }
   .lp-plan { padding: 24px 20px; }
+  .lp-toggle { display: flex; width: 100%; max-width: 420px; margin: 0 auto; }
+  .lp-toggle button { flex: 1; min-width: 0; padding: 0 8px; }
   .lp-cta-title { font-size: 26px; }
   .lp-btn--lg { width: 100%; }
   .lp-cta-actions { width: 100%; }

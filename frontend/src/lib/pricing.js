@@ -15,10 +15,11 @@ export const EMPLOYEES_PER_SHOP = 3;
 
 // Prix d'une boutique selon la durée payée d'avance. L'annuel est 20 % moins cher que deux semestres ;
 // le trimestriel coûte 10 % de plus par mois que le semestriel (il incite à payer plus long).
+// Ordre = ordre d'affichage du sélecteur (du plus court au plus long) ; `label` est le texte du bouton.
 export const PERIODS = [
-  { key: "annuel", label: "Annuel", unit: "an", months: 12, base: 96000 },
-  { key: "semestriel", label: "Semestriel", unit: "semestre", months: 6, base: 60000 },
-  { key: "trimestriel", label: "Trimestriel", unit: "trimestre", months: 3, base: 33000 },
+  { key: "trimestriel", label: "Trimestre", unit: "trimestre", months: 3, base: 33000 },
+  { key: "semestriel", label: "Semestre", unit: "semestre", months: 6, base: 60000 },
+  { key: "annuel", label: "Année", unit: "an", months: 12, base: 96000 },
 ];
 
 // Remise PAR BOUTIQUE selon le nombre de boutiques du compte (en %, entiers : pas d'arrondi flottant).
@@ -70,6 +71,14 @@ export function totalPrice(periodKey, shops) {
 /** Équivalent mensuel par boutique. */
 export function monthlyPerShop(periodKey, shops) {
   return Math.round(pricePerShop(periodKey, shops) / period(periodKey).months);
+}
+
+/** Économie, en %, de payer `longKey` plutôt que plusieurs `shortKey` pour la même durée (ex. année vs 4 trimestres). */
+export function periodSavingsPct(longKey, shortKey) {
+  const long = period(longKey);
+  const short = period(shortKey);
+  const shortTotal = short.base * (long.months / short.months);
+  return Math.round((1 - long.base / shortTotal) * 100);
 }
 
 /** Économie par boutique et par an en payant à l'année plutôt que deux semestres. */

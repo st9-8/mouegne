@@ -69,6 +69,7 @@ export const MULTI = {
 };
 
 export const PRICING = {
+  defaultPeriod: "annuel", // durée présélectionnée dans le sélecteur : "trimestriel" | "semestriel" | "annuel"
   title: "Payé à l'année ou au semestre.",
   subtitle: "Un prix par boutique, en francs CFA. Toutes les fonctionnalités incluses, 3 comptes employés par boutique.",
 };
